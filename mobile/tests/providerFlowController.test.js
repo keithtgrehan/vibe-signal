@@ -64,7 +64,7 @@ test("controller save, validate, and remove flow works end-to-end", async () => 
   assert.equal(removeStep.state.credentialPresent, false);
 });
 
-test("controller verify flow saves first and keeps the draft on invalid keys", async () => {
+test("controller verify flow does not save invalid keys and keeps the draft", async () => {
   const controller = createProviderFlowController({
     secureStoreModule: makeMockSecureStore(),
   });
@@ -78,8 +78,28 @@ test("controller verify flow saves first and keeps the draft on invalid keys", a
   });
 
   assert.equal(verifyStep.result.status, "invalid_credentials");
-  assert.equal(verifyStep.state.credentialPresent, true);
+  assert.equal(verifyStep.state.credentialPresent, false);
   assert.equal(verifyStep.state.draftCredential, "sk-invalid");
+});
+
+test("controller verify flow saves only after a successful validation", async () => {
+  const controller = createProviderFlowController({
+    secureStoreModule: makeMockSecureStore(),
+  });
+
+  const verifyStep = await controller.verifyCredential({
+    providerName: "openai",
+    apiKey: "sk-valid-123456",
+    consentAcknowledged: true,
+    currentState: controller.buildBaseState(),
+    fetchImpl: async () => makeJsonResponse(200, { id: "ok" }),
+  });
+
+  assert.equal(verifyStep.result.status, "ready");
+  assert.equal(verifyStep.result.user_message, "Key verified and saved");
+  assert.equal(verifyStep.state.credentialPresent, true);
+  assert.equal(verifyStep.state.draftCredential, "");
+  assert.equal(verifyStep.state.validationResult.user_message, "Key verified and saved");
 });
 
 test("controller run flow is gated when validation fails", async () => {

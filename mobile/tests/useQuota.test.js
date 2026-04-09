@@ -198,6 +198,42 @@ test("quota hook state suppresses paywall while bootstrapping", () => {
   assert.equal(state.status_message, "");
 });
 
+test("quota hook state can show a non-blocking upgrade prompt after repeated successful analyses", () => {
+  const state = buildQuotaHookState({
+    loading: false,
+    monetization: {
+      premiumActive: false,
+      quota: {
+        current_period_type: "trial_week",
+        remaining_uses: 7,
+        uses_in_current_period: 3,
+        paywall_required: false,
+      },
+      quotaView: {
+        usesLeft: "7 left",
+        periodLabel: "Trial week",
+        resetTiming: "Resets in 6d",
+      },
+      paywall: {
+        visible: false,
+        restoreAvailable: true,
+      },
+      product: {
+        productId: "vibesignal_pro_monthly_ios",
+        priceDisplay: "€1.89/month",
+        is_valid: true,
+      },
+      productCatalog: {
+        usesFallback: false,
+      },
+    },
+  });
+
+  assert.equal(state.paywall_required, false);
+  assert.equal(state.upgrade_prompt_visible, true);
+  assert.equal(state.upgrade_prompt_stage, "teaser");
+});
+
 test("quota hook state surfaces compliance metadata for the paywall", () => {
   const state = buildQuotaHookState({
     loading: false,

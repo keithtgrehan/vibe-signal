@@ -4,7 +4,11 @@ export { createProviderCredentialService } from "./providers/providerCredentialS
 export { buildProviderConsentPayload } from "./providers/providerConsent.js";
 export { createProviderFlowController } from "./providers/providerFlowController.js";
 export { buildProviderActionState, maskProviderCredential } from "./providers/providerViewModel.js";
-export { requestProviderSummary, validateStoredProviderCredential } from "./providers/providerValidation.js";
+export {
+  requestProviderSummary,
+  validateProviderCredentialDraft,
+  validateStoredProviderCredential,
+} from "./providers/providerValidation.js";
 export { getProviderCatalogEntry, listProviderOptions } from "./providers/providerCatalog.js";
 export {
   FREE_ANALYSIS_LIMIT,
@@ -31,3 +35,8 @@ export {
   resolveQuotaState,
 } from "./commerce/quotaEngine.js";
 export { createMonetizationService } from "./commerce/monetizationService.js";
+export {
+  buildBackendVerificationPlan,
+  buildBackendVerificationRequest,
+  verifyBackendConnection,
+} from "./services/backendVerification.js";

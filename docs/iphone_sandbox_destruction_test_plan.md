@@ -7,7 +7,7 @@ This plan is for the VibeSignal Expo iPhone build with the current mobile quota,
 Required mobile env vars:
 
 - `EXPO_PUBLIC_ENABLE_LOGGING=true`
-- `EXPO_PUBLIC_API_URL=<reachable backend base URL>`
+- `EXPO_PUBLIC_API_URL=<reachable deployed backend base URL>`
 - `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY=<RevenueCat public iOS SDK key>`
 - `EXPO_PUBLIC_IOS_MONTHLY_PRODUCT_ID=vibesignal_pro_monthly_ios`
 - `EXPO_PUBLIC_IOS_PREMIUM_ENTITLEMENT_ID=vibesignal_pro`
@@ -39,6 +39,8 @@ Build prerequisites:
 
 - current iPhone build or Expo-compatible development build installed
 - backend event ingestion reachable from the device
+- backend base URL confirmed with:
+  - `npm run verify:backend -- --api-url https://<your-backend-host> --event state`
 
 Admin/backend observation prerequisites:
 
@@ -55,6 +57,7 @@ Evidence to capture:
 - App Store sandbox transaction evidence where available
 - backend request logs with event IDs and statuses
 - notes for any dropped, duplicated, or delayed event behavior
+- one saved copy of the exact backend verification command and its response
 
 ## B. Core Install / Bootstrap Tests
 
@@ -67,6 +70,7 @@ Expected mobile result:
 - app boots without crashing
 - local analysis remains primary
 - no paywall flicker during monetization bootstrap
+- no keyboard overlap when the primary input is focused
 - quota badge shows the first-week free state
 - premium is inactive
 - restore purchases is reachable from the paywall area when the paywall is visible later
@@ -86,17 +90,21 @@ Capture:
 
 - first-open screenshot
 - first state-event log line
+- first visible local analysis input state
 
 ## C. Analysis / Quota Tests
 
 ### Successful analysis
 
-1. Tap local analysis once.
+1. Paste text into the primary input.
+2. Tap local analysis once.
 
 Expected mobile result:
 
 - one successful local analysis result
 - free quota decreases by exactly one
+- the optional external AI section remains collapsed unless explicitly opened
+- after `3` successful analyses, a non-blocking premium prompt can appear
 
 Expected backend/admin result:
 
@@ -151,6 +159,8 @@ Expected mobile result:
 
 - paywall appears only after quota is exhausted
 - local analysis is blocked by the paywall when premium is inactive
+- restore purchases remains visible from the paywall surface
+- the earlier non-blocking premium prompt becomes a hard lock only after quota exhaustion
 
 Expected backend/admin result:
 
@@ -205,6 +215,7 @@ Expected mobile result:
 Expected backend/admin result:
 
 - no false purchase success events
+- at most a safe purchase-attempt event if the UI allowed a start before the guard resolved
 
 ## E. Restore Tests
 

@@ -1,5 +1,81 @@
 # Handoff Status
 
+## Mobile UX + BYOK + Deployment Readiness Pass
+
+This pass stayed tightly scoped to the Expo mobile shell, provider flow, backend verification readiness, and launch-stage docs. It did not widen product scope or claim live Apple/backend completion.
+
+### What Was Fixed
+
+- moved the primary local-analysis card ahead of the paywall card so the first mobile screen keeps the input visible and central
+- restored a clearly ordered mobile-first flow:
+  - hero
+  - primary text input
+  - upload
+  - analyze
+  - paywall if needed
+  - optional external AI
+  - consent
+- added keyboard-safe layout handling for iPhone-sized screens
+- added lightweight recent-analysis memory for the last `3` local results
+- added share/copy-ready local result output with short structured sections
+- upgraded the deterministic local result engine so it now returns:
+  - pattern
+  - what changed
+  - where
+- kept the external provider section collapsed by default
+- completed the verify-before-save BYOK path:
+  - invalid keys are not stored
+  - successful verification stores the key and reports `Key verified and saved`
+  - local analysis remains usable without BYOK
+- hardened web credential fallback so localStorage is only used after a real write/read/remove probe succeeds
+- added a one-shot backend verification helper:
+  - `npm run verify:backend -- --api-url https://<your-backend-host> --event state`
+- added a full endpoint sweep:
+  - `npm run verify:backend -- --api-url https://<your-backend-host> --all`
+- added a non-blocking premium prompt after repeated successful analyses while preserving the hard paywall only at quota exhaustion
+
+### Replit Wiring Result
+
+- no `.replit` or `replit.nix` file exists in this repo
+- no committed Replit deployment hostname exists in source
+- backend wiring in the mobile shell is environment-driven through `EXPO_PUBLIC_API_URL`
+- the provided public workspace URL `https://replit.com/@grehanke/Vibe-Signal` returned `404` from this environment
+- because of that, the repo cannot safely infer the live deployed backend host from source alone
+
+### Backend Acceptance Result
+
+- live backend acceptance was not verified from this run because no working deployed backend host was configured in this environment
+- the repo now includes a one-shot verification script that builds a backend-safe sample payload and posts it to one selected event route
+- this is enough to verify live acceptance immediately once the real backend base URL is known
+
+### Files Changed In This Pass
+
+- [mobile/src/providers/providerFlowController.js](/Users/keith/Desktop/VibeSignal AI/mobile/src/providers/providerFlowController.js)
+- [mobile/src/providers/providerValidation.js](/Users/keith/Desktop/VibeSignal AI/mobile/src/providers/providerValidation.js)
+- [mobile/src/providers/providerViewModel.js](/Users/keith/Desktop/VibeSignal AI/mobile/src/providers/providerViewModel.js)
+- [mobile/src/secureStorage/providerSecureStore.js](/Users/keith/Desktop/VibeSignal AI/mobile/src/secureStorage/providerSecureStore.js)
+- [mobile/src/screens/ProviderSettingsScreen.js](/Users/keith/Desktop/VibeSignal AI/mobile/src/screens/ProviderSettingsScreen.js)
+- [mobile/src/screens/providerScreenModel.js](/Users/keith/Desktop/VibeSignal AI/mobile/src/screens/providerScreenModel.js)
+- [mobile/src/services/backendVerification.js](/Users/keith/Desktop/VibeSignal AI/mobile/src/services/backendVerification.js)
+- [mobile/scripts/verify_backend_event_acceptance.mjs](/Users/keith/Desktop/VibeSignal AI/mobile/scripts/verify_backend_event_acceptance.mjs)
+- [mobile/tests/providerFlowController.test.js](/Users/keith/Desktop/VibeSignal AI/mobile/tests/providerFlowController.test.js)
+- [mobile/tests/providerViewModel.test.js](/Users/keith/Desktop/VibeSignal AI/mobile/tests/providerViewModel.test.js)
+- [mobile/tests/providerSecureStore.test.js](/Users/keith/Desktop/VibeSignal AI/mobile/tests/providerSecureStore.test.js)
+- [mobile/tests/providerScreenModel.test.js](/Users/keith/Desktop/VibeSignal AI/mobile/tests/providerScreenModel.test.js)
+- [mobile/tests/backendVerification.test.js](/Users/keith/Desktop/VibeSignal AI/mobile/tests/backendVerification.test.js)
+- [mobile/README.md](/Users/keith/Desktop/VibeSignal AI/mobile/README.md)
+- [docs/iphone_sandbox_destruction_test_plan.md](/Users/keith/Desktop/VibeSignal AI/docs/iphone_sandbox_destruction_test_plan.md)
+- [docs/prelaunch_readiness_checklist.md](/Users/keith/Desktop/VibeSignal AI/docs/prelaunch_readiness_checklist.md)
+- [docs/mobile_performance_and_size_plan.md](/Users/keith/Desktop/VibeSignal AI/docs/mobile_performance_and_size_plan.md)
+- [docs/handoff_status.md](/Users/keith/Desktop/VibeSignal AI/docs/handoff_status.md)
+
+### Remaining Manual Validation
+
+1. Supply the real deployed backend base URL through `EXPO_PUBLIC_API_URL`.
+2. Run `npm run verify:backend -- --api-url https://<your-backend-host> --event state`.
+3. Validate the refreshed mobile root screen on an iPhone-sized device.
+4. Validate upload, analyze, verify, remove-key, purchase, and restore paths in the real iPhone sandbox build.
+
 ## Mobile Event Logging Reliability Pass
 
 This pass stayed tightly scoped to the existing Expo mobile shell, quota hook, billing integration, and the backend event logging path. It did not change product scope or billing logic.

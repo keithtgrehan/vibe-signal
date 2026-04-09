@@ -41,6 +41,26 @@ test("paywall view model disables purchase when product metadata is not live", (
   assert.match(model.disclosureLines[2], /auto-renewing subscription/i);
 });
 
+test("paywall view model can show a value-first teaser before the hard limit", () => {
+  const model = buildPaywallViewModel({
+    premiumActive: false,
+    softPrompt: true,
+    priceDisplay: "€1.89/month",
+    purchaseAvailable: true,
+    restoreAvailable: true,
+    storeMetadata: {
+      subscriptionDisclosure: {
+        priceDisplay: "€1.89/month",
+      },
+      privacyPolicyUrl: "https://example.test/privacy",
+      termsUrl: "https://example.test/terms",
+    },
+  });
+
+  assert.equal(model.title, "Keep going with Premium");
+  assert.match(model.body, /already started using local analysis/i);
+});
+
 test("paywall view model only accepts secure legal links", () => {
   const model = buildPaywallViewModel({
     premiumActive: false,

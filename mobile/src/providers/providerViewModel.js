@@ -20,15 +20,53 @@ export function buildProviderActionState({
   validationStatus = "",
 } = {}) {
   const hasProvider = Boolean(String(selectedProvider || "").trim());
-  const hasDraftCredential = Boolean(String(draftCredential || "").trim());
-  const credentialReadyForValidation = hasDraftCredential || credentialPresent;
+  const normalizedDraftCredential = String(draftCredential || "").trim();
+  const hasDraftCredential = Boolean(normalizedDraftCredential);
+  const credentialLongEnough = normalizedDraftCredential.length > 10;
   return {
     disableSave: busy || !hasProvider || !hasDraftCredential,
     disableRemove: busy || !hasProvider || !credentialPresent,
-    disableValidate: busy || !hasProvider || !credentialReadyForValidation,
+    disableValidate: busy || !hasProvider || !credentialLongEnough,
     disableRun: busy || !hasProvider || !credentialPresent || !consentAcknowledged || validationStatus !== "ready",
     showRemove: hasProvider && credentialPresent,
+    showReplace: hasProvider && credentialPresent,
   };
+}
+
+export function deriveProviderFlowState({
+  selectedProvider = "",
+  draftCredential = "",
+  busy = false,
+  pendingAction = "",
+  credentialPresent = false,
+  validationStatus = "",
+} = {}) {
+  if (!String(selectedProvider || "").trim()) {
+    return "no_provider";
+  }
+  if (busy && pendingAction === "verify") {
+    return "verifying";
+  }
+  if (validationStatus === "ready" && credentialPresent) {
+    return "verified";
+  }
+  if (
+    [
+      "invalid_credentials",
+      "network_error",
+      "provider_timeout",
+      "rate_limited",
+      "provider_unavailable",
+      "unknown_error",
+      "secure_storage_unavailable",
+    ].includes(validationStatus)
+  ) {
+    return "failed";
+  }
+  if (String(draftCredential || "").trim()) {
+    return "key_entered";
+  }
+  return "provider_selected";
 }
 
 export function buildProviderReadinessCopy({
@@ -61,6 +99,7 @@ export function buildProviderReadinessCopy({
 
 export function buildProviderVerificationModel({
   selectedProvider = "",
+  draftCredential = "",
   credentialPresent = false,
   validationStatus = "",
   validationMessage = "",
@@ -68,42 +107,52 @@ export function buildProviderVerificationModel({
   busy = false,
   pendingAction = "",
 } = {}) {
-  const hasProvider = Boolean(String(selectedProvider || "").trim());
-  const isVerifying = busy && pendingAction === "verify";
+  const flowState = deriveProviderFlowState({
+    selectedProvider,
+    draftCredential,
+    busy,
+    pendingAction,
+    credentialPresent,
+    validationStatus,
+  });
 
-  if (!hasProvider) {
+  if (flowState === "no_provider") {
     return {
       title: "Choose a provider",
       body: "Local analysis stays primary. External summaries are optional and only run when you enable a provider.",
       helper: "",
       tone: "neutral",
+      flowState,
     };
   }
 
-  if (isVerifying) {
+  if (flowState === "verifying") {
     return {
       title: "Checking key...",
       body: "This only checks whether the key works for this provider.",
       helper: "",
       tone: "neutral",
+      flowState,
     };
   }
 
-  if (saveMessage) {
+  if (saveMessage && validationStatus !== "ready") {
     return {
       title: "Couldn't save key",
       body: saveMessage,
       helper: "",
       tone: "warning",
+      flowState,
     };
   }
 
-  if (validationStatus === "ready" && credentialPresent) {
+  if (flowState === "verified") {
     return {
       title: "Key verified",
       body: "External summaries are now available for this provider.",
-      helper: "",
+      helper: validationMessage || "Key verified and saved",
       tone: "success",
+      flowState,
     };
   }
 
@@ -113,6 +162,7 @@ export function buildProviderVerificationModel({
       body: "Check the key and try again.",
       helper: validationMessage,
       tone: "warning",
+      flowState,
     };
   }
 
@@ -126,6 +176,7 @@ export function buildProviderVerificationModel({
       body: "Your local analysis still works. Try again in a moment.",
       helper: validationMessage,
       tone: "warning",
+      flowState,
     };
   }
 
@@ -135,6 +186,7 @@ export function buildProviderVerificationModel({
       body: "You must confirm provider consent before external summaries can run.",
       helper: "",
       tone: "neutral",
+      flowState,
     };
   }
 
@@ -144,6 +196,7 @@ export function buildProviderVerificationModel({
       body: "The key is saved on this device, but external summaries stay off until verification succeeds.",
       helper: "",
       tone: "neutral",
+      flowState,
     };
   }
 
@@ -152,5 +205,6 @@ export function buildProviderVerificationModel({
     body: "Paste your provider API key to verify it for this provider. Local analysis still stays primary.",
     helper: "",
     tone: "neutral",
+    flowState,
   };
 }

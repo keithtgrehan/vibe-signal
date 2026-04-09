@@ -12,6 +12,7 @@ const DEFAULT_STATE = {
   dropped_due_expiry: 0,
   dropped_invalid_payload: 0,
   dropped_due_rejection: 0,
+  scheduled_retry_count: 0,
   deduped_count: 0,
 };
 
@@ -41,6 +42,7 @@ function normalizeState(rawState = {}) {
     dropped_due_expiry: Math.max(0, Number(rawState.dropped_due_expiry || 0)),
     dropped_invalid_payload: Math.max(0, Number(rawState.dropped_invalid_payload || 0)),
     dropped_due_rejection: Math.max(0, Number(rawState.dropped_due_rejection || 0)),
+    scheduled_retry_count: Math.max(0, Number(rawState.scheduled_retry_count || 0)),
     deduped_count: Math.max(0, Number(rawState.deduped_count || 0)),
   };
 }

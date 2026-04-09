@@ -2,6 +2,50 @@
 
 This folder contains the mobile-ready BYOK layer for optional provider connectors plus the current iOS-first subscription and quota scaffolding.
 
+The app will **not** connect to a backend unless `EXPO_PUBLIC_API_URL` is provided.
+
+## Current Mobile UX Guarantees
+
+The current Expo shell now keeps the local analysis path obvious on small screens:
+
+- one mobile-first column
+- bounded content width
+- the primary text input is always visible
+- upload and analyze actions stay in the primary card
+- keyboard-safe layout on iPhone-sized screens
+- the external provider section stays optional and collapsed by default
+- provider setup never blocks local analysis
+- recent analysis results can be reopened locally
+
+The current BYOK flow guarantees:
+
+- no provider selected
+- provider selected
+- key entered
+- verifying
+- verified
+- failed
+
+Behavioral guarantees:
+
+- `Verify key` only enables when the entered key length is greater than `10`
+- invalid keys are not saved
+- successful verification saves the key and returns `Key verified and saved`
+- secure storage remains primary on iOS
+- web falls back to localStorage only when a real round-trip probe succeeds
+- remove-key flow is available once a credential exists
+
+The current local analysis result flow also guarantees:
+
+- deterministic local signal extraction
+- structured output with:
+  - pattern
+  - what changed
+  - where
+- guardrail cleanup before render
+- share/copy actions from the result card
+- recent local history limited to the last `3` analyses
+
 ## Mobile Backend Event Logging
 
 The Expo mobile shell now includes a bounded mobile-to-backend event pipeline for the existing VibeSignal event endpoints.
@@ -61,6 +105,7 @@ Queue, retry, and dedupe behavior:
 - failed sends retry up to the configured max-attempt limit
 - expired events are dropped intentionally instead of persisting forever
 - logging is fire-and-forget and does not throw into the UI flow
+- local debug state includes queue length, drop counters, dedupe count, and scheduled retry count
 
 State snapshot behavior:
 
@@ -88,6 +133,44 @@ Current limits:
 - event ordering is strongest within one device and one local install because ordering depends on device-local persisted sequence numbers
 - `app_version` is included in the envelope shape, but this shell leaves it empty unless `EXPO_PUBLIC_APP_VERSION` is configured
 - the backend/admin event-ingestion code is not present in this workspace, so backend compatibility is enforced from the mobile contract side only
+
+## Replit / Backend Wiring
+
+This repo is not hard-wired to a committed Replit deployment host.
+
+What is wired in code:
+
+- the mobile event client is environment-driven through `EXPO_PUBLIC_API_URL`
+- event endpoints are appended from that base URL:
+  - `/api/events/analysis`
+  - `/api/events/quota`
+  - `/api/events/billing`
+  - `/api/events/state`
+
+What is not committed in this repo:
+
+- a `.replit` file
+- a `replit.nix` file
+- a hardcoded `replit.app` backend host
+
+Current verification result from this environment:
+
+- the provided public workspace URL `https://replit.com/@grehanke/Vibe-Signal` returned `404`
+- because of that, the repo cannot safely infer the live deployment host from source control alone
+
+Required next step:
+
+- set `EXPO_PUBLIC_API_URL` explicitly to the live deployed backend base URL used by the Replit deployment
+
+One-shot backend acceptance check:
+
+- `npm run verify:backend -- --api-url https://<your-backend-host> --event state`
+
+Full endpoint sweep:
+
+- `npm run verify:backend -- --api-url https://<your-backend-host> --all`
+
+This sends one minimal valid event payload and prints the response status/body so the deployed backend can be checked without repeatedly spamming the event routes.
 
 ## Monetization Status
 
@@ -147,6 +230,20 @@ Important limits:
   - App Store Connect product and entitlement setup
 - The exact live monthly price must match the App Store Connect subscription price point
 - This repo now contains the iOS code path, quota engine, and paywall state logic, but it does not claim production readiness on its own
+
+## Sandbox Readiness Helpers
+
+Useful commands:
+
+- `npm test`
+- `npm run verify:backend -- --api-url https://<your-backend-host> --event state`
+- `npm run verify:backend -- --api-url https://<your-backend-host> --event analysis`
+
+These helper commands do not prove App Store billing works. They only help confirm:
+
+- mobile payload shape is valid
+- the configured backend base URL is reachable
+- the deployed backend accepts at least one sample event route
 
 ## Expo SDK 54 Status
 

@@ -160,8 +160,10 @@ test("event client persists failed events, retries them, and drops them after ma
 
   assert.equal(firstFlush.queue_length, 1);
   assert.equal(firstState.queue[0].attempts, 1);
+  assert.equal(firstState.scheduled_retry_count, 1);
   assert.equal(secondFlush.queue_length, 1);
   assert.equal(secondState.queue[0].attempts, 2);
+  assert.equal(secondState.scheduled_retry_count, 2);
   assert.equal(thirdFlush.queue_length, 0);
   assert.equal(finalState.queue.length, 0);
   assert.equal(finalState.dropped_due_max_attempts, 1);

@@ -6,6 +6,7 @@ import { buildPaywallViewModel } from "./paywallViewModel.js";
 export function PaywallCard({
   visible = false,
   premiumActive = false,
+  softPrompt = false,
   priceDisplay = "",
   purchaseAvailable = false,
   storeMetadata = {},
@@ -22,6 +23,7 @@ export function PaywallCard({
 
   const model = buildPaywallViewModel({
     premiumActive,
+    softPrompt,
     priceDisplay,
     purchaseAvailable,
     restoreAvailable,

@@ -1,7 +1,11 @@
 import { createProviderCredentialService } from "./providerCredentialService.js";
 import { getProviderCatalogEntry, listProviderOptions } from "./providerCatalog.js";
 import { buildProviderActionState, maskProviderCredential } from "./providerViewModel.js";
-import { requestProviderSummary, validateStoredProviderCredential } from "./providerValidation.js";
+import {
+  requestProviderSummary,
+  validateProviderCredentialDraft,
+  validateStoredProviderCredential,
+} from "./providerValidation.js";
 
 export function createProviderFlowController(options = {}) {
   const credentialService = createProviderCredentialService(options);
@@ -130,43 +134,74 @@ export function createProviderFlowController(options = {}) {
     currentState = {},
   } = {}) {
     const trimmedCredential = String(apiKey || currentState.draftCredential || "").trim();
-    let workingState = currentState;
+    const validationResult = await validateProviderCredentialDraft({
+      providerName,
+      apiKey: trimmedCredential,
+      consentConfirmed: consentAcknowledged,
+      secureStorage: credentialService,
+      fetchImpl,
+      timeoutMs,
+    });
 
-    if (trimmedCredential) {
-      const saveStep = await saveCredential({
+    if (validationResult.status !== "ready") {
+      const nextState = await hydrateProviderState({
         providerName,
-        apiKey: trimmedCredential,
         consentAcknowledged,
         currentState: {
           ...currentState,
           draftCredential: trimmedCredential,
+          validationResult,
+          lastRunResult: null,
+          saveMessage:
+            validationResult.status === "secure_storage_unavailable"
+              ? "Couldn't save key — try again"
+              : "",
         },
       });
-      workingState = saveStep.state;
-      if (!saveStep.result.ok) {
-        return {
-          result: {
-            status: saveStep.result.reason || "credential_save_blocked",
-            user_message: "Couldn't save key — try again",
-          },
-          state: workingState,
-        };
-      }
+      nextState.validationResult = validationResult;
+      nextState.draftCredential = trimmedCredential;
+      return {
+        result: validationResult,
+        state: nextState,
+      };
     }
 
-    const validateStep = await validateProvider({
+    const saveStep = await saveCredential({
       providerName,
+      apiKey: trimmedCredential,
       consentAcknowledged,
-      fetchImpl,
-      timeoutMs,
-      currentState: workingState,
+      currentState: {
+        ...currentState,
+        draftCredential: trimmedCredential,
+      },
     });
 
-    if (validateStep.result.status !== "ready" && trimmedCredential) {
-      validateStep.state.draftCredential = trimmedCredential;
+    if (!saveStep.result.ok) {
+      const blockedResult = {
+        ...validationResult,
+        status: saveStep.result.reason || "credential_save_blocked",
+        ready: false,
+        user_message: "Couldn't save key — try again",
+      };
+      saveStep.state.validationResult = blockedResult;
+      saveStep.state.draftCredential = trimmedCredential;
+      return {
+        result: blockedResult,
+        state: saveStep.state,
+      };
     }
 
-    return validateStep;
+    const successResult = {
+      ...validationResult,
+      user_message: "Key verified and saved",
+      credential_present: true,
+    };
+    saveStep.state.validationResult = successResult;
+    saveStep.state.saveMessage = "";
+    return {
+      result: successResult,
+      state: saveStep.state,
+    };
   }
 
   async function runExternalSummary({

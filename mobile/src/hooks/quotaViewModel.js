@@ -52,6 +52,35 @@ function normalizeStatusMessage({
   return "";
 }
 
+function deriveUpgradePromptState({ quota = {}, premiumActive = false, isBootstrapping = false } = {}) {
+  if (premiumActive || isBootstrapping) {
+    return {
+      visible: false,
+      stage: "",
+    };
+  }
+
+  if (Boolean(quota.paywall_required)) {
+    return {
+      visible: true,
+      stage: "hard_lock",
+    };
+  }
+
+  const usesInCurrentPeriod = Math.max(0, Number(quota.uses_in_current_period || 0));
+  if (usesInCurrentPeriod >= 3) {
+    return {
+      visible: true,
+      stage: "teaser",
+    };
+  }
+
+  return {
+    visible: false,
+    stage: "",
+  };
+}
+
 export function buildQuotaHookState({
   monetization = null,
   loading = true,
@@ -69,6 +98,11 @@ export function buildQuotaHookState({
   const storeMetadata = monetization?.storeMetadata || {};
   const monetizationReadiness = storeMetadata.monetizationReadiness || {};
   const premiumProductAvailable = Boolean(product.productId) && product.is_valid === true;
+  const upgradePrompt = deriveUpgradePromptState({
+    quota,
+    premiumActive,
+    isBootstrapping,
+  });
 
   return {
     loading,
@@ -81,6 +115,8 @@ export function buildQuotaHookState({
       : Math.max(0, Number(quota.remaining_uses || 0)),
     uses_in_current_period: quota.uses_in_current_period || 0,
     paywall_required: isBootstrapping ? false : Boolean(paywall.visible),
+    upgrade_prompt_visible: upgradePrompt.visible,
+    upgrade_prompt_stage: upgradePrompt.stage,
     reset_timing: quotaView.resetTiming || "",
     reset_at: quotaView.resetAt || "",
     period_label: quotaView.periodLabel || "",

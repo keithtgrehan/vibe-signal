@@ -27,6 +27,35 @@ function makeMockSecureStore({ available = true } = {}) {
   };
 }
 
+function makeWebStorage() {
+  const items = new Map();
+  return {
+    getItem(key) {
+      return items.has(key) ? items.get(key) : null;
+    },
+    setItem(key, value) {
+      items.set(key, value);
+    },
+    removeItem(key) {
+      items.delete(key);
+    },
+  };
+}
+
+function makeBrokenWebStorage() {
+  return {
+    getItem() {
+      throw new Error("storage unavailable");
+    },
+    setItem() {
+      throw new Error("storage unavailable");
+    },
+    removeItem() {
+      throw new Error("storage unavailable");
+    },
+  };
+}
+
 test("secure storage availability awaits the async check and verifies a probe round-trip", async () => {
   const secureStoreModule = makeMockSecureStore();
   const service = createProviderSecureStore({ secureStoreModule });
@@ -74,4 +103,38 @@ test("secure storage service fails closed when unavailable", async () => {
   const readResult = await service.getProviderCredential("groq");
   assert.equal(readResult.ok, false);
   assert.equal(readResult.status, "secure_storage_unavailable");
+});
+
+test("web provider storage falls back to localStorage when secure storage is not available", async () => {
+  const webStorage = makeWebStorage();
+  const service = createProviderSecureStore({
+    platform: "web",
+    webStorage,
+  });
+
+  const availability = await service.secureStorageAvailable();
+  assert.equal(availability.available, true);
+  assert.equal(availability.storageType, "web_local_storage");
+
+  const saveResult = await service.saveProviderCredential("openai", "sk-web-123456");
+  assert.equal(saveResult.ok, true);
+
+  const readResult = await service.getProviderCredential("openai");
+  assert.equal(readResult.credentialPresent, true);
+  assert.equal(readResult.credential, "sk-web-123456");
+});
+
+test("web provider storage fails closed when localStorage cannot round-trip", async () => {
+  const service = createProviderSecureStore({
+    platform: "web",
+    webStorage: makeBrokenWebStorage(),
+  });
+
+  const availability = await service.secureStorageAvailable();
+  assert.equal(availability.available, false);
+  assert.equal(availability.status, "secure_storage_unavailable");
+
+  const saveResult = await service.saveProviderCredential("openai", "sk-web-123456");
+  assert.equal(saveResult.ok, false);
+  assert.equal(saveResult.reason, "secure_storage_unavailable");
 });

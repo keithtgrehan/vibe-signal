@@ -5,6 +5,7 @@ import {
   buildProviderActionState,
   buildProviderReadinessCopy,
   buildProviderVerificationModel,
+  deriveProviderFlowState,
   formatSavedCredentialLabel,
   maskProviderCredential,
 } from "../src/providers/providerViewModel.js";
@@ -41,6 +42,7 @@ test("disabled action state reflects loading and validation truthfully", () => {
   });
   assert.equal(disabledBusy.disableSave, true);
   assert.equal(disabledBusy.disableRun, true);
+  assert.equal(disabledBusy.disableValidate, true);
 
   const ready = buildProviderActionState({
     busy: false,
@@ -51,6 +53,15 @@ test("disabled action state reflects loading and validation truthfully", () => {
     validationStatus: "ready",
   });
   assert.equal(ready.disableRun, false);
+  assert.equal(ready.disableValidate, true);
+
+  const keyEntered = buildProviderActionState({
+    busy: false,
+    selectedProvider: "openai",
+    draftCredential: "sk-valid-123456",
+    credentialPresent: false,
+  });
+  assert.equal(keyEntered.disableValidate, false);
 });
 
 test("readiness copy stays user-facing and avoids raw storage-debug wording", () => {
@@ -99,6 +110,18 @@ test("verification model distinguishes empty, verifying, success, and failure st
   assert.equal(
     buildProviderVerificationModel({
       selectedProvider: "openai",
+      draftCredential: "sk-valid-123456",
+      credentialPresent: true,
+      validationStatus: "ready",
+      validationMessage: "Key verified and saved",
+    }).helper,
+    "Key verified and saved"
+  );
+
+  assert.equal(
+    buildProviderVerificationModel({
+      selectedProvider: "openai",
+      draftCredential: "sk-valid-123456",
       credentialPresent: true,
       validationStatus: "ready",
     }).title,
@@ -119,5 +142,45 @@ test("verification model distinguishes empty, verifying, success, and failure st
       validationStatus: "provider_unavailable",
     }).title,
     "Couldn't reach provider"
+  );
+});
+
+test("provider flow state follows the expected BYOK state machine", () => {
+  assert.equal(deriveProviderFlowState({}), "no_provider");
+  assert.equal(
+    deriveProviderFlowState({
+      selectedProvider: "openai",
+    }),
+    "provider_selected"
+  );
+  assert.equal(
+    deriveProviderFlowState({
+      selectedProvider: "openai",
+      draftCredential: "sk-draft-123456",
+    }),
+    "key_entered"
+  );
+  assert.equal(
+    deriveProviderFlowState({
+      selectedProvider: "openai",
+      busy: true,
+      pendingAction: "verify",
+    }),
+    "verifying"
+  );
+  assert.equal(
+    deriveProviderFlowState({
+      selectedProvider: "openai",
+      credentialPresent: true,
+      validationStatus: "ready",
+    }),
+    "verified"
+  );
+  assert.equal(
+    deriveProviderFlowState({
+      selectedProvider: "openai",
+      validationStatus: "invalid_credentials",
+    }),
+    "failed"
   );
 });

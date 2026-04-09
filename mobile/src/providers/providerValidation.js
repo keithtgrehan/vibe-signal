@@ -339,6 +339,106 @@ export async function validateStoredProviderCredential({
   }
 }
 
+export async function validateProviderCredentialDraft({
+  providerName,
+  apiKey = "",
+  consentConfirmed = false,
+  secureStorage,
+  fetchImpl = globalThis.fetch,
+  timeoutMs,
+} = {}) {
+  const entry = getProviderCatalogEntry(providerName);
+  if (!entry) {
+    return buildResult({
+      providerName,
+      status: "unknown_error",
+      userMessage: "Choose a supported provider before continuing.",
+      validationMode: "gated",
+    });
+  }
+  if (!consentConfirmed) {
+    return buildResult({
+      providerName: entry.providerName,
+      modelName: entry.modelName,
+      status: "consent_required",
+      validationMode: "gated",
+    });
+  }
+
+  const availability = await secureStorage.secureStorageAvailable();
+  if (!availability.available) {
+    return buildResult({
+      providerName: entry.providerName,
+      modelName: entry.modelName,
+      status: "secure_storage_unavailable",
+      validationMode: "gated",
+      consentConfirmed,
+    });
+  }
+
+  const normalizedCredential = String(apiKey || "").trim();
+  if (!normalizedCredential) {
+    return buildResult({
+      providerName: entry.providerName,
+      modelName: entry.modelName,
+      status: "missing_credentials",
+      validationMode: "gated",
+      consentConfirmed,
+      secureStorageAvailable: true,
+    });
+  }
+
+  if (typeof fetchImpl !== "function") {
+    return buildResult({
+      providerName: entry.providerName,
+      modelName: entry.modelName,
+      status: "provider_unavailable",
+      validationMode: "gated",
+      consentConfirmed,
+      secureStorageAvailable: true,
+      credentialPresent: false,
+    });
+  }
+
+  try {
+    const request = buildValidationRequest(entry, normalizedCredential, timeoutMs);
+    const response = await performJsonRequest({
+      ...request,
+      fetchImpl,
+    });
+    if (!response.ok) {
+      const mappedStatus = mapProviderHttpError(response.status);
+      return buildResult({
+        providerName: entry.providerName,
+        modelName: entry.modelName,
+        status: mappedStatus,
+        httpStatus: response.status,
+        consentConfirmed,
+        secureStorageAvailable: true,
+        credentialPresent: false,
+      });
+    }
+
+    return buildResult({
+      providerName: entry.providerName,
+      modelName: entry.modelName,
+      status: "ready",
+      consentConfirmed,
+      secureStorageAvailable: true,
+      credentialPresent: false,
+    });
+  } catch (error) {
+    return buildResult({
+      providerName: entry.providerName,
+      modelName: entry.modelName,
+      status: mapProviderException(error),
+      consentConfirmed,
+      secureStorageAvailable: true,
+      credentialPresent: false,
+    });
+  }
+}
+
 export async function requestProviderSummary({
   providerName,
   consentConfirmed = false,

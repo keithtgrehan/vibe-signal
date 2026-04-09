@@ -13,6 +13,7 @@ function isSafeExternalUrl(value) {
 
 export function buildPaywallViewModel({
   premiumActive = false,
+  softPrompt = false,
   priceDisplay = "",
   purchaseAvailable = false,
   restoreAvailable = true,
@@ -25,9 +26,15 @@ export function buildPaywallViewModel({
   const termsUrl = String(storeMetadata.termsUrl || "").trim();
 
   return {
-    title: premiumActive ? "Premium unlocked" : "Continue with Premium",
+    title: premiumActive
+      ? "Premium unlocked"
+      : softPrompt
+      ? "Keep going with Premium"
+      : "Continue with Premium",
     body: premiumActive
       ? "Unlimited analyses are active on this device."
+      : softPrompt
+      ? "You've already started using local analysis. Premium keeps it available without weekly limits and makes the upgrade path visible before the hard limit."
       : "Free usage is exhausted for the current period. Premium keeps local analysis available without weekly limits.",
     priceDisplay: effectivePrice,
     purchaseEnabled: !premiumActive && purchaseAvailable,

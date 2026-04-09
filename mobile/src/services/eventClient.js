@@ -52,6 +52,7 @@ function normalizeStateShape(state = {}) {
     dropped_due_expiry: Math.max(0, Number(state.dropped_due_expiry || 0)),
     dropped_invalid_payload: Math.max(0, Number(state.dropped_invalid_payload || 0)),
     dropped_due_rejection: Math.max(0, Number(state.dropped_due_rejection || 0)),
+    scheduled_retry_count: Math.max(0, Number(state.scheduled_retry_count || 0)),
     deduped_count: Math.max(0, Number(state.deduped_count || 0)),
   };
 }
@@ -306,6 +307,7 @@ export function createEventClient({
       let droppedDueExpiry = loaded.state.dropped_due_expiry;
       let droppedInvalidPayload = loaded.state.dropped_invalid_payload;
       let droppedDueRejection = loaded.state.dropped_due_rejection;
+      let scheduledRetryCount = loaded.state.scheduled_retry_count;
       let hadRetryableFailure = false;
 
       for (const item of [...queue]) {
@@ -448,6 +450,7 @@ export function createEventClient({
                 : queued
             );
             hadRetryableFailure = true;
+            scheduledRetryCount += 1;
             diagnostics.capture({
               category: "event_client",
               code: "event_send_retry_scheduled",
@@ -471,6 +474,7 @@ export function createEventClient({
         dropped_due_expiry: droppedDueExpiry,
         dropped_invalid_payload: droppedInvalidPayload,
         dropped_due_rejection: droppedDueRejection,
+        scheduled_retry_count: scheduledRetryCount,
       });
       if (queue.length > 0 && hadRetryableFailure) {
         scheduleRetry();
@@ -486,6 +490,7 @@ export function createEventClient({
         dropped_due_expiry: droppedDueExpiry,
         dropped_invalid_payload: droppedInvalidPayload,
         dropped_due_rejection: droppedDueRejection,
+        scheduled_retry_count: scheduledRetryCount,
       };
     })().finally(() => {
       flushInFlight = null;
