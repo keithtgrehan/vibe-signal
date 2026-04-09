@@ -1,0 +1,22 @@
+{
+  "name": "vibesignal-ai-mobile-support",
+  "private": true,
+  "type": "module",
+  "description": "Mobile secure credential support for VibeSignal AI.",
+  "main": "index.js",
+  "dependencies": {
+    "expo": "^54.0.33",
+    "expo-asset": "~12.0.12",
+    "expo-secure-store": "~15.0.8",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-purchases": "^9.15.2"
+  },
+  "scripts": {
+    "start": "expo start",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@expo/ngrok": "^4.1.3"
+  }
+}

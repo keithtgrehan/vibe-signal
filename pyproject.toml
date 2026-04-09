@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vibesignal-ai"
+version = "0.1.0"
+description = "Deterministic-first conversation pattern analysis."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "emoji>=2.11",
+  "langdetect>=1.0.9",
+  "rapidfuzz>=3.9",
+  "spacy>=3.7,<3.8",
+  "pysbd>=0.3.4",
+]
+
+[project.optional-dependencies]
+audio_advanced = [
+  "opensmile>=2.5.0",
+  "silero-vad>=5.1.2",
+]
+nli = [
+  "transformers>=4.40",
+  "torch>=2.0",
+]
+experiments = []
+providers_openai = [
+  "openai>=1.30.0",
+]
+providers_anthropic = [
+  "anthropic>=0.34.0",
+]
+providers_groq = [
+  "groq>=0.9.0",
+]
+
+[project.scripts]
+vibesignal-ai = "vibesignal_ai.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

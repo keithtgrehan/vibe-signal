@@ -1,0 +1,5 @@
+node not found
+npm not found
+npx not found
+expo not found
+xcrun: error: unable to find utility "simctl", not a developer tool or in PATH

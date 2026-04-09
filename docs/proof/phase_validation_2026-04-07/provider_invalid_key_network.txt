@@ -1,0 +1,8 @@
+openai http_status 401 mapped_status invalid_credentials body {
+    "error": {
+        "message": "Incorrect API key provided: [redacted-invalid-key]. You can find your API key at https://platform.openai.com/account/api-keys.",
+        "type": "invalid_request_error",
+        "param": null,
+       
+anthropic http_status 401 mapped_status invalid_credentials body {"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"},"request_id":"req_011CZpwUNogtrBAdjtSuPfnQ"}
+groq http_status 403 mapped_status invalid_credentials body error code: 1010

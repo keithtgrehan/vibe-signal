@@ -1,0 +1,7 @@
+missing_credentials missing_credentials False A stored API key is required before continuing.
+secure_storage_unavailable secure_storage_unavailable False Secure storage is unavailable on this device.
+consent_required consent_required False You must confirm provider consent before continuing.
+invalid_credentials invalid_credentials False Provider validation must succeed before continuing.
+provider_timeout provider_timeout False Provider validation must succeed before continuing.
+rate_limited rate_limited False Provider validation must succeed before continuing.
+ready ready True The provider is ready to use.

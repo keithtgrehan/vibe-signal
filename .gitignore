@@ -9,3 +9,7 @@ dist/
 outputs/
 
 .expo/
+mobile/.expo/
+mobile/node_modules/
+**/__pycache__/
+*.log
