@@ -93,19 +93,6 @@ cd mobile
 npm run verify:backend -- --api-url https://<your-backend-host> --event state
 ```
 
-## Recruiter / Interview Framing
-This repo is best presented as:
-- a deterministic-first conversation-analysis product
-- a mobile wrapper around structured local signals
-- an example of optional AI augmentation with clear boundaries
-- a privacy-aware workflow with explicit BYOK and telemetry constraints
-
-It should not be presented as:
-- a lie detector
-- a hidden-intent engine
-- a diagnostic system
-- a fully production-proven subscription app
-
 ## Repo Truthfulness
 Keep the story narrow:
 - built now
