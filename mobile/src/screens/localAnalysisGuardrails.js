@@ -31,11 +31,14 @@ export function sanitizeLocalAnalysisResult(result = {}) {
   return {
     ...result,
     headline: sanitizeText(result.headline),
+    signalLabel: sanitizeText(result.signalLabel),
+    analysisMode: String(result.analysisMode || "").trim(),
     pattern: sanitizeText(result.pattern),
     summary: sanitizeText(result.summary),
     disclosure: sanitizeText(result.disclosure),
     shareTitle: sanitizeText(result.shareTitle),
     shareText: sanitizeText(result.shareText),
+    suggestion: sanitizeText(result.suggestion),
     highlights: Array.isArray(result.highlights)
       ? result.highlights.map(sanitizeText).filter(Boolean).slice(0, 3)
       : [],
@@ -43,9 +46,10 @@ export function sanitizeLocalAnalysisResult(result = {}) {
       ? result.spans
           .map((item) => ({
             label: sanitizeText(item?.label),
+            note: sanitizeText(item?.note),
             excerpt: sanitizeText(item?.excerpt),
           }))
-          .filter((item) => item.label || item.excerpt)
+          .filter((item) => item.label || item.note || item.excerpt)
           .slice(0, 2)
       : [],
   };

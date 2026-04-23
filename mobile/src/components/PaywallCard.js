@@ -33,6 +33,7 @@ export function PaywallCard({
 
   return (
     <View style={[styles.card, premiumActive && styles.cardPremium]}>
+      <Text style={styles.eyebrow}>{premiumActive ? "Premium" : softPrompt ? "Upgrade" : "Continue"}</Text>
       <Text style={styles.title}>{model.title}</Text>
       <Text style={styles.body}>{model.body}</Text>
       {!premiumActive ? <Text style={styles.price}>{model.priceDisplay || "Price unavailable"}</Text> : null}
@@ -66,7 +67,9 @@ export function PaywallCard({
               {purchaseInProgress
                 ? "Connecting to App Store..."
                 : model.purchaseEnabled
-                ? "Continue with Premium"
+                ? softPrompt
+                  ? "Unlock premium"
+                  : "Continue with Premium"
                 : "Premium unavailable in this build"}
             </Text>
           </Pressable>
@@ -91,31 +94,38 @@ export function PaywallCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff4e8",
+    backgroundColor: "#fff7ed",
     borderWidth: 1,
-    borderColor: "#e8d7bf",
-    borderRadius: 16,
-    padding: 16,
+    borderColor: "#ead8bf",
+    borderRadius: 22,
+    padding: 18,
     gap: 10,
   },
   cardPremium: {
-    backgroundColor: "#edf6ef",
-    borderColor: "#c8dec8",
+    backgroundColor: "#eaf5ee",
+    borderColor: "#c9decc",
+  },
+  eyebrow: {
+    color: "#8c5a2b",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
   },
   title: {
     color: "#111827",
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
   },
   body: {
-    color: "#374151",
-    fontSize: 14,
-    lineHeight: 20,
+    color: "#3f454f",
+    fontSize: 15,
+    lineHeight: 22,
   },
   price: {
     color: "#111827",
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 26,
+    fontWeight: "800",
   },
   helper: {
     color: "#6b7280",
@@ -134,29 +144,29 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: "#111827",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
   secondaryButton: {
     backgroundColor: "#ffffff",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "#d6ccba",
+    borderColor: "#d9c9b0",
   },
   primaryLabel: {
     color: "#ffffff",
-    fontWeight: "600",
+    fontWeight: "700",
   },
   secondaryLabel: {
     color: "#1f2937",
-    fontWeight: "600",
+    fontWeight: "700",
   },
   linkLabel: {
     color: "#1f2937",
-    fontWeight: "600",
+    fontWeight: "700",
     textDecorationLine: "underline",
   },
   disabled: {
