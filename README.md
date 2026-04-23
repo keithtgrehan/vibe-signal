@@ -1,11 +1,26 @@
 # VibeSignal
 
-VibeSignal is a mobile-first AI product for reading conversational pattern shifts more clearly and safely.
+VibeSignal is a deterministic-first conversation analysis product with a mobile shell, optional BYOK AI augmentation, and privacy-conscious boundaries.
 
-## What it does
+The repo is strongest as a productized workflow demo: local analysis runs first, outputs stay structured and inspectable, and any external provider layer is explicitly optional rather than presented as hidden truth.
 
-Paste a message or short conversation and VibeSignal highlights what changed in:
+## What It Is
+- A mobile-first app for spotting conversation pattern shifts in pasted messages or short exchanges.
+- A deterministic local signal engine that highlights what changed, where it changed, and which patterns triggered the result.
+- An optional BYOK provider layer for structured augmentation after explicit opt-in.
+- A bounded product shell around that core flow: recent history, copy/share behavior, premium gating scaffolding, and backend event contracts.
 
+## Why It Exists
+Many message-analysis products overclaim. VibeSignal takes the narrower path:
+- pattern detection, not certainty
+- structured outputs, not raw-text magic
+- local-first analysis, with optional external AI only when configured
+- descriptive language, not accusations or diagnoses
+
+This makes it easier to discuss the product with recruiters, interviewers, or operators as a workflow and trust-boundary exercise instead of an "AI knows what they meant" pitch.
+
+## What The Product Outputs
+Current deterministic outputs center on conversation-pattern shifts such as:
 - tone
 - directness
 - vagueness
@@ -13,209 +28,88 @@ Paste a message or short conversation and VibeSignal highlights what changed in:
 - urgency
 - response alignment
 
-It is designed as a second perspective, not a source of truth.
+The product surfaces those as structured "what changed" results rather than as hidden scores alone.
 
-## Product aim
+## Current Repo Reality
+Built now:
+- Expo mobile shell with an always-available local analysis path
+- deterministic local analysis and structured result rendering
+- recent-analysis persistence plus copy/share actions
+- optional BYOK provider validation and secure on-device storage when supported
+- bounded mobile-to-backend event logging with retry, validation, and diagnostics
+- quota, paywall, and RevenueCat-oriented mobile scaffolding
+- privacy, provider-disclosure, and prelaunch-readiness documentation
 
-The goal is to help users quickly spot changes in how something reads, especially when a reply feels different, less clear, more indirect, or subtly off.
+Code-complete but still needing real-world proof:
+- deployed backend verification against the final live host
+- iPhone simulator/device runtime proof
+- RevenueCat/App Store sandbox purchase and restore validation
+- final production privacy / terms URLs
 
-Core product principle:
+## Architecture Snapshot
+- `mobile/`: Expo / React Native shell, provider setup, quota state, billing scaffolding, and event logging
+- `src/vibesignal_ai/`: deterministic conversation analysis, contracts, providers, safety rules, and UI payload builders
+- `docs/`: privacy flow, provider disclosure, backend contract notes, and execution-proof material
+- `docs/proof/phase_validation_2026-04-07/`: bounded validation artifacts for the current mobile/provider pass
 
-- pattern detection, not certainty
-- evidence-backed output, not hidden truth claims
-- local-first analysis with optional external AI
+The important repo boundary is simple: deterministic local artifacts are the source of truth, and optional provider outputs are late-bound add-ons.
 
-## Current product state
+## Privacy And AI Boundary
+- Local deterministic analysis is the default path.
+- External AI is optional and BYOK-driven.
+- Provider configuration stays separate from deterministic artifacts.
+- Secure on-device credential storage is preferred when supported.
+- The repo does not claim deception detection, intent inference, diagnosis, or mental-health judgment.
 
-### Built now
+## How To Review The Repo
+Start here if you want the fastest credible walkthrough:
+- [mobile/README.md](mobile/README.md) for the current mobile shell, BYOK, event logging, and monetization state
+- [docs/privacy_data_flow.md](docs/privacy_data_flow.md) for privacy and data-handling boundaries
+- [docs/provider_disclosure_notes.md](docs/provider_disclosure_notes.md) for optional provider positioning
+- [docs/legal_safe_output_policy.md](docs/legal_safe_output_policy.md) for wording and safety constraints
+- [docs/proof/phase_validation_2026-04-07/final_phase_validation_summary.md](docs/proof/phase_validation_2026-04-07/final_phase_validation_summary.md) for bounded execution proof
 
-- mobile-first primary analysis flow
-- always-visible local input path
-- deterministic local signal engine
-- structured result output:
-  - pattern
-  - what changed
-  - where
-- recent-analysis persistence
-- copy/share support
-- optional BYOK provider flow
-- verify-before-save provider validation
-- event logging pipeline with retry, validation, and diagnostics
-- backend verification helper tooling
-- paywall / monetization readiness groundwork
-- sandbox and prelaunch readiness docs
+## Running The Current Repo
+Python package setup:
 
-### Code-complete but still needs real-world validation
+```bash
+python3 -m pip install -r requirements.txt
+python3 -m pytest
+```
 
-- real deployed backend verification
-- real iPhone Safari / WKWebView feel check
-- RevenueCat / App Store sandbox purchase flow
-- restore flow on device
-- entitlement refresh validation
-- telemetry replay against live backend
+Mobile shell:
 
-## Tools and stack
+```bash
+cd mobile
+npm install
+npm test
+npm start
+```
 
-### Mobile / product
-- Expo
-- React Native
-- JavaScript
-- secure storage on iOS
-- localStorage fallback for web where appropriate
+Optional backend contract check:
 
-### Product systems
-- deterministic local signal analysis
-- bounded local analysis history
-- event queue with retry / validation / diagnostics
-- backend verification tooling
+```bash
+cd mobile
+npm run verify:backend -- --api-url https://<your-backend-host> --event state
+```
 
-### Monetization / compliance groundwork
-- RevenueCat-oriented readiness checks
-- restore purchases path
-- privacy / terms link handling
-- App Store prelaunch documentation
+## Recruiter / Interview Framing
+This repo is best presented as:
+- a deterministic-first conversation-analysis product
+- a mobile wrapper around structured local signals
+- an example of optional AI augmentation with clear boundaries
+- a privacy-aware workflow with explicit BYOK and telemetry constraints
 
-## Analytical basis
+It should not be presented as:
+- a lie detector
+- a hidden-intent engine
+- a diagnostic system
+- a fully production-proven subscription app
 
-VibeSignal currently uses a lightweight deterministic analysis layer rather than a large local ML stack.
-
-It looks for practical language-pattern shifts such as:
-
-- increased hedging
-- increased vagueness
-- lower lexical overlap / weaker response alignment
-- tone or urgency changes
-- meaningful message-length shifts
-
-This is not a diagnostic system, not a lie detector, and not a mental health tool.
-
-## Legal and ethical positioning
-
-VibeSignal is intended as a decision-support and interpretation-support product.
-
-It does **not** claim to:
-
-- detect deception
-- infer hidden intent with certainty
-- diagnose mental health
-- replace professional advice
-- provide legal, medical, or psychological judgments
-
-The product should remain:
-
-- evidence-first
-- low-hype
-- safe in wording
-- non-accusatory
-- grounded in visible text
-
-## How outcomes will be measured
-
-Success should be measured with real product metrics, not vague engagement claims.
-
-### Activation
-- first successful analysis rate
-- time to first result
-- example-to-analysis conversion
-
-### Retention
-- D1 return rate
-- D7 return rate
-- repeat analyses per user
-- recent-analysis reopen usage
-
-### Monetization
-- free-to-premium conversion
-- upgrade after quota exhaustion
-- restore success rate
-- purchase success rate
-
-### Product quality
-- output usefulness feedback
-- share/copy usage
-- crash/error rates
-- backend event acceptance rate
-- sandbox test pass rate
-
-## Monetisation goals
-
-Near-term monetisation goal:
-
-- make the local product useful first
-- prove premium adds deeper value
-- validate subscription flow safely before scaling
-
-Premium should feel like:
-- deeper analysis
-- more detail
-- optional external AI augmentation
-- not basic access to the product’s core usefulness
-
-## Adoption goals
-
-Early adoption should focus on:
-
-- users who already overthink tone in messages
-- users comparing replies
-- users wanting a second interpretation quickly
-- creators/demo audiences who can show clear before/after examples
-
-Healthy early signs:
-- repeat usage
-- screenshots/shares
-- high first-result completion
-- users voluntarily trying multiple messages
-
-## Shareability / “going viral”
-
-Virality is not assumed. It has to be earned.
-
-The realistic loop is:
-
-- fast first-use curiosity
-- surprisingly useful output
-- screenshot-friendly result
-- easy share/copy behavior
-- strong “try this on another message” loop
-
-What matters most:
-- product clarity
-- result quality
-- emotional relevance
-- low friction
-
-## Long-term vision
-
-Longer term, VibeSignal could evolve into a broader language-pattern platform with:
-
-- stronger local signal analysis
-- optional structured LLM augmentation with guardrails
-- better observability and operator tooling
-- cleaner trust/safety controls
-- better premium differentiation
-- reusable pattern-analysis infrastructure for future tools
-
-## What is still left to do
-
-- confirm live backend wiring with the real deployed URL
-- set final EXPO_PUBLIC_API_URL
-- run full backend verification against production-like endpoints
-- complete real iPhone sandbox destruction test run
-- finalize RevenueCat / App Store Connect setup
-- add final production Privacy Policy URL
-- add final production Terms URL
-- confirm real purchase / restore behavior on device
-
-## Running the project
-
-See the repo and mobile/README.md for current setup and verification steps.
-
-## Repo truthfulness
-
-This repo should distinguish clearly between:
-
+## Repo Truthfulness
+Keep the story narrow:
 - built now
-- code-complete but unverified on device
-- planned / future work
+- code-complete but not yet fully validated in live mobile/backend conditions
+- future work only where explicitly labeled
 
 No fake certainty. No unsupported claims.

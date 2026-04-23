@@ -57,8 +57,8 @@ test("paywall view model can show a value-first teaser before the hard limit", (
     },
   });
 
-  assert.equal(model.title, "Keep going with Premium");
-  assert.match(model.body, /already started using local analysis/i);
+  assert.equal(model.title, "Unlock deeper pattern detection");
+  assert.match(model.body, /started spotting the shift/i);
 });
 
 test("paywall view model only accepts secure legal links", () => {
