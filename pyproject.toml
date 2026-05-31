@@ -9,6 +9,7 @@ description = "Deterministic-first conversation pattern analysis."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+  "PyYAML>=6.0",
   "emoji>=2.11",
   "langdetect>=1.0.9",
   "rapidfuzz>=3.9",

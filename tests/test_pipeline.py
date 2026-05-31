@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from vibesignal_ai.evidence.objects import validate_evidence_object
 from vibesignal_ai.pipeline.run import analyze_conversation
 from vibesignal_ai.summaries.summary_rewriter import rewrite_summary
 
@@ -31,10 +32,17 @@ def test_pipeline_happy_path_chat_with_hardened_artifacts(tmp_path: Path) -> Non
         root / "exports" / "ui_payloads.json",
         root / "exports" / "pattern_summary.json",
         root / "exports" / "ui_summary.json",
+        root / "exports" / "evidence_objects.jsonl",
     ]
     for path in required:
         assert path.exists()
         assert path.stat().st_size > 0
+
+    evidence_path = Path(result["evidence_objects_path"])
+    rows = [json.loads(line) for line in evidence_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert rows
+    for row in rows:
+        assert validate_evidence_object(row) == []
 
     payloads = json.loads(Path(result["ui_payloads_path"]).read_text(encoding="utf-8"))
     assert "ui_summary" in payloads

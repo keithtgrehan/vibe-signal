@@ -1,0 +1,83 @@
+registry_version: vibe_resource_registry_v1
+description: Example metadata registry for Vibe Engine sources. Raw personal data is local-only unless a synthetic fixture explicitly allows commit.
+resources:
+  - source_id: user_owned_chat_local
+    source_name: User-owned local chat export
+    source_url_or_path: local://user_owned_chat
+    source_type: user_owned_chat
+    rights_tier: manual_supplied
+    license_or_terms_summary: User-owned or consented data; raw body may be processed locally only; commit is not permitted.
+    allowed_storage: raw_allowed_local_only
+    allowed_commit: false
+    allowed_training_use: "no"
+    allowed_eval_use: review_required
+    raw_body_allowed: true
+    metadata_only: false
+    acquisition_method: user_supplied_local_file
+    paywall_or_login_status: user_owned_no_scraping
+    robots_status: not_applicable_user_supplied
+    provenance_hash: sha256:1111111111111111111111111111111111111111111111111111111111111111
+    last_checked_at: "2026-05-31"
+    reviewer_or_operator: codex
+    blocked_reason: ""
+    notes: Local-first processing only; do not commit raw chats.
+  - source_id: synthetic_fixture_chat
+    source_name: Synthetic Vibe fixture chat
+    source_url_or_path: tests/fixtures/relationship_chat_hardened.txt
+    source_type: synthetic_fixture
+    rights_tier: synthetic_fixture
+    license_or_terms_summary: Synthetic fixture rights explicitly allow raw body commit, tests, and synthetic-only evaluation.
+    allowed_storage: raw_allowed_commit
+    allowed_commit: true
+    allowed_training_use: synthetic_only
+    allowed_eval_use: synthetic_only
+    raw_body_allowed: true
+    metadata_only: false
+    acquisition_method: hand_authored_synthetic_fixture
+    paywall_or_login_status: no_paywall_no_login
+    robots_status: not_applicable_synthetic
+    provenance_hash: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    last_checked_at: "2026-05-31"
+    reviewer_or_operator: codex
+    blocked_reason: ""
+    notes: Synthetic text only; not copied from a real private conversation.
+  - source_id: goemotions_metadata_reference
+    source_name: GoEmotions metadata reference
+    source_url_or_path: https://github.com/google-research/google-research/tree/master/goemotions
+    source_type: research_dataset
+    rights_tier: publicly_available
+    license_or_terms_summary: Metadata-only benchmark reference; license and terms require review before any download or raw-body use.
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    acquisition_method: metadata_reference_only
+    paywall_or_login_status: public_reference_no_login_checked
+    robots_status: not_scraped_metadata_reference
+    provenance_hash: sha256:3333333333333333333333333333333333333333333333333333333333333333
+    last_checked_at: "2026-05-31"
+    reviewer_or_operator: codex
+    blocked_reason: ""
+    notes: Dataset labels are annotator judgments, not emotion truth; no dataset download in this PR.
+  - source_id: blocked_private_chat_reference
+    source_name: Blocked private chat reference
+    source_url_or_path: private://third_party_chat
+    source_type: blocked_reference
+    rights_tier: restricted
+    license_or_terms_summary: Private third-party chat without explicit consent is blocked.
+    allowed_storage: blocked
+    allowed_commit: false
+    allowed_training_use: "no"
+    allowed_eval_use: "no"
+    raw_body_allowed: false
+    metadata_only: true
+    acquisition_method: blocked_reference_only
+    paywall_or_login_status: private_or_login_gated
+    robots_status: not_applicable_blocked
+    provenance_hash: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    last_checked_at: "2026-05-31"
+    reviewer_or_operator: codex
+    blocked_reason: No user ownership or consent.
+    notes: Do not ingest, scrape, store, or commit.

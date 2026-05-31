@@ -1,0 +1,192 @@
+training_sources_version: vibe_training_sources_v1
+description: Metadata-only Vibe research-source inventory. No external dataset download, raw body commit, provider call, or model training is enabled by this config.
+sources:
+  - source_id: goemotions
+    source_name: GoEmotions
+    source_url_or_path: https://github.com/google-research/google-research/tree/master/goemotions
+    modality: text
+    task_type: emotion_annotation_benchmark
+    license_or_terms_summary: Metadata-only reference; license and terms require review before any raw-body use.
+    rights_tier: publicly_available
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Compare annotation taxonomy shape against Vibe communication-pattern labels.
+    blocked_vibe_use:
+      - Treat labels as true emotion.
+      - Train product models by default.
+    notes: Dataset labels are annotator judgments, not truth.
+  - source_id: dailydialog
+    source_name: DailyDialog
+    source_url_or_path: https://aclanthology.org/I17-1099/
+    modality: text
+    task_type: dialogue_act_benchmark
+    license_or_terms_summary: Metadata-only reference; terms require review before any download or raw-body use.
+    rights_tier: publicly_available
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Compare dialogue-act structure for explicit ask and topic-shift evaluation design.
+    blocked_vibe_use:
+      - Promote dataset rows to Vibe gold labels.
+      - Commit raw conversations.
+    notes: Benchmark reference only.
+  - source_id: empatheticdialogues
+    source_name: EmpatheticDialogues
+    source_url_or_path: https://aclanthology.org/P19-1534/
+    modality: text
+    task_type: supportive_response_benchmark
+    license_or_terms_summary: Metadata-only reference; terms require review before use.
+    rights_tier: publicly_available
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Study safe response phrasing patterns for clarity and repair-message scaffolds.
+    blocked_vibe_use:
+      - Claim labels are emotional truth.
+      - Train generation models by default.
+    notes: Support phrasing reference only.
+  - source_id: meld
+    source_name: MELD
+    source_url_or_path: https://affective-meld.github.io/
+    modality: multimodal
+    task_type: multimodal_benchmark
+    license_or_terms_summary: Metadata-only reference; dataset terms and underlying media rights require review.
+    rights_tier: publicly_available
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Track multimodal benchmark existence for future calibration discussions.
+    blocked_vibe_use:
+      - Infer true emotion from voice or video.
+      - Commit media.
+    notes: No media download in this PR.
+  - source_id: cmu_mosei
+    source_name: CMU-MOSEI
+    source_url_or_path: http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/
+    modality: multimodal
+    task_type: multimodal_benchmark
+    license_or_terms_summary: Metadata-only reference; terms require review before any access.
+    rights_tier: publicly_available
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Track multimodal benchmark design constraints.
+    blocked_vibe_use:
+      - Biometric analysis.
+      - Attraction prediction.
+    notes: No dataset download.
+  - source_id: cmu_mosi
+    source_name: CMU-MOSI
+    source_url_or_path: http://multicomp.cs.cmu.edu/resources/cmu-mosi-dataset/
+    modality: multimodal
+    task_type: multimodal_benchmark
+    license_or_terms_summary: Metadata-only reference; terms require review before any access.
+    rights_tier: publicly_available
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Track benchmark design for future evaluation notes.
+    blocked_vibe_use:
+      - Deception detection.
+      - Diagnosis.
+    notes: No dataset download.
+  - source_id: msp_podcast
+    source_name: MSP-Podcast
+    source_url_or_path: https://ecs.utdallas.edu/research/researchlabs/msp-lab/MSP-Podcast.html
+    modality: audio
+    task_type: audio_benchmark
+    license_or_terms_summary: Metadata-only reference; access terms require review before any raw audio use.
+    rights_tier: publicly_available
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Track audio benchmark constraints for future calibration notes.
+    blocked_vibe_use:
+      - Infer mental-health or identity traits.
+      - Commit raw audio.
+    notes: No audio download.
+  - source_id: iemocap
+    source_name: IEMOCAP
+    source_url_or_path: https://sail.usc.edu/iemocap/
+    modality: audio_video
+    task_type: audio_video_benchmark
+    license_or_terms_summary: Metadata-only reference; access terms require review before any media use.
+    rights_tier: publicly_available
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Track evaluation design constraints for future multimodal gating.
+    blocked_vibe_use:
+      - Treat acted labels as true emotion.
+      - Commit raw media.
+    notes: No media download.
+  - source_id: toxicity_harassment_placeholder
+    source_name: Toxicity/harassment dataset placeholder
+    source_url_or_path: metadata://toxicity-harassment-placeholder
+    modality: text
+    task_type: safety_boundary_benchmark
+    license_or_terms_summary: Placeholder only; concrete dataset terms must be reviewed before use.
+    rights_tier: restricted
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: benchmark_only
+    raw_body_allowed: false
+    metadata_only: true
+    safe_vibe_use:
+      - Track possible boundary-language benchmarks for safety evaluation design.
+    blocked_vibe_use:
+      - Score people as manipulative or abusive.
+      - Use as dating advice labels.
+    notes: Placeholder row blocks raw data until a specific source is reviewed.
+  - source_id: synthetic_vibe_fixtures
+    source_name: Synthetic Vibe fixtures
+    source_url_or_path: tests/fixtures/
+    modality: text
+    task_type: synthetic_fixture_eval
+    license_or_terms_summary: Synthetic fixtures are hand-authored for tests and may be committed.
+    rights_tier: synthetic_fixture
+    allowed_storage: raw_allowed_commit
+    allowed_commit: true
+    allowed_training_use: synthetic_only
+    allowed_eval_use: synthetic_only
+    raw_body_allowed: true
+    metadata_only: false
+    safe_vibe_use:
+      - Immediate evaluation path for Vibe validators and deterministic cue tests.
+    blocked_vibe_use:
+      - Treat synthetic examples as real user data.
+    notes: Synthetic-only evaluation path.
