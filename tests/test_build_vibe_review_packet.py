@@ -11,6 +11,7 @@ from vibesignal_ai.evidence.export import write_evidence_jsonl
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "build_vibe_review_packet.py"
+FIXTURE_EVIDENCE = ROOT / "tests" / "fixtures" / "evidence_objects" / "valid_evidence_objects.jsonl"
 
 
 def fixture_evidence(path: Path) -> None:
@@ -83,3 +84,17 @@ def test_refuses_invalid_evidence_unless_allow_invalid(tmp_path: Path) -> None:
     )
     assert allowed.returncode == 0, allowed.stdout + allowed.stderr
     assert csv_out.exists()
+
+
+def test_builds_review_packet_from_committed_fixture(tmp_path: Path) -> None:
+    md_out = tmp_path / "fixture_packet.md"
+    csv_out = tmp_path / "fixture_packet.csv"
+
+    result = run_builder("--evidence", str(FIXTURE_EVIDENCE), "--md-out", str(md_out), "--csv-out", str(csv_out))
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "machine cues are suggestions" in md_out.read_text(encoding="utf-8").lower()
+    with csv_out.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 2
+    assert {"reviewer_label_type", "reviewer_confidence", "reviewer_notes", "accept/reject"} <= set(rows[0])

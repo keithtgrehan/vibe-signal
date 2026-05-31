@@ -1,0 +1,163 @@
+[
+  {
+    "id": "T001",
+    "name": "Direct and specific request",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:00:00Z", "text": "Please review the notes by Friday at 3pm."}
+    ],
+    "expected_present": [{"cue_id": "directness", "min_strength": 2}, {"cue_id": "specificity", "min_strength": 2}],
+    "expected_absent": ["ambiguity", "unclear_ask"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T002",
+    "name": "Hedged soft ask",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:05:00Z", "text": "Maybe we could talk later if you want."}
+    ],
+    "expected_present": [{"cue_id": "hedging", "min_strength": 2}, {"cue_id": "ambiguity", "min_strength": 2}],
+    "expected_absent": ["pressure", "urgency"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T003",
+    "name": "Urgency with explicit deadline",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:10:00Z", "text": "I need this right now before the deadline tonight."}
+    ],
+    "expected_present": [{"cue_id": "urgency", "min_strength": 2}, {"cue_id": "specificity", "min_strength": 2}],
+    "expected_absent": ["reassurance"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T004",
+    "name": "Reassurance reduces urgency",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:15:00Z", "text": "No rush, please send it when you can."}
+    ],
+    "expected_present": [{"cue_id": "reassurance", "min_strength": 2}, {"cue_id": "directness", "min_strength": 2}],
+    "expected_absent": ["urgency", "pressure"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T005",
+    "name": "Pressure wording",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:20:00Z", "text": "You must answer right now or else."}
+    ],
+    "expected_present": [{"cue_id": "pressure", "min_strength": 2}, {"cue_id": "urgency", "min_strength": 2}],
+    "expected_absent": ["reassurance"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T006",
+    "name": "Conflict with repair opportunity",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:25:00Z", "text": "I am frustrated. Sorry, let me rephrase the ask."}
+    ],
+    "expected_present": [{"cue_id": "conflict", "min_strength": 2}, {"cue_id": "repair_opportunity", "min_strength": 2}],
+    "expected_absent": ["pressure"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T007",
+    "name": "Alignment",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:30:00Z", "text": "I agree, that works and we are on the same page."}
+    ],
+    "expected_present": [{"cue_id": "alignment", "min_strength": 2}],
+    "expected_absent": ["conflict", "pressure"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T008",
+    "name": "Topic shift marker",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:35:00Z", "text": "Separately, can you confirm the time?"}
+    ],
+    "expected_present": [{"cue_id": "topic_shift", "min_strength": 2}, {"cue_id": "directness", "min_strength": 2}],
+    "expected_absent": ["pressure"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T009",
+    "name": "Ambiguous unclear ask",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:40:00Z", "text": "Maybe later, whatever works."}
+    ],
+    "expected_present": [{"cue_id": "ambiguity", "min_strength": 2}, {"cue_id": "unclear_ask", "min_strength": 2}],
+    "expected_absent": ["directness", "specificity"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T010",
+    "name": "Cognitive load and overloaded message",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:45:00Z", "text": "Can you confirm the time, the place, the backup plan, whether you saw the note, whether I should bring the printed copy, whether the earlier plan still works, and whether there is anything else I should prepare before we meet tomorrow?"}
+    ],
+    "expected_present": [{"cue_id": "cognitive_load", "min_strength": 2}, {"cue_id": "overloaded_message", "min_strength": 2}],
+    "expected_absent": ["pressure"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T011",
+    "name": "Escalation risk combo",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:50:00Z", "text": "You have to answer right now. I am frustrated that this keeps happening."}
+    ],
+    "expected_present": [{"cue_id": "pressure", "min_strength": 2}, {"cue_id": "conflict", "min_strength": 2}, {"cue_id": "escalation_risk", "min_strength": 2}],
+    "expected_absent": ["reassurance"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T012",
+    "name": "Boundary pressure",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:55:00Z", "text": "Share your location and do not tell anyone."}
+    ],
+    "expected_present": [{"cue_id": "boundary_pressure", "min_strength": 2}],
+    "expected_absent": ["reassurance"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T013",
+    "name": "Clear consent",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T11:00:00Z", "text": "Yes, I am okay with changing the plan."}
+    ],
+    "expected_present": [{"cue_id": "consent_clarity", "min_strength": 2}],
+    "expected_absent": ["pressure", "ambiguity"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T014",
+    "name": "Mixed consent clarity",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T11:05:00Z", "text": "Maybe, only if we can stop anytime."}
+    ],
+    "expected_present": [{"cue_id": "consent_clarity", "min_strength": 2}, {"cue_id": "ambiguity", "min_strength": 2}],
+    "expected_absent": ["pressure"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T015",
+    "name": "Response timing rapid follow-up",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T11:10:00Z", "text": "Can you confirm the plan?"},
+      {"id": "m2", "author": "A", "created_at": "2026-05-31T11:12:00Z", "text": "Just checking again."}
+    ],
+    "expected_present": [{"cue_id": "response_timing", "min_strength": 2}],
+    "expected_absent": ["pressure"],
+    "notes": "Synthetic fixture only."
+  },
+  {
+    "id": "T016",
+    "name": "Quoted text exclusion",
+    "messages": [
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T11:15:00Z", "text": "> Please send the file by Friday.\nMaybe later."}
+    ],
+    "expected_present": [{"cue_id": "hedging", "min_strength": 2}, {"cue_id": "ambiguity", "min_strength": 2}],
+    "expected_absent": ["directness", "specificity", "urgency"],
+    "notes": "Synthetic fixture only."
+  }
+]
