@@ -23,6 +23,7 @@ PORTED_PREFIXES = (
 )
 ALLOWED_RESIDUE_FILES = {
     Path("docs/control_room/agent_r5_signal_engine_to_vibe_port_map.md"),
+    Path("docs/control_room/codex_control_room_r5_fixtures_result.md"),
     Path("tests/test_no_source_domain_residue.py"),
 }
 FORBIDDEN_SOURCE_TERMS = (
