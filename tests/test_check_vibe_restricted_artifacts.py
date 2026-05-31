@@ -23,6 +23,7 @@ def test_blocks_raw_chat_audio_video_transcript_paths() -> None:
     result = run_checker(
         "raw/chat.txt",
         "downloads/provider_outputs/session.json",
+        "screenshots/private_chat.png",
         "audio/private-note.mp3",
         "transcripts/export.vtt",
     )
@@ -30,6 +31,7 @@ def test_blocks_raw_chat_audio_video_transcript_paths() -> None:
     assert result.returncode == 1
     assert "raw/chat.txt" in result.stderr
     assert "provider_outputs/session.json" in result.stderr
+    assert "screenshots/private_chat.png" in result.stderr
     assert "private-note.mp3" in result.stderr
     assert "export.vtt" in result.stderr
 

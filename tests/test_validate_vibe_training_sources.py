@@ -75,3 +75,16 @@ def test_metadata_raw_conflict_blocked_use_and_unsafe_safe_use_fail(tmp_path: Pa
     assert "metadata_only cannot also allow raw_body_allowed" in result.stdout
     assert "blocked_vibe_use cannot be empty" in result.stdout
     assert "safe_vibe_use implies a disallowed claim" in result.stdout
+
+
+def test_safe_use_cannot_imply_manipulation_or_neurotype_inference(tmp_path: Path) -> None:
+    payload = load_example()
+    row = payload["sources"][0]
+    row["safe_vibe_use"] = ["score manipulation and infer neurotype from text"]
+    path = tmp_path / "unsafe_safe_use.yml"
+    path.write_text(yaml.safe_dump(payload), encoding="utf-8")
+
+    result = run_validator(path)
+
+    assert result.returncode == 1
+    assert "safe_vibe_use implies a disallowed claim" in result.stdout

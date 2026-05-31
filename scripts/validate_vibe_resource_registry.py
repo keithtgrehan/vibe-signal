@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -44,20 +45,31 @@ RIGHTS_TIERS = {
 }
 SOURCE_TYPES = {
     "user_owned_chat",
+    "user_supplied_text",
     "pasted_chat",
     "whatsapp_export",
     "manual_local",
     "synthetic_fixture",
+    "platform_export_metadata",
+    "platform_url_metadata",
     "research_dataset",
+    "licensed_dataset",
+    "restricted_external_dataset",
     "benchmark_dataset",
     "audio_metadata",
     "video_metadata",
     "provider_metadata",
+    "provider_response_metadata",
     "blocked_reference",
 }
 ALLOWED_STORAGE_VALUES = {"metadata_only", "raw_allowed_local_only", "raw_allowed_commit", "blocked"}
 ALLOWED_USE_VALUES = {"no", "review_required", "benchmark_only", "synthetic_only", "yes"}
 PLACEHOLDER_VALUES = {"", "pending", "todo", "tbd", "unknown", "n/a"}
+ALIAS_FIELDS = (
+    ("allowed_commit", "commit_allowed"),
+    ("allowed_training_use", "training_allowed"),
+    ("allowed_eval_use", "eval_allowed"),
+)
 
 
 def read_structured(path: Path) -> Any:
@@ -81,6 +93,28 @@ def resource_rows(payload: Any) -> list[dict[str, Any]]:
     return rows
 
 
+def normalize_aliases(row: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(row)
+    for primary, alias in ALIAS_FIELDS:
+        if primary not in normalized and alias in normalized:
+            normalized[primary] = normalized[alias]
+    return normalized
+
+
+def stable_provenance_hash(row: dict[str, Any]) -> str:
+    payload = {
+        "source_id": str(row.get("source_id", "")),
+        "source_name": str(row.get("source_name", "")),
+        "source_url_or_path": str(row.get("source_url_or_path", "")),
+        "source_type": str(row.get("source_type", "")),
+        "rights_tier": str(row.get("rights_tier", "")),
+        "license_or_terms_summary": str(row.get("license_or_terms_summary", "")),
+        "last_checked_at": str(row.get("last_checked_at", "")),
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return "sha256:" + hashlib.sha256(encoded).hexdigest()
+
+
 def _is_real_bool(value: Any) -> bool:
     return isinstance(value, bool)
 
@@ -92,7 +126,8 @@ def _placeholder(value: Any) -> bool:
 def validate_rows(rows: list[dict[str, Any]]) -> list[str]:
     errors: list[str] = []
     seen: set[str] = set()
-    for index, row in enumerate(rows, start=1):
+    for index, original_row in enumerate(rows, start=1):
+        row = normalize_aliases(original_row)
         for field in REQUIRED_FIELDS:
             if field not in row:
                 errors.append(f"row {index}: missing required field {field}")
@@ -137,7 +172,7 @@ def validate_rows(rows: list[dict[str, Any]]) -> list[str]:
         if _placeholder(provenance_hash) or not provenance_hash.startswith("sha256:"):
             errors.append(f"row {index}: provenance_hash must be populated and start with sha256:")
 
-        restricted = rights_tier == "restricted" or source_type == "blocked_reference"
+        restricted = rights_tier == "restricted" or source_type in {"blocked_reference", "restricted_external_dataset"}
         if restricted and raw_body_allowed:
             errors.append(f"row {index}: restricted source cannot allow raw_body_allowed")
         if restricted and (allowed_commit or allowed_storage == "raw_allowed_commit"):

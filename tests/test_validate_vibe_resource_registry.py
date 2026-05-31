@@ -6,10 +6,16 @@ from pathlib import Path
 
 import yaml
 
+import importlib.util
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "validate_vibe_resource_registry.py"
 EXAMPLE = ROOT / "configs" / "vibe_resource_registry.example.yml"
+SPEC = importlib.util.spec_from_file_location("validate_vibe_resource_registry", SCRIPT)
+validator = importlib.util.module_from_spec(SPEC)
+assert SPEC.loader is not None
+SPEC.loader.exec_module(validator)
 
 
 def run_validator(path: Path) -> subprocess.CompletedProcess[str]:
@@ -90,3 +96,25 @@ def test_malformed_boolean_metadata_conflict_and_pending_hash_fail(tmp_path: Pat
     assert result.returncode == 1
     assert "malformed boolean metadata_only" in result.stdout
     assert "provenance_hash" in result.stdout
+
+
+def test_stable_provenance_hash_is_deterministic() -> None:
+    row = load_example()["resources"][0]
+
+    assert validator.stable_provenance_hash(row) == validator.stable_provenance_hash(dict(row))
+    assert validator.stable_provenance_hash(row).startswith("sha256:")
+
+
+def test_new_metadata_source_types_are_allowed(tmp_path: Path) -> None:
+    payload = load_example()
+    payload["resources"][0]["source_type"] = "provider_response_metadata"
+    payload["resources"][0]["allowed_storage"] = "metadata_only"
+    payload["resources"][0]["raw_body_allowed"] = False
+    payload["resources"][0]["metadata_only"] = True
+    payload["resources"][0]["allowed_eval_use"] = "review_required"
+    path = tmp_path / "provider_metadata.yml"
+    path.write_text(yaml.safe_dump(payload), encoding="utf-8")
+
+    result = run_validator(path)
+
+    assert result.returncode == 0, result.stdout + result.stderr
