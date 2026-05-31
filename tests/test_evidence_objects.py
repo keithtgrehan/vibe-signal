@@ -67,6 +67,17 @@ def test_missing_interpretation_limits_fail() -> None:
     assert any("missing interpretation limit does_not_detect_deception" in error for error in errors)
 
 
+def test_restricted_raw_text_commit_guardrail_fails() -> None:
+    row = valid_object()
+    row["rights_tier"] = "restricted"
+    row["commit_allowed"] = True
+    row["raw_text_commit_allowed"] = True
+
+    errors = validate_evidence_object(row)
+
+    assert "restricted or unknown rights cannot allow raw text commit" in errors
+
+
 def test_hash_is_deterministic() -> None:
     assert stable_text_hash("same text") == stable_text_hash("same text")
     assert stable_text_hash("same text") != stable_text_hash("different text")

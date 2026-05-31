@@ -1,0 +1,43 @@
+version: vibe_blocked_phrases_v1
+phrases:
+  - phrase: they are lying
+    category: deception_or_truth
+  - phrase: proves cheating
+    category: deception_or_truth
+  - phrase: this proves cheating
+    category: deception_or_truth
+  - phrase: hidden intent
+    category: intent_or_outcome
+  - phrase: they love you
+    category: emotion_or_mind_reading
+  - phrase: emotionally vulnerable; use that
+    category: manipulation
+  - phrase: make them jealous
+    category: manipulation
+  - phrase: trigger their attachment
+    category: manipulation
+  - phrase: use their vulnerability
+    category: manipulation
+  - phrase: reject this candidate
+    category: workplace_education
+  - phrase: student anxiety
+    category: workplace_education
+  - phrase: covert monitoring
+    category: surveillance_or_covert_collection
+  - phrase: auto-send full chat to provider
+    category: provider_privacy_violation
+regexes:
+  - pattern: "\\bthey\\s+(are|seem|look)\\s+autistic\\b"
+    category: diagnosis_or_health
+  - pattern: "\\bthey\\s+have\\s+adhd\\b"
+    category: diagnosis_or_health
+  - pattern: "\\bdiagnos(?:e|is|tic)\\b"
+    category: diagnosis_or_health
+  - pattern: "\\bprotected\\s+trait\\b"
+    category: protected_trait_inference
+  - pattern: "\\b(face|facial|voice|body)\\s+(emotion|stress|biometric|analysis)\\b"
+    category: biometric_or_media
+  - pattern: "\\bmicro[- ]expression\\b"
+    category: biometric_or_media
+  - pattern: "\\bmake\\s+them\\b"
+    category: manipulation

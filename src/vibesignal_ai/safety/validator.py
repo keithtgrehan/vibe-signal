@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from .banned_terms import BANNED_PATTERNS, BANNED_TERMS
+from .redline_output_blocker import validate_output_text
 
 SOFT_VERDICT_TRIGGERS = (
     r"\bthis suggests\b",
@@ -77,6 +78,7 @@ def validate_text(text: str, *, field_name: str = "text") -> list[str]:
         errors.append(
             f"{field_name} contains implication-heavy verdict phrasing: {', '.join(soft_matches)}"
         )
+    errors.extend(validate_output_text(text, field_name=field_name))
     return errors
 
 

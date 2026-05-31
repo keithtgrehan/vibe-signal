@@ -49,6 +49,9 @@ UNSAFE_SAFE_USE_TERMS = (
     "protected trait",
     "cheating",
     "infer neurodivergence",
+    "infer neurotype",
+    "neurotype inference",
+    "manipulation",
 )
 
 
@@ -111,7 +114,13 @@ def validate_rows(rows: list[dict[str, Any]]) -> list[str]:
             errors.append(f"row {index}: metadata_only cannot also allow raw_body_allowed")
         if external and row.get("allowed_training_use") == "yes":
             notes = str(row.get("notes", "")).lower()
-            if "explicit training approval" not in notes:
+            required_notes = (
+                "explicit training approval",
+                "rights review",
+                "privacy review",
+                "safety review",
+            )
+            if not all(token in notes for token in required_notes):
                 errors.append(f"row {index}: training yes requires explicit approval notes")
         if not _non_empty_list(row.get("blocked_vibe_use")):
             errors.append(f"row {index}: blocked_vibe_use cannot be empty")

@@ -1,0 +1,39 @@
+{
+  "version": "vibe_redline_policy_v1",
+  "description": "Deterministic output blocker for Vibe Engine red-line claims.",
+  "categories": {
+    "deception_or_truth": {
+      "safe_replacement": "This text can be described only by observable wording changes."
+    },
+    "emotion_or_mind_reading": {
+      "safe_replacement": "No conclusion about internal state can be made from this text."
+    },
+    "intent_or_outcome": {
+      "safe_replacement": "This text supports only a communication-pattern observation."
+    },
+    "diagnosis_or_health": {
+      "safe_replacement": "Do not infer health, disability, or diagnosis from this text."
+    },
+    "protected_trait_inference": {
+      "safe_replacement": "Do not infer protected traits from this text."
+    },
+    "workplace_education": {
+      "safe_replacement": "Vibe Engine is not for workplace, hiring, or education decisions."
+    },
+    "biometric_or_media": {
+      "safe_replacement": "Do not infer identity, emotion, or health from face, voice, or body media."
+    },
+    "surveillance_or_covert_collection": {
+      "safe_replacement": "Use only data you own or have consent to review."
+    },
+    "manipulation": {
+      "safe_replacement": "Use clear, consent-respecting language instead of pressure tactics."
+    },
+    "major_life_decision": {
+      "safe_replacement": "Vibe Engine should not make or automate major life decisions."
+    },
+    "provider_privacy_violation": {
+      "safe_replacement": "Keep raw personal data local unless the user explicitly chooses a provider flow."
+    }
+  }
+}

@@ -114,6 +114,11 @@ def validate_evidence_object(row: dict[str, Any]) -> list[str]:
     if row.get("text_sha256") != stable_text_hash(text):
         errors.append("text_sha256 does not match evidence_text")
 
+    if row.get("raw_text_commit_allowed") is True and row.get("rights_tier") in {"restricted", "unknown"}:
+        errors.append("restricted or unknown rights cannot allow raw text commit")
+    if row.get("raw_text_commit_allowed") is True and row.get("commit_allowed") is not True:
+        errors.append("raw_text_commit_allowed requires commit_allowed")
+
     if not isinstance(row.get("provenance"), dict) or not row.get("provenance"):
         errors.append("provenance must be a non-empty object")
 

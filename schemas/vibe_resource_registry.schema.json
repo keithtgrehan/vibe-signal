@@ -46,15 +46,21 @@
           "type": "string",
           "enum": [
             "user_owned_chat",
+            "user_supplied_text",
             "pasted_chat",
             "whatsapp_export",
             "manual_local",
             "synthetic_fixture",
+            "platform_export_metadata",
+            "platform_url_metadata",
             "research_dataset",
+            "licensed_dataset",
+            "restricted_external_dataset",
             "benchmark_dataset",
             "audio_metadata",
             "video_metadata",
             "provider_metadata",
+            "provider_response_metadata",
             "blocked_reference"
           ]
         },

@@ -61,6 +61,46 @@ resources:
     reviewer_or_operator: codex
     blocked_reason: ""
     notes: Dataset labels are annotator judgments, not emotion truth; no dataset download in this PR.
+  - source_id: provider_response_metadata_example
+    source_name: Optional provider response metadata example
+    source_url_or_path: local://provider_response_metadata
+    source_type: provider_response_metadata
+    rights_tier: manual_supplied
+    license_or_terms_summary: Metadata-only local record of an optional user-triggered provider flow; raw body is not stored or committed.
+    allowed_storage: metadata_only
+    allowed_commit: true
+    allowed_training_use: "no"
+    allowed_eval_use: review_required
+    raw_body_allowed: false
+    metadata_only: true
+    acquisition_method: user_triggered_metadata_only
+    paywall_or_login_status: optional_provider_user_configured
+    robots_status: not_applicable_metadata_only
+    provenance_hash: sha256:5555555555555555555555555555555555555555555555555555555555555555
+    last_checked_at: "2026-05-31"
+    reviewer_or_operator: codex
+    blocked_reason: ""
+    notes: Provider output is never canonical truth and must pass red-line checks before display.
+  - source_id: restricted_external_dataset_reference
+    source_name: Restricted external dataset reference
+    source_url_or_path: metadata://restricted_external_dataset
+    source_type: restricted_external_dataset
+    rights_tier: restricted
+    license_or_terms_summary: Restricted metadata-only reference; raw body, commit, training, and evaluation are blocked.
+    allowed_storage: blocked
+    allowed_commit: false
+    allowed_training_use: "no"
+    allowed_eval_use: "no"
+    raw_body_allowed: false
+    metadata_only: true
+    acquisition_method: metadata_reference_only
+    paywall_or_login_status: restricted_or_unclear
+    robots_status: not_scraped_metadata_reference
+    provenance_hash: sha256:6666666666666666666666666666666666666666666666666666666666666666
+    last_checked_at: "2026-05-31"
+    reviewer_or_operator: codex
+    blocked_reason: Restricted source without approved Vibe use.
+    notes: External restricted rows cannot become product labels or raw fixtures.
   - source_id: blocked_private_chat_reference
     source_name: Blocked private chat reference
     source_url_or_path: private://third_party_chat
