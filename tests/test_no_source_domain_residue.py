@@ -53,6 +53,9 @@ FORBIDDEN_TRAINING_IMPLEMENTATION_TERMS = (
     "chromadb",
     "mlflow",
 )
+ALLOWED_TRAINING_TERM_HITS = {
+    (Path("scripts/check_vibe_restricted_artifacts.py"), "faiss"),
+}
 
 
 def iter_repo_files() -> list[Path]:
@@ -98,7 +101,29 @@ def test_no_training_implementation_added_to_code() -> None:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         for term in FORBIDDEN_TRAINING_IMPLEMENTATION_TERMS:
+            if (relative, term) in ALLOWED_TRAINING_TERM_HITS:
+                continue
             if term in text:
                 hits.append(f"{relative}: {term}")
+
+    assert hits == []
+
+
+def test_residue_patterns_block_source_domain_terms() -> None:
+    text = "ticker trading buy signal sell signal sec edgar"
+
+    hits = [pattern for pattern in FORBIDDEN_SOURCE_TERMS if re.search(pattern, text)]
+
+    assert r"\bticker\b" in hits
+    assert r"\btrading\b" in hits
+    assert r"\bbuy signal\b" in hits
+    assert r"\bsell signal\b" in hits
+    assert r"\bsec edgar\b" in hits
+
+
+def test_residue_patterns_allow_research_rights_terms() -> None:
+    text = "research_only non-commercial rights_tier manual-review restricted eval-only source registry"
+
+    hits = [pattern for pattern in FORBIDDEN_SOURCE_TERMS if re.search(pattern, text)]
 
     assert hits == []
