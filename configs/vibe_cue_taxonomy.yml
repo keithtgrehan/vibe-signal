@@ -1,0 +1,232 @@
+taxonomy_version: vibe_cue_taxonomy_v1
+description: Deterministic text-cue taxonomy for Vibe. The rules identify observable message cues only and do not infer emotions, diagnosis, intent, attraction, attachment style, or persuasion targets.
+default_confidence: 0.7
+rules_scope:
+  - synthetic_fixture_tests
+  - local_user_supplied_text
+blocked_use:
+  - emotion_truth_inference
+  - diagnosis
+  - attachment_style_scoring
+  - manipulation_or_persuasion_optimization
+  - model_training_without_rights_approval
+cues:
+  - cue_id: directness
+    cue_family: directness
+    description: Direct request, instruction, or confirmation wording.
+    patterns:
+      - "\\b(?:please|can you|could you|will you|would you|i need|i want|confirm|send|review)\\b"
+    reducers: []
+    confidence: 0.74
+    explanation: "Rule matched direct request wording."
+    safe_phrase: "message contains direct request wording."
+    blocked_interpretations:
+      - Does not infer willingness or intent.
+
+  - cue_id: specificity
+    cue_family: specificity
+    description: Specific date, time, deadline, or concrete schedule detail.
+    patterns:
+      - "\\b(?:\\d{1,2}(?::\\d{2})?\\s?(?:am|pm)?|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow|before|by)\\b"
+    reducers: []
+    confidence: 0.72
+    explanation: "Rule matched a concrete time, date, or deadline marker."
+    safe_phrase: "message contains specific timing or deadline wording."
+    blocked_interpretations:
+      - Does not infer reliability or commitment.
+
+  - cue_id: hedging
+    cue_family: hedging
+    description: Qualifying or tentative wording.
+    patterns:
+      - "\\b(?:maybe|perhaps|sort of|kind of|i guess|not sure|might|could be|if you want)\\b"
+    reducers: []
+    confidence: 0.72
+    explanation: "Rule matched tentative or qualifying wording."
+    safe_phrase: "message contains hedging wording."
+    blocked_interpretations:
+      - Does not infer confidence, truthfulness, or emotion.
+
+  - cue_id: urgency
+    cue_family: urgency
+    description: Time-pressure wording.
+    patterns:
+      - "\\b(?:right now|urgent|asap|immediately|by tonight|deadline|need this now)\\b"
+    reducers:
+      - "\\b(?:no rush|no hurry|when you can)\\b"
+    confidence: 0.76
+    explanation: "Rule matched time-pressure wording."
+    safe_phrase: "message contains urgency wording."
+    blocked_interpretations:
+      - Does not infer importance or emotional state.
+
+  - cue_id: reassurance
+    cue_family: reassurance
+    description: Lower-pressure or permission-preserving wording.
+    patterns:
+      - "\\b(?:no rush|no pressure|when you can|it is okay|that's okay|all good|only if you want)\\b"
+    reducers: []
+    confidence: 0.75
+    explanation: "Rule matched reassurance or low-pressure wording."
+    safe_phrase: "message contains reassurance wording."
+    blocked_interpretations:
+      - Does not infer care, affection, or intent.
+
+  - cue_id: pressure
+    cue_family: pressure
+    description: Obligation, ultimatum, or constrained-choice wording.
+    patterns:
+      - "\\b(?:you must|right now|or else|if you do not|if you don't|you have to|don't say no|owe me)\\b"
+    reducers:
+      - "\\b(?:no pressure|only if you want|when you can)\\b"
+    confidence: 0.78
+    explanation: "Rule matched obligation or constrained-choice wording."
+    safe_phrase: "message contains pressure wording."
+    blocked_interpretations:
+      - Does not score character, intent, or coercive motive.
+
+  - cue_id: conflict
+    cue_family: conflict
+    description: Disagreement, tension, or conflict-process wording.
+    patterns:
+      - "\\b(?:upset|frustrated|argument|fight|disagree|not okay|hurt|sorry this got tense)\\b"
+    reducers: []
+    confidence: 0.7
+    explanation: "Rule matched conflict or tension wording."
+    safe_phrase: "message contains conflict-related wording."
+    blocked_interpretations:
+      - Does not infer what anyone feels internally.
+
+  - cue_id: alignment
+    cue_family: alignment
+    description: Agreement or shared-plan wording.
+    patterns:
+      - "\\b(?:i agree|that works|sounds good|same page|yes, that plan|aligned)\\b"
+    reducers: []
+    confidence: 0.74
+    explanation: "Rule matched agreement or shared-plan wording."
+    safe_phrase: "message contains alignment wording."
+    blocked_interpretations:
+      - Does not infer relationship quality or attraction.
+
+  - cue_id: response_timing
+    cue_family: response_timing
+    description: Same-speaker follow-up within a short timestamp window.
+    patterns: []
+    reducers: []
+    computed_rule: same_author_followup_within_180_seconds
+    confidence: 0.66
+    explanation: "Timestamp rule found a same-speaker follow-up within three minutes."
+    safe_phrase: "text cues suggest a short follow-up timing pattern."
+    blocked_interpretations:
+      - Does not infer impatience, anxiety, or intent.
+
+  - cue_id: topic_shift
+    cue_family: topic_shift
+    description: Explicit topic transition wording.
+    patterns:
+      - "\\b(?:anyway|separately|another thing|new topic|switching topics)\\b"
+    reducers: []
+    confidence: 0.73
+    explanation: "Rule matched topic transition wording."
+    safe_phrase: "message contains topic-shift wording."
+    blocked_interpretations:
+      - Does not infer avoidance or hidden motive.
+
+  - cue_id: ambiguity
+    cue_family: ambiguity
+    description: Vague timing, uncertainty, or non-specific wording.
+    patterns:
+      - "\\b(?:maybe|idk|not sure|whatever|sometime|later maybe|we'll see|unclear)\\b"
+    reducers: []
+    confidence: 0.72
+    explanation: "Rule matched vague or non-specific wording."
+    safe_phrase: "message contains ambiguity wording."
+    blocked_interpretations:
+      - Does not infer deception or emotion.
+
+  - cue_id: cognitive_load
+    cue_family: cognitive_load
+    description: Long or multi-part message likely to require extra parsing effort.
+    patterns: []
+    reducers: []
+    computed_rule: word_count_or_questions_threshold
+    confidence: 0.67
+    explanation: "Length and question-count rule found a multi-part message."
+    safe_phrase: "text cues suggest higher reading load."
+    blocked_interpretations:
+      - Does not infer ability, disability, or diagnosis.
+
+  - cue_id: unclear_ask
+    cue_family: unclear_ask
+    description: Ambiguous message without a clear request marker.
+    patterns: []
+    reducers: []
+    computed_rule: ambiguity_without_request_marker
+    confidence: 0.68
+    explanation: "Ambiguity rule found unclear wording without an explicit request marker."
+    safe_phrase: "text cues suggest the ask may be unclear."
+    blocked_interpretations:
+      - Does not infer intent or emotional state.
+
+  - cue_id: overloaded_message
+    cue_family: overloaded_message
+    description: Message includes several asks or enough length to benefit from splitting.
+    patterns: []
+    reducers: []
+    computed_rule: word_count_or_questions_threshold
+    confidence: 0.67
+    explanation: "Length and question-count rule found a dense or multi-part message."
+    safe_phrase: "text cues suggest the message may be overloaded."
+    blocked_interpretations:
+      - Does not infer competence or diagnosis.
+
+  - cue_id: escalation_risk
+    cue_family: escalation_risk
+    description: Co-occurrence of pressure with conflict or boundary-pressure cues.
+    patterns: []
+    reducers: []
+    computed_rule: pressure_with_conflict_or_boundary_pressure
+    confidence: 0.69
+    explanation: "Combination rule found pressure together with conflict or boundary-pressure wording."
+    safe_phrase: "text cues suggest an escalation-risk pattern."
+    blocked_interpretations:
+      - Does not label a person as unsafe or abusive.
+
+  - cue_id: repair_opportunity
+    cue_family: repair_opportunity
+    description: Apology, reset, or rephrasing wording.
+    patterns:
+      - "\\b(?:sorry|let me rephrase|reset|repair|misunderstood|i meant)\\b"
+    reducers: []
+    confidence: 0.74
+    explanation: "Rule matched apology, reset, or rephrasing wording."
+    safe_phrase: "message contains repair-opportunity wording."
+    blocked_interpretations:
+      - Does not infer remorse or intent.
+
+  - cue_id: boundary_pressure
+    cue_family: boundary_pressure
+    description: Boundary-sensitive request or privacy-pressure wording.
+    patterns:
+      - "\\b(?:send me your|share your|prove it|why won't you|don't tell anyone|private photo|your location|you have to)\\b"
+    reducers:
+      - "\\b(?:you can say no|only if you want|no pressure)\\b"
+    confidence: 0.78
+    explanation: "Rule matched boundary-sensitive request wording."
+    safe_phrase: "message contains boundary-pressure wording."
+    blocked_interpretations:
+      - Does not infer motive or assign blame.
+
+  - cue_id: consent_clarity
+    cue_family: consent_clarity
+    description: Explicit consent, permission, or opt-out wording.
+    patterns:
+      - "\\b(?:yes|i consent|i'm okay with|i am okay with|only if you want|you can say no|do you consent|is that okay)\\b"
+      - "\\b(?:not sure|maybe|i guess|only if|stop|do not|don't)\\b"
+    reducers: []
+    confidence: 0.73
+    explanation: "Rule matched consent, permission, or opt-out wording."
+    safe_phrase: "message contains consent-clarity wording."
+    blocked_interpretations:
+      - Does not decide consent status beyond the visible wording.

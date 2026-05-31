@@ -1,52 +1,66 @@
-"""Deterministic observable cue taxonomy for Vibe Engine."""
+"""Deterministic observable cue taxonomy for Vibe Signal."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 import re
 from typing import Any, Iterable
+
+import yaml
 
 from ..evidence.objects import build_evidence_object
 
 
-CUE_IDS = {
-    "directness",
-    "specificity",
-    "hedging",
-    "urgency",
-    "reassurance",
-    "pressure",
-    "conflict",
-    "alignment",
-    "response_timing",
-    "topic_shift",
-    "ambiguity",
-    "cognitive_load",
-    "unclear_ask",
-    "overloaded_message",
-    "escalation_risk",
-    "repair_opportunity",
-    "boundary_pressure",
-    "consent_clarity",
-}
-
-DIRECTNESS_RE = re.compile(r"\b(please|can you|could you|will you|would you|i need|i want|confirm|send|review)\b", re.IGNORECASE)
-SPECIFICITY_RE = re.compile(r"\b(\d{1,2}(:\d{2})?\s?(am|pm)?|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow|before|by)\b", re.IGNORECASE)
-HEDGING_RE = re.compile(r"\b(maybe|perhaps|sort of|kind of|i guess|not sure|might|could be|if you want)\b", re.IGNORECASE)
-URGENCY_RE = re.compile(r"\b(right now|urgent|asap|immediately|before|by tonight|deadline|need this now)\b", re.IGNORECASE)
-URGENCY_REDUCERS_RE = re.compile(r"\b(no rush|no hurry|when you can)\b", re.IGNORECASE)
-REASSURANCE_RE = re.compile(r"\b(no rush|no pressure|when you can|it is okay|that's okay|all good)\b", re.IGNORECASE)
-PRESSURE_RE = re.compile(r"\b(you must|right now|or else|if you do not|if you don't|you have to|don't say no|owe me)\b", re.IGNORECASE)
-PRESSURE_REDUCERS_RE = re.compile(r"\b(no pressure|only if you want|when you can)\b", re.IGNORECASE)
-CONFLICT_RE = re.compile(r"\b(upset|frustrated|argument|fight|disagree|not okay|hurt|sorry this got tense)\b", re.IGNORECASE)
-ALIGNMENT_RE = re.compile(r"\b(i agree|that works|sounds good|same page|yes, that plan|aligned)\b", re.IGNORECASE)
-TOPIC_SHIFT_RE = re.compile(r"\b(anyway|separately|another thing|new topic|switching topics)\b", re.IGNORECASE)
-AMBIGUITY_RE = re.compile(r"\b(maybe|idk|not sure|whatever|sometime|later maybe|we'll see|unclear)\b", re.IGNORECASE)
-REPAIR_RE = re.compile(r"\b(sorry|let me rephrase|reset|repair|misunderstood|i meant)\b", re.IGNORECASE)
-BOUNDARY_PRESSURE_RE = re.compile(r"\b(send me your|share your|prove it|why won't you|don't tell anyone|private photo|your location|you have to)\b", re.IGNORECASE)
-CONSENT_CLEAR_RE = re.compile(r"\b(yes|i consent|i'm okay with|i am okay with|only if you want|you can say no|do you consent|is that okay)\b", re.IGNORECASE)
-CONSENT_MIXED_RE = re.compile(r"\b(not sure|maybe|i guess|only if|stop|do not|don't)\b", re.IGNORECASE)
+CONFIG_PATH = Path(__file__).resolve().parents[3] / "configs" / "vibe_cue_taxonomy.yml"
 ASK_RE = re.compile(r"\b(can|could|will|would)\s+you\b|\?|\bplease\b|\bconfirm\b", re.IGNORECASE)
+REQUEST_MARKER_RE = re.compile(r"\b(?:can you|could you|will you|would you|please|confirm|send|review|check|compare|rewrite|tell me)\b", re.IGNORECASE)
+
+
+@dataclass(frozen=True)
+class CueRule:
+    cue_id: str
+    cue_family: str
+    patterns: tuple[re.Pattern[str], ...]
+    reducers: tuple[re.Pattern[str], ...]
+    confidence: float
+    explanation: str
+    safe_phrase: str
+    computed_rule: str | None = None
+
+
+def _load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def _compile_rule(row: dict[str, Any]) -> CueRule:
+    return CueRule(
+        cue_id=str(row["cue_id"]),
+        cue_family=str(row["cue_family"]),
+        patterns=tuple(re.compile(pattern, re.IGNORECASE) for pattern in row.get("patterns", [])),
+        reducers=tuple(re.compile(pattern, re.IGNORECASE) for pattern in row.get("reducers", [])),
+        confidence=float(row.get("confidence", 0.7)),
+        explanation=str(row["explanation"]),
+        safe_phrase=str(row["safe_phrase"]),
+        computed_rule=row.get("computed_rule"),
+    )
+
+
+def load_taxonomy_rules(path: Path = CONFIG_PATH) -> dict[str, CueRule]:
+    payload = _load_config(path)
+    rows = payload.get("cues", [])
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("Cue taxonomy config must contain a non-empty cues list.")
+    compiled = [_compile_rule(row) for row in rows]
+    rules = {rule.cue_family: rule for rule in compiled}
+    if len(rules) != len(rows):
+        raise ValueError("Cue taxonomy contains duplicate cue_family values.")
+    return rules
+
+
+RULES_BY_FAMILY = load_taxonomy_rules()
+CUE_IDS = set(RULES_BY_FAMILY)
 
 
 def _strip_quotes_and_code(text: str) -> str:
@@ -71,6 +85,10 @@ def _sentence_count(text: str) -> int:
     return len([part for part in re.split(r"(?<=[.!?])\s+", text.strip()) if part.strip()])
 
 
+def _request_marker_count(text: str) -> int:
+    return len(REQUEST_MARKER_RE.findall(text))
+
+
 def _parse_time(value: Any) -> datetime | None:
     if not value:
         return None
@@ -86,45 +104,56 @@ def _parse_time(value: Any) -> datetime | None:
         return None
 
 
-def _first_match(pattern: re.Pattern[str], text: str) -> tuple[int, int, str] | None:
-    match = pattern.search(text)
-    if not match:
+def _first_match(rule: CueRule, text: str) -> re.Match[str] | None:
+    if any(reducer.search(text) for reducer in rule.reducers):
         return None
-    return match.start(), match.end(), match.group(0)
+    for pattern in rule.patterns:
+        match = pattern.search(text)
+        if match:
+            return match
+    return None
 
 
 def _evidence(
     *,
-    cue_id: str,
+    rule: CueRule,
     message: dict[str, Any],
     text: str,
     start: int = 0,
     end: int | None = None,
     evidence_text: str | None = None,
-    strength: int = 1,
     conversation_id: str,
+    strength: int = 2,
     state: str | None = None,
 ) -> dict[str, Any]:
     evidence = evidence_text if evidence_text is not None else text
     if end is None:
         end = start + len(evidence)
+    message_id = message.get("id", message.get("message_id", "message"))
     row = build_evidence_object(
-        evidence_id=f"{conversation_id}_{message.get('id', message.get('message_id', 'message'))}_{cue_id}",
+        evidence_id=f"{conversation_id}_{message_id}_{rule.cue_id}_{max(0, int(start))}",
         conversation_id=conversation_id,
         source_type="synthetic_fixture" if str(conversation_id).startswith("synthetic") else "manual_local",
-        message_id=message.get("id", message.get("message_id", "")),
-        turn_id=message.get("turn_id", message.get("id", message.get("message_id", ""))),
+        message_id=message_id,
+        turn_id=message.get("turn_id", message_id),
         speaker_role=str(message.get("speaker_role", message.get("author", "unknown"))),
-        cue_name=cue_id,
+        cue_name=rule.cue_id,
+        cue_id=rule.cue_id,
+        cue_family=rule.cue_family,
         evidence_text=evidence,
         start_offset=max(0, int(start)),
         end_offset=max(0, int(end)),
+        span_start=max(0, int(start)),
+        span_end=max(0, int(end)),
+        confidence=rule.confidence,
+        explanation=rule.explanation,
+        safe_phrase=rule.safe_phrase,
         provenance={
-            "source": "deterministic_cue_taxonomy",
+            "source": "deterministic_vibe_cue_taxonomy",
+            "taxonomy_config": str(CONFIG_PATH.relative_to(Path(__file__).resolve().parents[3])),
             "note": "Quoted lines and code blocks are excluded before cue detection.",
         },
     )
-    row["cue_id"] = cue_id
     row["strength"] = int(strength)
     if state:
         row["state"] = state
@@ -134,31 +163,52 @@ def _evidence(
 def _add_pattern_cue(
     cues: list[dict[str, Any]],
     *,
-    cue_id: str,
-    pattern: re.Pattern[str],
+    cue_family: str,
     text: str,
     message: dict[str, Any],
     conversation_id: str,
     strength: int = 2,
-    reducer: re.Pattern[str] | None = None,
 ) -> None:
-    if reducer and reducer.search(text):
+    rule = RULES_BY_FAMILY[cue_family]
+    match = _first_match(rule, text)
+    if not match:
         return
-    match = _first_match(pattern, text)
-    if match:
-        start, end, evidence = match
-        cues.append(
-            _evidence(
-                cue_id=cue_id,
-                message=message,
-                text=text,
-                start=start,
-                end=end,
-                evidence_text=evidence,
-                strength=strength,
-                conversation_id=conversation_id,
-            )
+    cues.append(
+        _evidence(
+            rule=rule,
+            message=message,
+            text=text,
+            start=match.start(),
+            end=match.end(),
+            evidence_text=match.group(0),
+            strength=strength,
+            conversation_id=conversation_id,
         )
+    )
+
+
+def _message_is_overloaded(text: str) -> bool:
+    return _word_count(text) >= 30 or _sentence_count(text) >= 4 or text.count("?") >= 2 or _request_marker_count(text) >= 4
+
+
+def _add_whole_message_cue(
+    cues: list[dict[str, Any]],
+    *,
+    cue_family: str,
+    text: str,
+    message: dict[str, Any],
+    conversation_id: str,
+    strength: int = 2,
+) -> None:
+    cues.append(
+        _evidence(
+            rule=RULES_BY_FAMILY[cue_family],
+            message=message,
+            text=text,
+            conversation_id=conversation_id,
+            strength=strength,
+        )
+    )
 
 
 def _message_cues(message: dict[str, Any], conversation_id: str) -> list[dict[str, Any]]:
@@ -167,48 +217,33 @@ def _message_cues(message: dict[str, Any], conversation_id: str) -> list[dict[st
         return []
 
     cues: list[dict[str, Any]] = []
-    _add_pattern_cue(cues, cue_id="directness", pattern=DIRECTNESS_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="specificity", pattern=SPECIFICITY_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="hedging", pattern=HEDGING_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="urgency", pattern=URGENCY_RE, text=text, message=message, conversation_id=conversation_id, reducer=URGENCY_REDUCERS_RE)
-    _add_pattern_cue(cues, cue_id="reassurance", pattern=REASSURANCE_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="pressure", pattern=PRESSURE_RE, text=text, message=message, conversation_id=conversation_id, reducer=PRESSURE_REDUCERS_RE)
-    _add_pattern_cue(cues, cue_id="conflict", pattern=CONFLICT_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="alignment", pattern=ALIGNMENT_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="topic_shift", pattern=TOPIC_SHIFT_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="ambiguity", pattern=AMBIGUITY_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="repair_opportunity", pattern=REPAIR_RE, text=text, message=message, conversation_id=conversation_id)
-    _add_pattern_cue(cues, cue_id="boundary_pressure", pattern=BOUNDARY_PRESSURE_RE, text=text, message=message, conversation_id=conversation_id)
+    for cue_family in (
+        "directness",
+        "specificity",
+        "hedging",
+        "urgency",
+        "reassurance",
+        "pressure",
+        "conflict",
+        "alignment",
+        "topic_shift",
+        "ambiguity",
+        "repair_opportunity",
+        "boundary_pressure",
+        "consent_clarity",
+    ):
+        _add_pattern_cue(cues, cue_family=cue_family, text=text, message=message, conversation_id=conversation_id)
 
-    if _word_count(text) >= 36 or _sentence_count(text) >= 4 or text.count("?") >= 2:
-        cues.append(_evidence(cue_id="cognitive_load", message=message, text=text, strength=2, conversation_id=conversation_id))
-        cues.append(_evidence(cue_id="overloaded_message", message=message, text=text, strength=2, conversation_id=conversation_id))
+    if _message_is_overloaded(text):
+        _add_whole_message_cue(cues, cue_family="cognitive_load", text=text, message=message, conversation_id=conversation_id)
+        _add_whole_message_cue(cues, cue_family="overloaded_message", text=text, message=message, conversation_id=conversation_id)
 
-    if not ASK_RE.search(text) and (AMBIGUITY_RE.search(text) or _word_count(text) <= 5):
-        cues.append(_evidence(cue_id="unclear_ask", message=message, text=text, strength=2, conversation_id=conversation_id))
+    if "ambiguity" in {cue["cue_family"] for cue in cues} and not ASK_RE.search(text):
+        _add_whole_message_cue(cues, cue_family="unclear_ask", text=text, message=message, conversation_id=conversation_id)
 
-    consent_clear = CONSENT_CLEAR_RE.search(text)
-    consent_mixed = CONSENT_MIXED_RE.search(text)
-    if consent_clear or consent_mixed:
-        state = "mixed" if consent_clear and consent_mixed else "clear" if consent_clear else "unclear"
-        match = consent_clear or consent_mixed
-        cues.append(
-            _evidence(
-                cue_id="consent_clarity",
-                message=message,
-                text=text,
-                start=match.start(),
-                end=match.end(),
-                evidence_text=match.group(0),
-                strength=2,
-                conversation_id=conversation_id,
-                state=state,
-            )
-        )
-
-    cue_ids = {cue["cue_id"] for cue in cues}
-    if "pressure" in cue_ids and ({"conflict", "boundary_pressure"} & cue_ids):
-        cues.append(_evidence(cue_id="escalation_risk", message=message, text=text, strength=2, conversation_id=conversation_id))
+    cue_families = {cue["cue_family"] for cue in cues}
+    if "pressure" in cue_families and ({"conflict", "boundary_pressure"} & cue_families):
+        _add_whole_message_cue(cues, cue_family="escalation_risk", text=text, message=message, conversation_id=conversation_id)
 
     return cues
 
@@ -220,11 +255,12 @@ def _response_timing_cues(messages: list[dict[str, Any]], conversation_id: str) 
     for message in messages:
         current_time = _parse_time(message.get("created_at"))
         if previous and previous_time and current_time:
-            same_author = str(previous.get("author", previous.get("speaker_role", ""))) == str(message.get("author", message.get("speaker_role", "")))
+            previous_author = str(previous.get("author", previous.get("speaker_role", "")))
+            current_author = str(message.get("author", message.get("speaker_role", "")))
             delta = (current_time - previous_time).total_seconds()
-            if same_author and 0 <= delta <= 180:
+            if previous_author == current_author and 0 <= delta <= 180:
                 text = _strip_quotes_and_code(str(message.get("text", ""))) or str(message.get("text", ""))
-                cues.append(_evidence(cue_id="response_timing", message=message, text=text, strength=2, conversation_id=conversation_id))
+                _add_whole_message_cue(cues, cue_family="response_timing", text=text, message=message, conversation_id=conversation_id)
         previous = message
         previous_time = current_time
     return cues
