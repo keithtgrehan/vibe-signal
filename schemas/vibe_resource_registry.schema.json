@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibesignal.local/schemas/vibe_resource_registry.schema.json",
+  "title": "Vibe Resource Registry",
+  "type": "object",
+  "required": ["registry_version", "resources"],
+  "properties": {
+    "registry_version": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "resources": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/resource"}
+    }
+  },
+  "$defs": {
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_name",
+        "source_url_or_path",
+        "source_type",
+        "rights_tier",
+        "license_or_terms_summary",
+        "allowed_storage",
+        "allowed_commit",
+        "allowed_training_use",
+        "allowed_eval_use",
+        "raw_body_allowed",
+        "metadata_only",
+        "acquisition_method",
+        "paywall_or_login_status",
+        "robots_status",
+        "provenance_hash",
+        "last_checked_at",
+        "reviewer_or_operator",
+        "blocked_reason",
+        "notes"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "source_name": {"type": "string", "minLength": 1},
+        "source_url_or_path": {"type": "string", "minLength": 1},
+        "source_type": {
+          "type": "string",
+          "enum": [
+            "user_owned_chat",
+            "pasted_chat",
+            "whatsapp_export",
+            "manual_local",
+            "synthetic_fixture",
+            "research_dataset",
+            "benchmark_dataset",
+            "audio_metadata",
+            "video_metadata",
+            "provider_metadata",
+            "blocked_reference"
+          ]
+        },
+        "rights_tier": {
+          "type": "string",
+          "enum": [
+            "public_domain",
+            "publicly_available",
+            "official_public_terms_checked",
+            "open_licensed",
+            "licensed",
+            "manual_supplied",
+            "restricted",
+            "synthetic_fixture"
+          ]
+        },
+        "license_or_terms_summary": {"type": "string", "minLength": 1},
+        "allowed_storage": {
+          "type": "string",
+          "enum": ["metadata_only", "raw_allowed_local_only", "raw_allowed_commit", "blocked"]
+        },
+        "allowed_commit": {"type": "boolean"},
+        "allowed_training_use": {
+          "type": "string",
+          "enum": ["no", "review_required", "benchmark_only", "synthetic_only", "yes"]
+        },
+        "allowed_eval_use": {
+          "type": "string",
+          "enum": ["no", "review_required", "benchmark_only", "synthetic_only", "yes"]
+        },
+        "raw_body_allowed": {"type": "boolean"},
+        "metadata_only": {"type": "boolean"},
+        "acquisition_method": {"type": "string"},
+        "paywall_or_login_status": {"type": "string"},
+        "robots_status": {"type": "string"},
+        "provenance_hash": {"type": "string", "minLength": 1},
+        "last_checked_at": {"type": "string", "minLength": 1},
+        "reviewer_or_operator": {"type": "string", "minLength": 1},
+        "blocked_reason": {"type": "string"},
+        "notes": {"type": "string"}
+      }
+    }
+  }
+}
