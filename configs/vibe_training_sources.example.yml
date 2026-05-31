@@ -1,477 +1,275 @@
-training_sources_version: vibe_training_sources_v2
-description: Metadata-only Vibe research-source inventory. No external dataset download, raw body commit, provider call, or model training is enabled by this config.
+training_sources_version: vibe_training_sources_rights_gates_v1
+description: Metadata-only Vibe training source rights registry. This file does not authorize dataset download, raw data commits, provider fetching, model training, vector generation, or production ML readiness.
 sources:
   - source_id: goemotions
-    source_name: GoEmotions
-    source_url_or_path: https://github.com/google-research/google-research/tree/master/goemotions
+    name: GoEmotions
     modality: text
-    task_type: annotation_taxonomy_reference
-    license_or_terms_summary: Metadata-only reference; license and terms require review before any raw-body use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+    task: emotion_taxonomy_reference
+    license_name: Apache-2.0 repository license; Vibe treats dataset rows as reference-only until dataset-specific training and privacy review is complete
+    license_url: https://github.com/google-research/google-research/blob/master/LICENSE
+    download_method: none_reference_only
+    access_notes: Official repository metadata may be reviewed by URL only; no rows are downloaded or committed by this registry.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: false
+    rights_tier: manual-review
+    usage: reference_only
     safe_vibe_use:
-      - Compare annotation taxonomy shape against Vibe communication-pattern labels.
+      - Compare annotation taxonomy shape against Vibe observable communication-pattern labels.
     blocked_vibe_use:
-      - Treat labels as internal truth.
-      - Train product models by default.
-    notes: Dataset labels are annotator judgments, not truth.
-  - source_id: dailydialog
-    source_name: DailyDialog
-    source_url_or_path: https://aclanthology.org/I17-1099/
-    modality: text
-    task_type: dialogue_act_reference
-    license_or_terms_summary: Metadata-only reference; terms require review before any download or raw-body use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Compare dialogue-act structure for explicit ask and topic-shift evaluation design.
-    blocked_vibe_use:
-      - Promote dataset rows to Vibe gold labels.
-      - Commit raw conversations.
-    notes: Benchmark reference only.
-  - source_id: empatheticdialogues
-    source_name: EmpatheticDialogues
-    source_url_or_path: https://aclanthology.org/P19-1534/
-    modality: text
-    task_type: supportive_response_reference
-    license_or_terms_summary: Metadata-only reference; terms require review before use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Study safe response phrasing patterns for clarity and repair-message scaffolds.
-    blocked_vibe_use:
-      - Claim labels reveal internal states.
-      - Train generation models by default.
-    notes: Support phrasing reference only.
-  - source_id: meld
-    source_name: MELD
-    source_url_or_path: https://affective-meld.github.io/
-    modality: multimodal
-    task_type: media_benchmark_reference
-    license_or_terms_summary: Metadata-only reference; dataset terms and underlying media rights require review.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Track multimodal benchmark rights and media constraints for future calibration discussions.
-    blocked_vibe_use:
-      - Analyze faces, voices, or bodies for biometric conclusions.
-      - Commit media.
-    notes: No media download in this PR.
-  - source_id: cmu_mosei
-    source_name: CMU-MOSEI
-    source_url_or_path: http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/
-    modality: multimodal
-    task_type: media_benchmark_reference
-    license_or_terms_summary: Metadata-only reference; terms require review before any access.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Track benchmark design constraints for future evidence-object evaluation notes.
-    blocked_vibe_use:
-      - Biometric analysis.
-      - Attraction prediction.
-    notes: No dataset download.
-  - source_id: cmu_mosi
-    source_name: CMU-MOSI
-    source_url_or_path: http://multicomp.cs.cmu.edu/resources/cmu-mosi-dataset/
-    modality: multimodal
-    task_type: media_benchmark_reference
-    license_or_terms_summary: Metadata-only reference; terms require review before any access.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Track benchmark design for future calibration notes.
-    blocked_vibe_use:
-      - Deception detection.
-      - Diagnosis.
-    notes: No dataset download.
-  - source_id: msp_podcast
-    source_name: MSP-Podcast
-    source_url_or_path: https://ecs.utdallas.edu/research/researchlabs/msp-lab/MSP-Podcast.html
-    modality: audio
-    task_type: audio_benchmark_reference
-    license_or_terms_summary: Metadata-only reference; access terms require review before any raw audio use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Track audio benchmark constraints for future calibration notes.
-    blocked_vibe_use:
-      - Infer medical or identity traits.
-      - Commit raw audio.
-    notes: No audio download.
-  - source_id: iemocap
-    source_name: IEMOCAP
-    source_url_or_path: https://sail.usc.edu/iemocap/
-    modality: audio_video
-    task_type: acted_media_benchmark_reference
-    license_or_terms_summary: Metadata-only reference; access terms require review before any media use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Track acted-dialog evaluation design constraints for future multimodal gating.
-    blocked_vibe_use:
-      - Treat acted labels as user truth.
-      - Commit raw media.
-    notes: No media download.
-  - source_id: wikipedia_toxicity_subtypes
-    source_name: Wikipedia Toxicity Subtypes
-    source_url_or_path: https://figshare.com/articles/dataset/Wikipedia_Talk_Labels_Toxicity/4563973
-    modality: text
-    task_type: safety_boundary_reference
-    license_or_terms_summary: Metadata-only reference; license terms require review before any raw-body use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Compare safety taxonomy shape for boundary-language review.
-    blocked_vibe_use:
-      - Score a person as abusive or manipulative.
-      - Use labels as relationship advice.
-    notes: Safety reference only.
+      - Train product or research models without a completed dataset-specific rights, privacy, and safety review.
+      - Treat annotator labels as internal user truth.
+    registry_status: reference_only
+    notes: "Conservative posture: training and commercial use remain blocked here unless explicit rights support is separately documented."
+
   - source_id: civil_comments
-    source_name: Civil Comments
-    source_url_or_path: https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification
+    name: Civil Comments
     modality: text
-    task_type: safety_boundary_reference
-    license_or_terms_summary: Metadata-only reference; Kaggle and source terms require review before use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+    task: safety_boundary_reference
+    license_name: Kaggle competition and source terms; Vibe treats rows as reference-only until license support for training and commercial use is verified
+    license_url: https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/rules
+    download_method: none_reference_only
+    access_notes: Kaggle/source terms require review before access; no comments or labels are downloaded or committed by this registry.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: false
+    rights_tier: manual-review
+    usage: reference_only
     safe_vibe_use:
-      - Review unintended-bias caveats for safety-gate design.
+      - Review published bias and safety caveats for Vibe safety-gate design.
     blocked_vibe_use:
-      - Infer protected traits.
-      - Commit raw comments.
-    notes: No dataset download.
-  - source_id: wikipedia_detox
-    source_name: Wikipedia Detox
-    source_url_or_path: https://meta.wikimedia.org/wiki/Research:Detox
+      - Infer protected traits or user intent from comments.
+      - Train models or commit raw comments without explicit rights approval.
+    registry_status: reference_only
+    notes: "Conservative posture: training and commercial use remain blocked unless explicit rights support is verified."
+
+  - source_id: dailydialog
+    name: DailyDialog
     modality: text
-    task_type: rewrite_safety_reference
-    license_or_terms_summary: Metadata-only reference; source terms require review before any raw text use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+    task: dialogue_act_research_training
+    license_name: Non-commercial research terms
+    license_url: https://aclanthology.org/I17-1099/
+    download_method: dry_run_only_no_download
+    access_notes: Research-only registry entry; no download is performed by the dry-run tooling in this repository.
+    training_use_allowed: true
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: NC
+    usage: research_only
     safe_vibe_use:
-      - Study rewrite-safety framing for low-pressure message rewrites.
+      - Research-only comparison of dialogue-act structure for explicit asks, topic shifts, and repair-message framing.
     blocked_vibe_use:
-      - Generate coercive rewrites.
-      - Use rows as product labels.
-    notes: Safety reference only.
-  - source_id: hatexplain
-    source_name: HateXplain
-    source_url_or_path: https://github.com/hate-alert/HateXplain
+      - Commercial training or product model training.
+      - Commit raw conversations or treat rows as Vibe gold labels.
+    registry_status: research_only_training_allowed
+    notes: Allowed only for research-only experiments after separate local access approval; commercial mode must reject it.
+
+  - source_id: empathetic_dialogues
+    name: EmpatheticDialogues
     modality: text
-    task_type: rationale_annotation_reference
-    license_or_terms_summary: Metadata-only reference; source terms require review before use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+    task: supportive_response_research_training
+    license_name: Non-commercial research terms
+    license_url: https://aclanthology.org/P19-1534/
+    download_method: dry_run_only_no_download
+    access_notes: Research-only registry entry; no download is performed by the dry-run tooling in this repository.
+    training_use_allowed: true
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: NC
+    usage: research_only
     safe_vibe_use:
-      - Review evidence-rationale annotation design.
+      - Research-only comparison of supportive phrasing patterns for clarity and repair-message scaffolds.
     blocked_vibe_use:
-      - Infer protected traits.
-      - Commit raw text.
-    notes: Evidence-rationale reference only.
-  - source_id: anthropic_hh_rlhf
-    source_name: Anthropic HH-RLHF
-    source_url_or_path: https://huggingface.co/datasets/Anthropic/hh-rlhf
-    modality: text
-    task_type: preference_safety_reference
-    license_or_terms_summary: Metadata-only reference; dataset card and terms require review before use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+      - Commercial training or product generation.
+      - Claim labels reveal internal emotional states.
+    registry_status: research_only_training_allowed
+    notes: Allowed only for research-only experiments after separate local access approval; commercial mode must reject it.
+
+  - source_id: meld
+    name: MELD
+    modality: multimodal
+    task: multimodal_benchmark_reference
+    license_name: Research benchmark terms with underlying media-rights restrictions
+    license_url: https://affective-meld.github.io/
+    download_method: none_eval_only
+    access_notes: Media and transcript rights require explicit review; this registry allows metadata-only benchmark tracking.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: eval-only
+    usage: eval_only
     safe_vibe_use:
-      - Review safe-response caveats for red-line test design.
+      - Track benchmark categories for future evaluation design discussions.
     blocked_vibe_use:
-      - Treat preference rows as Vibe gold labels.
-      - Train a provider-style model.
-    notes: Provider preference data is not canonical Vibe truth.
-  - source_id: prosocialdialog
-    source_name: ProsocialDialog
-    source_url_or_path: https://aclanthology.org/2022.emnlp-main.267/
-    modality: text
-    task_type: prosocial_response_reference
-    license_or_terms_summary: Metadata-only reference; terms require review before use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Compare boundary-support and repair-message evaluation ideas.
-    blocked_vibe_use:
-      - Auto-send full user chats to a provider.
-      - Use rows as product gold.
-    notes: Benchmark reference only.
-  - source_id: bot_adversarial_dialogue
-    source_name: Bot Adversarial Dialogue
-    source_url_or_path: https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/bot_adversarial_dialogue
-    modality: text
-    task_type: adversarial_safety_reference
-    license_or_terms_summary: Metadata-only reference; terms require review before use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Inform adversarial red-line fixture categories.
-    blocked_vibe_use:
-      - Train or deploy chatbot behavior from rows.
-      - Commit raw dialogue.
-    notes: Safety fixture design reference only.
-  - source_id: safetybench
-    source_name: SafetyBench
-    source_url_or_path: https://github.com/thu-coai/SafetyBench
-    modality: text
-    task_type: safety_benchmark_reference
-    license_or_terms_summary: Metadata-only reference; terms require review before use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Track safety benchmark categories for future gate design.
-    blocked_vibe_use:
-      - Claim production safety from benchmark mention alone.
-      - Train models.
-    notes: No benchmark execution in this PR.
-  - source_id: metooma
-    source_name: MeTooMA
-    source_url_or_path: metadata://metooma-literature-reference
-    modality: text
-    task_type: harassment_literature_reference
-    license_or_terms_summary: Literature-only metadata reference; raw rows require separate harm, rights, and privacy review.
+      - Train on text, audio, or video rows.
+      - Analyze faces, voices, or bodies for biometric or identity conclusions.
+    registry_status: eval_only
+    notes: Eval-only/reference posture unless explicit commercial and training rights are verified.
+
+  - source_id: cmu_mosei
+    name: CMU-MOSEI
+    modality: multimodal
+    task: multimodal_benchmark_reference
+    license_name: Restricted academic access terms
+    license_url: http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/
+    download_method: none_restricted
+    access_notes: Access terms and media rights require manual review before any use.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
     rights_tier: restricted
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+    usage: manual_review_required
     safe_vibe_use:
-      - Document harm-review requirements for harassment-related sources.
+      - Track benchmark existence and consent constraints for future rights review.
     blocked_vibe_use:
-      - Download survivor-report rows.
-      - Use for profiling or product labels.
-    notes: Literature-only blocked reference.
-  - source_id: safecity
-    source_name: SafeCity
-    source_url_or_path: metadata://safecity-literature-reference
+      - Train on text, audio, or video rows.
+      - Infer diagnosis, attraction, hidden intent, or protected traits.
+    registry_status: restricted_manual_review
+    notes: Restricted/manual-review unless explicit rights are verified.
+
+  - source_id: cmu_mosi
+    name: CMU-MOSI
+    modality: multimodal
+    task: multimodal_benchmark_reference
+    license_name: Restricted academic access terms
+    license_url: http://multicomp.cs.cmu.edu/resources/cmu-mosi-dataset/
+    download_method: none_restricted
+    access_notes: Access terms and media rights require manual review before any use.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: restricted
+    usage: manual_review_required
+    safe_vibe_use:
+      - Track benchmark existence and consent constraints for future rights review.
+    blocked_vibe_use:
+      - Train on text, audio, or video rows.
+      - Make deception, diagnosis, attraction, or hidden-intent claims.
+    registry_status: restricted_manual_review
+    notes: Restricted/manual-review unless explicit rights are verified.
+
+  - source_id: msp_podcast
+    name: MSP-Podcast
+    modality: audio
+    task: speech_emotion_benchmark_reference
+    license_name: Restricted academic access terms
+    license_url: https://ecs.utdallas.edu/research/researchlabs/msp-lab/MSP-Podcast.html
+    download_method: none_restricted
+    access_notes: Access terms and audio rights require manual review before any use.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: restricted
+    usage: manual_review_required
+    safe_vibe_use:
+      - Track audio benchmark constraints for future rights and safety review.
+    blocked_vibe_use:
+      - Download, transcribe, embed, or train on raw audio.
+      - Infer medical, identity, or protected traits.
+    registry_status: restricted_manual_review
+    notes: Restricted/manual-review unless explicit rights are verified.
+
+  - source_id: iemocap
+    name: IEMOCAP
+    modality: audio_video
+    task: acted_dialogue_benchmark_reference
+    license_name: Restricted academic access terms
+    license_url: https://sail.usc.edu/iemocap/
+    download_method: none_restricted
+    access_notes: Access terms and media rights require manual review before any use.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: restricted
+    usage: manual_review_required
+    safe_vibe_use:
+      - Track acted-dialogue benchmark constraints for future rights and safety review.
+    blocked_vibe_use:
+      - Train on text, audio, or video rows.
+      - Treat acted labels as real user evidence.
+    registry_status: restricted_manual_review
+    notes: Restricted/manual-review unless explicit rights are verified.
+
+  - source_id: consent_coercion_safety_placeholder
+    name: Consent, Coercion, and Safety Dataset Placeholder
+    modality: text
+    task: consent_safety_source_review
+    license_name: Manual review required before source selection
+    license_url: metadata://manual-review/consent-coercion-safety
+    download_method: none_placeholder
+    access_notes: Placeholder only; candidate sources may involve sensitive reports and require consent, harm, privacy, and rights review.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: manual-review
+    usage: manual_review_required
+    safe_vibe_use:
+      - Document review criteria for consent, pressure, and boundary-safety source requests.
+    blocked_vibe_use:
+      - Download survivor reports, private conversations, or sensitive rows.
+      - Train classifiers or generate advice from unreviewed sources.
+    registry_status: manual_review
+    notes: Placeholder only; not training-ready in any mode.
+
+  - source_id: survivor_safety_reports_placeholder
+    name: Survivor Safety Reports Placeholder
     modality: text_geospatial
-    task_type: safety_report_literature_reference
-    license_or_terms_summary: Literature-only metadata reference; raw reports require separate consent, privacy, and location-risk review.
-    rights_tier: restricted
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+    task: sensitive_safety_source_review
+    license_name: Manual review required before source selection
+    license_url: metadata://manual-review/survivor-safety-reports
+    download_method: none_placeholder
+    access_notes: Placeholder only; candidate sources may include sensitive narrative, location, or identity risks.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: manual-review
+    usage: manual_review_required
     safe_vibe_use:
-      - Document location and survivor-report risk categories.
+      - Document harm-review and consent requirements for sensitive safety sources.
     blocked_vibe_use:
-      - Location profiling.
-      - Raw report ingestion.
-    notes: Literature-only blocked reference.
-  - source_id: comma_coercion_reference
-    source_name: ComMA
-    source_url_or_path: metadata://comma-coercion-reference
-    modality: text
-    task_type: coercion_taxonomy_literature_reference
-    license_or_terms_summary: Metadata-only reference; source terms and harm review required before use.
-    rights_tier: restricted
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Review coercion taxonomy only for red-line blocking design.
-    blocked_vibe_use:
-      - Score manipulation.
-      - Advise coercive tactics.
-    notes: Equivalent coercion/manipulation reference; no rows used.
-  - source_id: bangla_cyberbully_harassment_threat
-    source_name: Bangla cyberbully/harassment/threat dataset
-    source_url_or_path: metadata://bangla-cyberbully-harassment-threat
-    modality: text
-    task_type: cross_language_safety_reference
-    license_or_terms_summary: Metadata-only reference; terms, language review, and harm review required before use.
-    rights_tier: publicly_available
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Track cross-language safety taxonomy caveats.
-    blocked_vibe_use:
-      - Use without language, rights, and harm review.
-      - Commit raw rows.
-    notes: No dataset download.
-  - source_id: workplace_sexual_harassment_repo
-    source_name: Workplace Sexual Harassment repo
-    source_url_or_path: metadata://workplace-sexual-harassment-literature-reference
-    modality: text
-    task_type: harassment_policy_literature_reference
-    license_or_terms_summary: Literature-only blocked reference; raw rows require separate harm, consent, and privacy review.
-    rights_tier: restricted
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Document why workplace or education decisioning is out of scope.
-    blocked_vibe_use:
-      - Workplace decisions.
-      - Survivor-report ingestion.
-    notes: Literature-only blocked reference.
-  - source_id: asdbank_talkbank
-    source_name: ASDBank / TalkBank
-    source_url_or_path: https://talkbank.org/
+      - Ingest raw reports, locations, or private narratives.
+      - Use rows for user profiling or product labels.
+    registry_status: manual_review
+    notes: Placeholder only; not training-ready in any mode.
+
+  - source_id: neurodivergent_communication_placeholder
+    name: Neurodivergent Communication Research Placeholder
     modality: language_transcript
-    task_type: accessibility_consent_reference
-    license_or_terms_summary: Metadata-only reference; TalkBank access terms and participant protections require review before use.
-    rights_tier: restricted
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+    task: accessibility_source_review
+    license_name: Manual review required before source selection
+    license_url: metadata://manual-review/neurodivergent-communication
+    download_method: none_placeholder
+    access_notes: Placeholder only; candidate sources require participant consent, accessibility, privacy, and diagnosis-risk review.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: manual-review
+    usage: manual_review_required
     safe_vibe_use:
-      - Study consent and accessibility constraints for neurodivergent support policy.
+      - Document requirements for opt-in accessibility support research.
     blocked_vibe_use:
-      - Infer autism or disability.
-      - Commit transcripts.
-    notes: No access or download in this PR.
-  - source_id: autalic
-    source_name: AUTALIC
-    source_url_or_path: metadata://autalic-literature-reference
+      - Infer autism, ADHD, disability, diagnosis, or neurotype from communication.
+      - Train on participant transcripts without explicit rights and ethics approval.
+    registry_status: manual_review
+    notes: Placeholder only; not training-ready in any mode.
+
+  - source_id: accessibility_transcript_placeholder
+    name: Accessibility Transcript Research Placeholder
     modality: language_transcript
-    task_type: accessibility_consent_reference
-    license_or_terms_summary: Metadata-only reference; terms and participant protections require review before use.
+    task: accessibility_transcript_review
+    license_name: Manual review required before source selection
+    license_url: metadata://manual-review/accessibility-transcripts
+    download_method: none_placeholder
+    access_notes: Placeholder only; transcript sources require participant protection, consent, privacy, and rights review.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
     rights_tier: restricted
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
+    usage: manual_review_required
     safe_vibe_use:
-      - Review accessibility and explicit-ask support constraints.
+      - Document consent and accessibility constraints for low-cognitive-load support.
     blocked_vibe_use:
-      - Classify neurotype.
-      - Commit transcripts.
-    notes: Literature-only reference.
-  - source_id: aphasiabank_talkbank
-    source_name: AphasiaBank / TalkBank
-    source_url_or_path: https://talkbank.org/
-    modality: language_transcript
-    task_type: accessibility_consent_reference
-    license_or_terms_summary: Metadata-only reference; TalkBank access terms and participant protections require review before use.
-    rights_tier: restricted
-    allowed_storage: metadata_only
-    allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    safe_vibe_use:
-      - Study consent and accessibility constraints for low-cognitive-load support.
-    blocked_vibe_use:
-      - Infer medical status.
-      - Commit transcripts.
-    notes: No access or download in this PR.
-  - source_id: synthetic_vibe_fixtures
-    source_name: Synthetic Vibe fixtures
-    source_url_or_path: tests/fixtures/
-    modality: text
-    task_type: synthetic_fixture_eval
-    license_or_terms_summary: Synthetic fixtures are hand-authored for tests and may be committed.
-    rights_tier: synthetic_fixture
-    allowed_storage: raw_allowed_commit
-    allowed_commit: true
-    allowed_training_use: synthetic_only
-    allowed_eval_use: synthetic_only
-    raw_body_allowed: true
-    metadata_only: false
-    safe_vibe_use:
-      - Immediate evaluation path for validators, red-line blockers, review packets, and deterministic cue tests.
-    blocked_vibe_use:
-      - Treat synthetic examples as real user data.
-    notes: Synthetic-only evaluation path.
+      - Commit transcripts or derived rows.
+      - Infer medical, disability, or identity traits.
+    registry_status: restricted_manual_review
+    notes: Placeholder only; not training-ready in any mode.

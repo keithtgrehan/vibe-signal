@@ -7,6 +7,17 @@ build/
 dist/
 *.egg-info/
 outputs/
+data/external/
+data/vibe_training/raw/
+data/vibe_training/derived/
+data/vibe_training/corpus/
+models/
+vectors/
+embeddings/
+checkpoints/
+training_runs/
+reports/vibe_training/raw/
+reports/vibe_training/generated/
 
 .expo/
 mobile/.expo/

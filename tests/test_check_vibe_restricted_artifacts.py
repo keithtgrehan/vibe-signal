@@ -36,6 +36,25 @@ def test_blocks_raw_chat_audio_video_transcript_paths() -> None:
     assert "export.vtt" in result.stderr
 
 
+def test_blocks_training_model_vector_and_raw_source_outputs() -> None:
+    result = run_checker(
+        "models/baseline.pkl",
+        "vectors/search.faiss",
+        "embeddings/source.npy",
+        "data/external/source.parquet",
+        "data/vibe_training/derived/corpus.jsonl",
+        "reports/vibe_training/raw/manifest.json",
+    )
+
+    assert result.returncode == 1
+    assert "models/baseline.pkl" in result.stderr
+    assert "vectors/search.faiss" in result.stderr
+    assert "embeddings/source.npy" in result.stderr
+    assert "data/external/source.parquet" in result.stderr
+    assert "data/vibe_training/derived/corpus.jsonl" in result.stderr
+    assert "reports/vibe_training/raw/manifest.json" in result.stderr
+
+
 def test_allows_safe_metadata_docs_configs_schemas_and_fixtures() -> None:
     result = run_checker(
         "docs/transcripts/policy.md",
