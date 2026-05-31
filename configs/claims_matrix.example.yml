@@ -1,0 +1,45 @@
+claims_matrix_version: vibe_claims_matrix_v1
+description: Conservative product-claim controls for deterministic Vibe communication-pattern outputs.
+claims:
+  - claim_id: directness_pattern
+    claim_text: Later messages contain more direct request wording than earlier messages.
+    status: supported
+    evidence_required: true
+    allowed_surface: local_analysis_card
+    blocked_reason: ""
+    notes: Requires evidence object spans and deterministic local metrics.
+  - claim_id: specificity_pattern
+    claim_text: Answer specificity softened after the midpoint.
+    status: supported
+    evidence_required: true
+    allowed_surface: local_analysis_card
+    blocked_reason: ""
+    notes: Comparison language only; no motive conclusion.
+  - claim_id: overload_support
+    claim_text: This message may be easier to read if shortened.
+    status: supported
+    evidence_required: true
+    allowed_surface: neuro_support_card
+    blocked_reason: ""
+    notes: Accessibility-oriented clarity support only.
+  - claim_id: evidence_object_retrieval
+    claim_text: Local evidence objects can support reviewer navigation.
+    status: gated
+    evidence_required: true
+    allowed_surface: internal_review
+    blocked_reason: ""
+    notes: Future retrieval-quality claims require reviewed labels and evaluation gates.
+  - claim_id: blocked_truth_verdict
+    claim_text: This product must not claim to know whether a speaker is lying or hiding intent.
+    status: blocked
+    evidence_required: false
+    allowed_surface: none
+    blocked_reason: Disallowed truth, deception, and hidden-intent claim.
+    notes: Documented as a red-line example only.
+  - claim_id: blocked_media_verdict
+    claim_text: This product must not claim emotion recognition or biometric conclusions from voice, face, or body media.
+    status: blocked
+    evidence_required: false
+    allowed_surface: none
+    blocked_reason: Disallowed media and biometric claim.
+    notes: Documented as a red-line example only.

@@ -119,3 +119,29 @@ def test_blocks_unsafe_fields_and_requires_jsonl(tmp_path: Path) -> None:
     suffix_result = run_validator(wrong_suffix)
     assert suffix_result.returncode == 1
     assert "JSONL" in suffix_result.stdout
+
+
+def test_provider_external_and_weak_rows_cannot_be_gold(tmp_path: Path) -> None:
+    row = {
+        "conversation_id": "conv_1",
+        "label_id": "label_4",
+        "label_type": "neutral",
+        "direction": "neutral",
+        "speaker_role": "unknown",
+        "evidence_text": "",
+        "evidence_start": 0,
+        "evidence_end": 0,
+        "confidence": "low",
+        "reviewer": "unit",
+        "notes": "external rows must stay out of gold",
+        "source_type": "provider_response_metadata",
+        "weak_label": True,
+    }
+    path = tmp_path / "provider_gold.jsonl"
+    path.write_text(json.dumps(row) + "\n", encoding="utf-8")
+
+    result = run_validator(path)
+
+    assert result.returncode == 1
+    assert "provider or external source rows cannot become gold labels" in result.stdout
+    assert "weak or auto-promoted labels cannot become gold labels" in result.stdout

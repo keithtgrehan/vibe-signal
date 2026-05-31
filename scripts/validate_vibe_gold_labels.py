@@ -49,6 +49,13 @@ UNSAFE_FIELDS = {
     "manipulation_score",
     "protected_trait_inference",
 }
+FORBIDDEN_GOLD_SOURCE_TYPES = {
+    "provider_metadata",
+    "provider_response_metadata",
+    "research_dataset",
+    "benchmark_dataset",
+    "external_dataset",
+}
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -76,6 +83,10 @@ def validate_rows(rows: list[dict[str, Any]]) -> list[str]:
         for field in UNSAFE_FIELDS:
             if field in row:
                 errors.append(f"row {index}: unsafe field {field} is not allowed")
+        if row.get("source_type") in FORBIDDEN_GOLD_SOURCE_TYPES:
+            errors.append(f"row {index}: provider or external source rows cannot become gold labels")
+        if row.get("weak_label") is True or row.get("auto_promoted") is True:
+            errors.append(f"row {index}: weak or auto-promoted labels cannot become gold labels")
 
         label_id = str(row.get("label_id", "")).strip()
         if not label_id:
