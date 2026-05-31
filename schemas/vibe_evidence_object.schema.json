@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibesignal.local/schemas/vibe_evidence_object.schema.json",
+  "title": "Vibe Evidence Object",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "evidence_id",
+    "conversation_id",
+    "source_type",
+    "message_id",
+    "turn_id",
+    "speaker_role",
+    "cue_name",
+    "evidence_text",
+    "start_offset",
+    "end_offset",
+    "text_sha256",
+    "provenance",
+    "interpretation_limits"
+  ],
+  "not": {
+    "anyOf": [
+      {"required": ["emotion_label"]},
+      {"required": ["deception_score"]},
+      {"required": ["attraction_score"]},
+      {"required": ["attachment_style"]},
+      {"required": ["diagnosis"]},
+      {"required": ["mental_health_label"]},
+      {"required": ["manipulation_score"]},
+      {"required": ["protected_trait_inference"]},
+      {"required": ["love_prediction"]},
+      {"required": ["cheating_prediction"]},
+      {"required": ["intent_label"]}
+    ]
+  },
+  "properties": {
+    "evidence_id": {"type": "string", "minLength": 1},
+    "conversation_id": {"type": "string", "minLength": 1},
+    "source_type": {"type": "string", "minLength": 1},
+    "message_id": {"type": "string", "minLength": 1},
+    "turn_id": {"type": "string", "minLength": 1},
+    "speaker_role": {"type": "string", "minLength": 1},
+    "cue_name": {"type": "string", "minLength": 1},
+    "evidence_text": {"type": "string", "minLength": 1},
+    "start_offset": {"type": "integer", "minimum": 0},
+    "end_offset": {"type": "integer", "minimum": 0},
+    "text_sha256": {"type": "string", "pattern": "^sha256:"},
+    "provenance": {"type": "object"},
+    "interpretation_limits": {
+      "type": "object",
+      "required": [
+        "does_not_infer_true_emotion",
+        "does_not_detect_deception",
+        "does_not_score_personality"
+      ],
+      "properties": {
+        "does_not_infer_true_emotion": {"const": true},
+        "does_not_detect_deception": {"const": true},
+        "does_not_score_personality": {"const": true}
+      }
+    }
+  }
+}
