@@ -26,7 +26,9 @@ nli = [
   "transformers>=4.40",
   "torch>=2.0",
 ]
-experiments = []
+experiments = [
+  "scikit-learn>=1.4",
+]
 providers_openai = [
   "openai>=1.30.0",
 ]

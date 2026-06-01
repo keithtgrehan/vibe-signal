@@ -1,6 +1,28 @@
 training_sources_version: vibe_training_sources_rights_gates_v1
 description: Metadata-only Vibe training source rights registry. This file does not authorize dataset download, raw data commits, provider fetching, model training, vector generation, or production ML readiness.
 sources:
+  - source_id: synthetic_vibe_matching
+    name: Synthetic Vibe Matching Fixtures
+    modality: text
+    task: communication_fit_research_training
+    license_name: Synthetic hand-authored fixtures created for Vibe Signal tests and research-only scaffolding
+    license_url: metadata://synthetic/vibe-matching-fixtures
+    download_method: committed_synthetic_fixture
+    access_notes: Rows live under data/vibe_matching/synthetic/ and are not copied from private chats, external datasets, or provider responses.
+    training_use_allowed: true
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: synthetic_fixture
+    usage: synthetic_only
+    safe_vibe_use:
+      - Research-only baseline training and deterministic evaluation scaffolding for observable communication-fit labels.
+    blocked_vibe_use:
+      - Treat synthetic fixtures as real user chats.
+      - Make public model-quality claims from synthetic-only metrics.
+      - Use as commercial training data without separate commercial rights approval.
+    registry_status: research_only_training_allowed
+    notes: Synthetic matching fixtures are the only training-ready source in this registry for the Vibe matching v0 build.
+
   - source_id: goemotions
     name: GoEmotions
     modality: text
@@ -46,44 +68,44 @@ sources:
   - source_id: dailydialog
     name: DailyDialog
     modality: text
-    task: dialogue_act_research_training
+    task: dialogue_act_metadata_reference
     license_name: Non-commercial research terms
     license_url: https://aclanthology.org/I17-1099/
     download_method: dry_run_only_no_download
-    access_notes: Research-only registry entry; no download is performed by the dry-run tooling in this repository.
-    training_use_allowed: true
+    access_notes: Metadata-only registry entry; no download is performed by the tooling in this repository.
+    training_use_allowed: false
     commercial_use_allowed: false
     research_only: true
     rights_tier: NC
-    usage: research_only
+    usage: reference_only
     safe_vibe_use:
-      - Research-only comparison of dialogue-act structure for explicit asks, topic shifts, and repair-message framing.
+      - Metadata-only comparison of dialogue-act structure for explicit asks, topic shifts, and repair-message framing.
     blocked_vibe_use:
       - Commercial training or product model training.
       - Commit raw conversations or treat rows as Vibe gold labels.
-    registry_status: research_only_training_allowed
-    notes: Allowed only for research-only experiments after separate local access approval; commercial mode must reject it.
+    registry_status: reference_only
+    notes: External rows remain metadata-only/manual-review for matching v0; commercial mode must reject it.
 
   - source_id: empathetic_dialogues
     name: EmpatheticDialogues
     modality: text
-    task: supportive_response_research_training
+    task: supportive_response_metadata_reference
     license_name: Non-commercial research terms
     license_url: https://aclanthology.org/P19-1534/
     download_method: dry_run_only_no_download
-    access_notes: Research-only registry entry; no download is performed by the dry-run tooling in this repository.
-    training_use_allowed: true
+    access_notes: Metadata-only registry entry; no download is performed by the tooling in this repository.
+    training_use_allowed: false
     commercial_use_allowed: false
     research_only: true
     rights_tier: NC
-    usage: research_only
+    usage: reference_only
     safe_vibe_use:
-      - Research-only comparison of supportive phrasing patterns for clarity and repair-message scaffolds.
+      - Metadata-only comparison of supportive phrasing patterns for clarity and repair-message scaffolds.
     blocked_vibe_use:
       - Commercial training or product generation.
       - Claim labels reveal internal emotional states.
-    registry_status: research_only_training_allowed
-    notes: Allowed only for research-only experiments after separate local access approval; commercial mode must reject it.
+    registry_status: reference_only
+    notes: External rows remain metadata-only/manual-review for matching v0; commercial mode must reject it.
 
   - source_id: meld
     name: MELD

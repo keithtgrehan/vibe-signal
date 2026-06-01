@@ -69,7 +69,7 @@ def test_valid_research_only_config_passes() -> None:
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert "validation passed" in result.stdout
-    assert "2 research training-ready source" in result.stdout
+    assert "1 research training-ready source" in result.stdout
 
 
 def test_commercial_mode_rejects_nc_rows(tmp_path: Path) -> None:
@@ -173,7 +173,7 @@ def test_dry_run_downloader_does_not_download(tmp_path: Path) -> None:
     assert payload["dry_run"] is True
     assert payload["downloaded"] is False
     assert payload["raw_data_committed"] is False
-    assert "dailydialog" in payload["selected_source_ids"]
+    assert payload["selected_source_ids"] == ["synthetic_vibe_matching"]
     assert not cache_dir.exists()
 
 
@@ -216,7 +216,7 @@ def test_no_raw_model_vector_provider_or_training_outputs_are_created(tmp_path: 
     download = run_script(
         DOWNLOADER,
         "--source-id",
-        "dailydialog",
+        "synthetic_vibe_matching",
         "--project-mode",
         "research_only",
         "--dry-run",

@@ -38,7 +38,7 @@ def test_dry_run_all_approved_research_writes_manifest_metadata(tmp_path: Path) 
     payload = json.loads(manifest.read_text(encoding="utf-8"))
     assert payload["dry_run"] is True
     assert payload["project_mode"] == "research_only"
-    assert payload["selected_source_ids"] == ["dailydialog", "empathetic_dialogues"]
+    assert payload["selected_source_ids"] == ["synthetic_vibe_matching"]
     assert payload["downloaded"] is False
     assert payload["raw_data_committed"] is False
     assert payload["cache_dir_created"] is False
