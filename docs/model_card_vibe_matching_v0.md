@@ -16,7 +16,7 @@ External datasets remain metadata-only, manual-review, or blocked until rights, 
 
 ## Metrics
 
-Metrics in `reports/vibe_matching/baseline_eval.json` and `reports/vibe_matching/baseline_eval.md` are synthetic-only harness checks. They do not support public benchmark or model-quality claims.
+Metrics in `reports/vibe_matching/baseline_eval.json` and `reports/vibe_matching/baseline_eval.md` are synthetic-only harness checks. The current generated report shows perfect fixture metrics because the synthetic templates are intentionally simple and repeated; this is not real-world model quality. These metrics do not support public benchmark or model-quality claims.
 
 ## Confidence Meaning
 
