@@ -141,11 +141,40 @@ This repo is not hard-wired to a committed Replit deployment host.
 What is wired in code:
 
 - the mobile event client is environment-driven through `EXPO_PUBLIC_API_URL`
+- the communication-fit match client is environment-driven through `EXPO_PUBLIC_API_URL`
 - event endpoints are appended from that base URL:
   - `/api/events/analysis`
   - `/api/events/quota`
   - `/api/events/billing`
   - `/api/events/state`
+- match requests are posted to:
+  - `/api/match`
+
+## Local Backend + Mobile Match Flow
+
+Start the local backend from the repo root:
+
+```bash
+uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
+```
+
+Start Expo with the backend base URL:
+
+```bash
+cd mobile
+EXPO_PUBLIC_API_URL=http://127.0.0.1:8000 npm start
+```
+
+Use `http://<your-machine-lan-ip>:8000` instead of `127.0.0.1` when testing from a physical phone.
+
+The mobile communication-fit card accepts one line per message, for example:
+
+```text
+self: Can you confirm Friday at 3pm?
+other: Yes, Friday at 3pm works. No pressure if we need to adjust.
+```
+
+The result renders the backend score, fit band, positive factors, risk factors, evidence safe phrases, and safe explanation. The match score reflects observable communication-pattern compatibility only; it is not a read on feelings, motives, identity, health, or relationship outcomes.
 
 What is not committed in this repo:
 
