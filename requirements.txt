@@ -15,6 +15,9 @@ pysbd>=0.3.4
 # groq>=0.9.0
 # Training/evaluation scaffold:
 scikit-learn>=1.4
+# Optional local backend:
+fastapi>=0.110
+uvicorn>=0.29
 # numpy>=1.26
 # soundfile>=0.12
 # faster-whisper>=1.1

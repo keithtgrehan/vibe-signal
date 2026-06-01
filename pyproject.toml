@@ -29,6 +29,10 @@ nli = [
 experiments = [
   "scikit-learn>=1.4",
 ]
+backend = [
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+]
 providers_openai = [
   "openai>=1.30.0",
 ]
