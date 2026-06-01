@@ -31,3 +31,9 @@ External datasets are benchmark-only by default. Their labels are not product tr
 ## Claims Boundary
 
 Vibe Engine describes observable communication patterns. It does not infer true emotion, detect deception, detect cheating, predict attraction, infer attachment style, diagnose mental health, infer protected traits, perform biometric identity analysis, score manipulation, advise emotional manipulation, train models, or download datasets.
+
+## Matching v0 Data Posture
+
+The only training-ready source for matching v0 is the synthetic fixture corpus under `data/vibe_matching/synthetic/`.
+
+External datasets are metadata-only, manual-review, or blocked until rights, consent, privacy, provenance, and harm review are complete. Commercial training mode must fail closed unless every selected source explicitly allows commercial training.

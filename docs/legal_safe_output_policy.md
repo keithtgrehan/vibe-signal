@@ -19,6 +19,9 @@ Examples of preferred framing:
 - “Answer specificity softened after the midpoint.”
 - “Interview responses showed more hesitation markers in the later segments.”
 - “Direct answer style weakens after the midpoint.”
+- “The reply does not directly answer the previous ask.”
+- “This reply conflicts with an earlier stated availability/commitment.”
+- “The match score reflects observable communication-pattern compatibility, not attraction or intent.”
 
 Examples of disallowed framing:
 
@@ -27,3 +30,7 @@ Examples of disallowed framing:
 - “This suggests hidden intent.”
 - “The candidate failed.”
 - “Break up with them.”
+- “They like you.”
+- “They are manipulating you.”
+- “They have ADHD or autism.”
+- “Use this to make them respond.”

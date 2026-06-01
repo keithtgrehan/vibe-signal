@@ -55,6 +55,12 @@ FORBIDDEN_TRAINING_IMPLEMENTATION_TERMS = (
 )
 ALLOWED_TRAINING_TERM_HITS = {
     (Path("scripts/check_vibe_restricted_artifacts.py"), "faiss"),
+    (Path("scripts/train_vibe_matching_baseline.py"), "TfidfVectorizer"),
+    (Path("scripts/train_vibe_matching_baseline.py"), "LogisticRegression"),
+    (Path("scripts/train_vibe_matching_baseline.py"), ".fit("),
+    (Path("scripts/train_vibe_matching_baseline.py"), "sklearn"),
+    (Path("scripts/run_vibe_embedding_match_experiment.py"), "transformers"),
+    (Path("scripts/run_vibe_embedding_match_experiment.py"), "sentence_transformers"),
 }
 
 

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibesignal.local/schemas/vibe_match_result.schema.json",
+  "title": "Vibe Match Result",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "match_id",
+    "conversation_id",
+    "compatibility_band",
+    "score",
+    "confidence",
+    "top_alignment_factors",
+    "top_friction_factors",
+    "positive_factors",
+    "risk_factors",
+    "inconsistency_cues",
+    "unsupported_claim_shift",
+    "specificity_drop",
+    "answer_evasion_pattern",
+    "contradiction_against_prior_message",
+    "evidence",
+    "safe_summary",
+    "safe_explanation",
+    "redline_status",
+    "blocked_interpretations"
+  ],
+  "not": {
+    "anyOf": [
+      {"required": ["deception_score"]},
+      {"required": ["attraction_score"]},
+      {"required": ["cheating_prediction"]},
+      {"required": ["diagnosis"]},
+      {"required": ["neurotype_inference"]},
+      {"required": ["attachment_style_score"]},
+      {"required": ["manipulation_score"]},
+      {"required": ["hidden_intent_prediction"]},
+      {"required": ["emotional_truth_score"]}
+    ]
+  },
+  "properties": {
+    "match_id": {"type": "string", "minLength": 1},
+    "conversation_id": {"type": "string", "minLength": 1},
+    "compatibility_band": {"type": "string", "enum": ["low", "mixed", "moderate", "strong"]},
+    "score": {"type": "number", "minimum": 0, "maximum": 1},
+    "confidence": {
+      "type": "object",
+      "required": ["level", "score", "reasons"],
+      "properties": {
+        "level": {"type": "string", "enum": ["low", "medium", "high"]},
+        "score": {"type": "number", "minimum": 0, "maximum": 1},
+        "reasons": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "top_alignment_factors": {"type": "array", "items": {"type": "string"}},
+    "top_friction_factors": {"type": "array", "items": {"type": "string"}},
+    "positive_factors": {"type": "array", "items": {"type": "string"}},
+    "risk_factors": {"type": "array", "items": {"type": "string"}},
+    "inconsistency_cues": {"type": "array"},
+    "unsupported_claim_shift": {"type": "array"},
+    "specificity_drop": {"type": "array"},
+    "answer_evasion_pattern": {"type": "array"},
+    "contradiction_against_prior_message": {"type": "array"},
+    "evidence": {"type": "array"},
+    "safe_summary": {"type": "string", "minLength": 1},
+    "safe_explanation": {"type": "string", "minLength": 1},
+    "redline_status": {"type": "string", "enum": ["allow", "block"]},
+    "blocked_interpretations": {
+      "type": "array",
+      "items": {"type": "string"},
+      "contains": {"const": "deception"}
+    }
+  }
+}

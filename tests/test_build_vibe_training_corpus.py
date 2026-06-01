@@ -39,7 +39,7 @@ def test_dry_run_builds_manifest_without_corpus_rows(tmp_path: Path) -> None:
     assert payload["project_mode"] == "research_only"
     assert payload["row_count"] == 0
     assert payload["corpus_created"] is False
-    assert payload["source_ids"] == ["dailydialog", "empathetic_dialogues"]
+    assert payload["source_ids"] == ["synthetic_vibe_matching"]
     assert not out.exists()
 
 

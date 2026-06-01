@@ -1,0 +1,10 @@
+{
+  "dataset_downloaded": false,
+  "input": "/Users/keith/Documents/New project/vibe-signal/data/vibe_matching/synthetic/synthetic_match_pairs.jsonl",
+  "model_downloaded": false,
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "production_claims": false,
+  "provider_calls_made": false,
+  "reason": "requested embedding model is not available in the local cache",
+  "status": "SKIPPED"
+}

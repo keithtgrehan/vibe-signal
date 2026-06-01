@@ -28,9 +28,9 @@ REQUIRED_FIELDS = (
     "notes",
 )
 BOOL_FIELDS = ("training_use_allowed", "commercial_use_allowed", "research_only")
-RIGHTS_TIERS = {"open", "NC", "manual-review", "restricted", "eval-only", "unknown"}
+RIGHTS_TIERS = {"open", "NC", "manual-review", "restricted", "eval-only", "unknown", "synthetic_fixture"}
 PROJECT_MODES = {"research_only", "commercial"}
-COMMERCIAL_BLOCKED_TIERS = {"NC", "manual-review", "restricted", "eval-only", "unknown"}
+COMMERCIAL_BLOCKED_TIERS = {"NC", "manual-review", "restricted", "eval-only", "unknown", "synthetic_fixture"}
 NON_TRAINING_TIERS = {"manual-review", "restricted", "eval-only", "unknown"}
 UNKNOWN_MARKERS = ("unknown", "ambiguous", "tbd", "to be determined")
 UNSAFE_SAFE_USE_TERMS = (
@@ -93,11 +93,12 @@ def _is_research_only_usage(row: dict[str, Any]) -> bool:
 
 def is_research_training_ready(row: dict[str, Any]) -> bool:
     return (
-        row.get("training_use_allowed") is True
+        str(row.get("source_id", "")).strip() == "synthetic_vibe_matching"
+        and row.get("training_use_allowed") is True
         and row.get("research_only") is True
         and row.get("commercial_use_allowed") is False
-        and row.get("rights_tier") == "NC"
-        and _is_research_only_usage(row)
+        and row.get("rights_tier") == "synthetic_fixture"
+        and str(row.get("usage", "")).strip().lower().replace("-", "_") == "synthetic_only"
     )
 
 
@@ -149,6 +150,10 @@ def validate_rows(rows: list[dict[str, Any]], project_mode: str) -> list[str]:
 
         training_allowed = row.get("training_use_allowed") is True
         research_only = row.get("research_only") is True
+        if training_allowed and source_id != "synthetic_vibe_matching":
+            errors.append(f"{label}: only synthetic_vibe_matching may be training-ready for matching v0")
+        if training_allowed and source_id == "synthetic_vibe_matching" and rights_tier != "synthetic_fixture":
+            errors.append(f"{label}: synthetic_vibe_matching must use rights_tier synthetic_fixture")
         if training_allowed and rights_tier in NON_TRAINING_TIERS:
             errors.append(f"{label}: {rights_tier} source cannot be training-ready")
         if training_allowed and rights_tier == "NC":

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibesignal.local/schemas/vibe_match_request.schema.json",
+  "title": "Vibe Match Request",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["conversation_id", "messages"],
+  "properties": {
+    "conversation_id": {"type": "string", "minLength": 1},
+    "messages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "author", "text"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "author": {"type": "string", "enum": ["self", "other", "unknown"]},
+          "text": {"type": "string", "minLength": 1},
+          "created_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "user_preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "prefers_directness": {"type": "boolean"},
+        "prefers_low_pressure": {"type": "boolean"},
+        "prefers_explicit_plans": {"type": "boolean"},
+        "max_message_load": {"type": "string", "enum": ["low", "medium", "high"]}
+      }
+    }
+  }
+}

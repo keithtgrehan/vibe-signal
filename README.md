@@ -30,10 +30,23 @@ Current deterministic outputs center on conversation-pattern shifts such as:
 
 The product surfaces those as structured "what changed" results rather than as hidden scores alone.
 
+Vibe Matching Engine v0 now adds a deterministic communication-fit layer:
+
+- compatibility bands based on observable cue evidence
+- safe inconsistency cues
+- specificity drops
+- answer-evasion patterns
+- deterministic contradiction cues
+- confidence in analysis quality, not confidence about truth, motive, attraction, or emotion
+
 ## Current Repo Reality
 Built now:
 - Expo mobile shell with an always-available local analysis path
 - deterministic local analysis and structured result rendering
+- deterministic communication-fit matching engine with `/api/match`
+- synthetic matching corpus and validator
+- research-only sklearn baseline on synthetic fixtures
+- optional offline embedding experiment scaffold
 - recent-analysis persistence plus copy/share actions
 - optional BYOK provider validation and secure on-device storage when supported
 - bounded mobile-to-backend event logging with retry, validation, and diagnostics
@@ -50,6 +63,9 @@ Code-complete but still needing real-world proof:
 - `mobile/`: Expo / React Native shell, provider setup, quota state, billing scaffolding, and event logging
 - `src/vibesignal_ai/`: deterministic conversation analysis, contracts, providers, safety rules, and UI payload builders
 - `docs/`: privacy flow, provider disclosure, backend contract notes, and execution-proof material
+- `backend/`: local FastAPI routes for health, analyze, match, feedback, and event acceptance
+- `data/vibe_matching/synthetic/`: synthetic-only match-pair fixture corpus
+- `reports/vibe_matching/`: synthetic-only baseline and optional experiment reports
 - `docs/proof/phase_validation_2026-04-07/`: bounded validation artifacts for the current mobile/provider pass
 
 The important repo boundary is simple: deterministic local artifacts are the source of truth, and optional provider outputs are late-bound add-ons.

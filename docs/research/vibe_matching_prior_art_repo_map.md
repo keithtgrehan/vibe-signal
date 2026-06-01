@@ -1,0 +1,18 @@
+# Vibe Matching Prior-Art Repo Map
+
+Metadata-only review. No code, data rows, model weights, or examples were copied into Vibe Signal.
+
+| Repo / paper / tool | Reusable pattern | Unsafe for Vibe | License if visible | Implementation idea | Priority |
+| --- | --- | --- | --- | --- | --- |
+| [scikit-learn text classification example](https://scikit-learn.org/stable/auto_examples/text/plot_document_classification_20newsgroups.html) | TF-IDF sparse features with linear classifiers and reproducible metrics. | Treat tutorial benchmarks as Vibe quality evidence. | BSD-3-Clause notice visible in example. | Keep Vibe baseline as TF-IDF + LogisticRegression on synthetic rows only. | High |
+| [scikit-learn LogisticRegression docs](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html) | Simple reproducible linear classifier with deterministic seed. | Overstate synthetic-only metrics or save product models. | scikit-learn uses BSD-3-Clause project licensing. | Use per-label binary classifiers and report precision/recall/F1 only as harness checks. | High |
+| [sentence-transformers semantic search docs](https://sbert.net/examples/sentence_transformer/applications/semantic-search/) | Pairwise embedding similarity and retrieve/rerank scaffolds. | Download models silently, store vectors, or make production fit claims. | [Apache-2.0 visible in repo license](https://github.com/huggingface/sentence-transformers/blob/main/LICENSE). | Optional offline experiment that skips unless a model is already cached locally. | Medium |
+| [Sentence-BERT paper](https://arxiv.org/abs/1908.10084) | Sentence-pair similarity framing for semantic matching. | Use similarity as hidden intent, attraction, or emotional-truth inference. | Paper/code references require separate implementation/license review. | Treat embedding similarity as a future reviewed-ranking signal, not deterministic truth. | Medium |
+| [Microsoft Recommenders](https://github.com/microsoft/recommenders) / [RecSys material](https://recsys.acm.org/wp-content/uploads/2019/09/recsys-19-material-microsoft.pdf) | Offline recommender evaluation and ranking experiment structure. | Recommendation optimization that tries to make someone respond. | RecSys material describes permissive MIT licensing for the repo. | Borrow evaluation discipline conceptually; do not import code. | Low |
+| [ParlAI](https://github.com/facebookresearch/ParlAI) | Dialogue task abstractions and explicit dataset/task separation. | Download bundled dialogue datasets or promote dataset labels to Vibe gold labels. | GitHub README states MIT license. | Keep external dialogue datasets metadata-only and require per-source review. | Low |
+| [Hugging Face Transformers zero-shot/NLI pipeline docs](https://huggingface.co/transformers/v3.3.1/main_classes/pipelines.html?highlight=summarization) | NLI framing for contradiction-style experiments. | Use NLI as truth/deception detection or download models automatically. | Transformers license requires separate dependency review before use. | Keep NLI optional/local-only; deterministic contradiction patterns remain canonical. | Low |
+| [Snips NLU](https://github.com/snipsco/snips-nlu) | Intent-classification pipeline shape with explicit labels. | Hidden-intent prediction is blocked for Vibe. | Repo exposes a license section; exact downstream reuse requires review. | Avoid intent labels; use only observable communication-fit labels. | Low |
+
+## Implementation Decision
+
+Vibe Matching v0 uses an original deterministic matcher plus a local sklearn baseline. External prior art informs evaluation shape only. No external source changes Vibe claims, data rights, or the deterministic source-of-truth boundary.

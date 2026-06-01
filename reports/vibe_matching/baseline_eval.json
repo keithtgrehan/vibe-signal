@@ -1,0 +1,204 @@
+{
+  "macro_f1_trained_labels": 1.0,
+  "metrics_by_label": {
+    "answer_evasion_pattern": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          31,
+          0
+        ],
+        [
+          0,
+          7
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "boundary_fit": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          25,
+          0
+        ],
+        [
+          0,
+          13
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "clarity_fit": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          20,
+          0
+        ],
+        [
+          0,
+          18
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "cognitive_load_fit": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          18,
+          0
+        ],
+        [
+          0,
+          20
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "communication_fit": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          22,
+          0
+        ],
+        [
+          0,
+          16
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "contradiction_against_prior_message": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          34,
+          0
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "inconsistency_cues": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          31,
+          0
+        ],
+        [
+          0,
+          7
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "pressure_risk": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          33,
+          0
+        ],
+        [
+          0,
+          5
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "repair_fit": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          35,
+          0
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "specificity_drop": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          31,
+          0
+        ],
+        [
+          0,
+          7
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    },
+    "unsupported_claim_shift": {
+      "accuracy": 1.0,
+      "confusion_matrix": [
+        [
+          35,
+          0
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "trained": true
+    }
+  },
+  "model_artifacts_saved": false,
+  "project_mode": "research_only",
+  "provider_calls_made": false,
+  "row_count": 150,
+  "split": {
+    "random_seed": 42,
+    "test_rows": 38,
+    "train_rows": 112
+  },
+  "status": "trained",
+  "training_data": "synthetic_vibe_matching_only",
+  "vector_artifacts_created": false
+}

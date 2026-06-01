@@ -1,0 +1,1 @@
+"""Local VibeSignal backend package."""
