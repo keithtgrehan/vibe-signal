@@ -1,20 +1,31 @@
 # Site Launch Readiness
 
-## Current Status
-
-Vibe Matching Engine v0 is ready as a local deterministic foundation:
+## Implemented
 
 - deterministic `/api/match` route exists
 - matching request/result schemas exist
 - synthetic corpus and validator exist
-- research-only sklearn baseline runs on synthetic fixtures
-- optional embedding experiment fails safely when no cached model is available
 - model card, claims boundaries, and evaluation gates are documented
 
-## Not Launch-Ready Yet
+## Research-Only
+
+- sklearn baseline runs on synthetic fixtures only
+- synthetic baseline metrics are harness checks, not public quality claims
+- commercial mode fails closed unless source rights explicitly allow commercial training
+
+## Skipped Or Optional
+
+- embedding experiment is optional and writes a `SKIPPED` report when local cached dependencies are unavailable
+- no external datasets, provider calls, model downloads, vectors, checkpoints, or embeddings are required
+
+## Blocked
 
 - No consented reviewed-label set exists.
 - No commercial-safe external training rights are approved.
+- No model-quality launch claim is allowed from synthetic-only metrics.
+
+## Future Work
+
 - No live backend deployment has been verified.
 - Frontend/mobile `/api/match` integration is not wired.
 - Privacy, terms, deletion, and export URLs are drafts.

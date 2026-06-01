@@ -170,6 +170,25 @@ def _validate_factor_texts(result: dict[str, Any]) -> list[str]:
     for field in ("top_alignment_factors", "top_friction_factors", "positive_factors", "risk_factors"):
         for index, value in enumerate(result.get(field, []) or []):
             errors.extend(validate_text(str(value), field_name=f"{field}[{index}]"))
+    for field in (
+        "inconsistency_cues",
+        "unsupported_claim_shift",
+        "specificity_drop",
+        "answer_evasion_pattern",
+        "contradiction_against_prior_message",
+        "evidence",
+    ):
+        for index, item in enumerate(result.get(field, []) or []):
+            if not isinstance(item, dict):
+                continue
+            for generated_field in ("safe_phrase", "explanation"):
+                value = item.get(generated_field)
+                if value is None:
+                    continue
+                field_name = f"{field}[{index}].{generated_field}"
+                errors.extend(validate_text(str(value), field_name=field_name))
+                if check_output_text(str(value))["status"] == "block":
+                    errors.append(f"{field_name} failed red-line output validation")
     return errors
 
 

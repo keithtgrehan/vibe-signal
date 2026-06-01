@@ -52,6 +52,10 @@ def test_match_result_schema_file_blocks_hidden_state_fields() -> None:
     schema = json.loads((ROOT / "schemas" / "vibe_match_result.schema.json").read_text(encoding="utf-8"))
 
     assert "blocked_interpretations" in schema["required"]
+    assert "positive_factors" in schema["required"]
+    assert "risk_factors" in schema["required"]
+    assert "positive_factors" in schema["properties"]
+    assert "risk_factors" in schema["properties"]
     unsafe_field_names = json.dumps(schema.get("not", {}))
     assert "deception_score" in unsafe_field_names
     assert "attraction_score" in unsafe_field_names
@@ -98,3 +102,12 @@ def test_match_result_validates_after_running_engine() -> None:
         "manipulation",
         "emotional_truth",
     ]
+
+
+def test_match_result_validation_scans_generated_evidence_phrasing() -> None:
+    result = match_conversation(valid_request())
+    result["evidence"][0]["safe_phrase"] = "They are lying."
+
+    errors = validate_match_result(result)
+
+    assert any("evidence[0].safe_phrase" in error for error in errors)

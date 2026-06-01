@@ -33,7 +33,7 @@ TIME_DETAIL_RE = re.compile(
 NUMBER_RE = re.compile(r"\b\d+(?::\d+)?\b")
 BOUNDARY_RESPECT_RE = re.compile(r"\b(?:you can say no|only if you want|no pressure|is that okay|if that works for you)\b", re.IGNORECASE)
 CONTRADICTION_PATTERNS = (
-    (re.compile(r"\bi can\b", re.IGNORECASE), re.compile(r"\bi (?:can'?t|cannot)\b", re.IGNORECASE)),
+    (re.compile(r"\bi can(?!['’]?t|not)\b", re.IGNORECASE), re.compile(r"\bi (?:can['’]?t|cannot)\b", re.IGNORECASE)),
     (re.compile(r"\byes\b", re.IGNORECASE), re.compile(r"\bno\b", re.IGNORECASE)),
     (re.compile(r"\bi will\b", re.IGNORECASE), re.compile(r"\bi won'?t\b", re.IGNORECASE)),
     (re.compile(r"\bfree\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", re.IGNORECASE), re.compile(r"\bnot free\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", re.IGNORECASE)),

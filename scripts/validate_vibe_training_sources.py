@@ -92,21 +92,14 @@ def _is_research_only_usage(row: dict[str, Any]) -> bool:
 
 
 def is_research_training_ready(row: dict[str, Any]) -> bool:
-    nc_ready = (
-        row.get("training_use_allowed") is True
-        and row.get("research_only") is True
-        and row.get("commercial_use_allowed") is False
-        and row.get("rights_tier") == "NC"
-        and _is_research_only_usage(row)
-    )
-    synthetic_ready = (
-        row.get("training_use_allowed") is True
+    return (
+        str(row.get("source_id", "")).strip() == "synthetic_vibe_matching"
+        and row.get("training_use_allowed") is True
         and row.get("research_only") is True
         and row.get("commercial_use_allowed") is False
         and row.get("rights_tier") == "synthetic_fixture"
         and str(row.get("usage", "")).strip().lower().replace("-", "_") == "synthetic_only"
     )
-    return nc_ready or synthetic_ready
 
 
 def validate_rows(rows: list[dict[str, Any]], project_mode: str) -> list[str]:
@@ -157,6 +150,10 @@ def validate_rows(rows: list[dict[str, Any]], project_mode: str) -> list[str]:
 
         training_allowed = row.get("training_use_allowed") is True
         research_only = row.get("research_only") is True
+        if training_allowed and source_id != "synthetic_vibe_matching":
+            errors.append(f"{label}: only synthetic_vibe_matching may be training-ready for matching v0")
+        if training_allowed and source_id == "synthetic_vibe_matching" and rights_tier != "synthetic_fixture":
+            errors.append(f"{label}: synthetic_vibe_matching must use rights_tier synthetic_fixture")
         if training_allowed and rights_tier in NON_TRAINING_TIERS:
             errors.append(f"{label}: {rights_tier} source cannot be training-ready")
         if training_allowed and rights_tier == "NC":

@@ -81,6 +81,21 @@ def test_commercial_mode_rejects_nc_rows(tmp_path: Path) -> None:
     assert "commercial mode rejects research-only source" in result.stdout
 
 
+def test_research_mode_rejects_non_synthetic_training_ready_rows(tmp_path: Path) -> None:
+    payload = load_example()
+    row = next(row for row in payload["sources"] if row["source_id"] == "dailydialog")
+    row["training_use_allowed"] = True
+    row["usage"] = "research_only"
+    row["registry_status"] = "research_training_allowed"
+    path = tmp_path / "external_training_ready.yml"
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+    result = run_validator(path, project_mode="research_only")
+
+    assert result.returncode == 1
+    assert "only synthetic_vibe_matching may be training-ready for matching v0" in result.stdout
+
+
 def test_commercial_mode_rejects_manual_review_rows(tmp_path: Path) -> None:
     result = run_validator(write_subset(tmp_path, "consent_coercion_safety_placeholder"), project_mode="commercial")
 

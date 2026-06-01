@@ -82,6 +82,21 @@ def test_specificity_drop_and_contradiction_return_safe_cues() -> None:
     assert "lied" not in result["safe_summary"].lower()
 
 
+def test_repeated_negative_availability_is_not_a_contradiction() -> None:
+    result = match_conversation(
+        request_with(
+            [
+                {"id": "m1", "author": "other", "text": "I can't meet Friday.", "created_at": "2026-05-31T09:00:00Z"},
+                {"id": "m2", "author": "self", "text": "Thanks for confirming.", "created_at": "2026-05-31T09:01:00Z"},
+                {"id": "m3", "author": "other", "text": "I can't meet Friday.", "created_at": "2026-05-31T09:02:00Z"},
+            ],
+            conversation_id="synthetic_repeated_negative_availability",
+        )
+    )
+
+    assert result["contradiction_against_prior_message"] == []
+
+
 def test_confidence_downgrades_for_short_one_sided_missing_timestamp_input() -> None:
     result = match_conversation(
         request_with(
