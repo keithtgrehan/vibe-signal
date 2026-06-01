@@ -8,6 +8,12 @@ Run locally:
 uvicorn backend.app:app --reload
 ```
 
+For Expo/mobile testing on another device, bind to the LAN interface:
+
+```bash
+uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
+```
+
 Routes:
 
 - `GET /healthz`
@@ -26,3 +32,12 @@ Safety boundaries:
 - Feedback requires explicit consent.
 - Feedback stores metadata only, not raw comment text.
 - Event routes store bounded metadata only.
+
+Mobile match integration:
+
+```bash
+cd mobile
+EXPO_PUBLIC_API_URL=http://127.0.0.1:8000 npm start
+```
+
+Use `http://<your-machine-lan-ip>:8000` instead of `127.0.0.1` when testing from a physical phone. The mobile match card posts only the submitted exchange to `/api/match`; it does not store raw chat text locally or in the backend by default.

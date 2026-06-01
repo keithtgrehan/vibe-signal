@@ -40,3 +40,5 @@ export {
   buildBackendVerificationRequest,
   verifyBackendConnection,
 } from "./services/backendVerification.js";
+export { buildMatchRequestFromDraft, createMatchClient } from "./services/matchClient.js";
+export { buildMatchComposerState, buildMatchResultViewModel } from "./screens/matchScreenModel.js";

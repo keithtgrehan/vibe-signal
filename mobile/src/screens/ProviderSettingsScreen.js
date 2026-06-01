@@ -34,6 +34,8 @@ import {
 } from "./providerScreenModel.js";
 import { sanitizeLocalAnalysisResult } from "./localAnalysisGuardrails.js";
 import { createAnalysisHistoryStore } from "./analysisHistoryStore.js";
+import { createMatchClient } from "../services/matchClient.js";
+import { buildMatchComposerState, buildMatchResultViewModel } from "./matchScreenModel.js";
 
 const controller = createProviderFlowController({
   platform: Platform.OS,
@@ -69,6 +71,11 @@ export default function ProviderSettingsScreen() {
   const [recentAnalyses, setRecentAnalyses] = useState([]);
   const [analysisText, setAnalysisText] = useState("");
   const [analysisStatusMessage, setAnalysisStatusMessage] = useState("");
+  const [matchText, setMatchText] = useState("");
+  const [matchResult, setMatchResult] = useState(null);
+  const [matchStatusMessage, setMatchStatusMessage] = useState("");
+  const [matchErrorMessage, setMatchErrorMessage] = useState("");
+  const [matchInProgress, setMatchInProgress] = useState(false);
   const [showExternalAi, setShowExternalAi] = useState(false);
   const [uploadInProgress, setUploadInProgress] = useState(false);
   const [shareCardPrepared, setShareCardPrepared] = useState(false);
@@ -76,6 +83,14 @@ export default function ProviderSettingsScreen() {
   const [revealMode, setRevealMode] = useState("idle");
   const revealTimersRef = useRef([]);
   const quota = useQuota();
+  const matchApiUrl = process.env.EXPO_PUBLIC_API_URL || "";
+  const matchClient = useMemo(
+    () =>
+      createMatchClient({
+        apiUrl: matchApiUrl,
+      }),
+    [matchApiUrl]
+  );
 
   function clearRevealTimers() {
     revealTimersRef.current.forEach((timer) => clearTimeout(timer));
@@ -161,6 +176,15 @@ export default function ProviderSettingsScreen() {
     analysisInProgress: quota.usage_in_progress,
     paywallRequired: quota.paywall_required,
   });
+  const matchComposerState = buildMatchComposerState({
+    conversationText: matchText,
+    loading: matchInProgress,
+    apiUrl: matchApiUrl,
+  });
+  const matchViewModel = useMemo(
+    () => buildMatchResultViewModel(matchResult || {}),
+    [matchResult]
+  );
   const heroHeadline = useMemo(
     () =>
       selectHeroHeadline({
@@ -339,6 +363,35 @@ export default function ProviderSettingsScreen() {
     setAnalysisStatusMessage("Paste a different conversation to compare a new signal.");
   }
 
+  async function handleBackendMatch() {
+    setMatchErrorMessage("");
+    setMatchStatusMessage("");
+    setMatchResult(null);
+
+    if (!String(matchText || "").trim()) {
+      setMatchStatusMessage(matchComposerState.emptyLabel);
+      return;
+    }
+
+    setMatchInProgress(true);
+    setMatchStatusMessage("Checking communication fit...");
+    try {
+      const response = await matchClient.submitMatchDraft({
+        conversationText: matchText,
+        conversationId: `mobile_match_${Date.now().toString(16)}`,
+      });
+      if (response.ok) {
+        setMatchResult(response.result);
+        setMatchStatusMessage("Communication-fit result ready.");
+        return;
+      }
+      setMatchErrorMessage(response.userMessage || "Communication fit could not be checked.");
+      setMatchStatusMessage("");
+    } finally {
+      setMatchInProgress(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -431,6 +484,133 @@ export default function ProviderSettingsScreen() {
                 <Text style={styles.usageMeta}>{quota.status_message}</Text>
               ) : null}
               {!!usageCaption ? <Text style={styles.usageMeta}>{usageCaption}</Text> : null}
+            </View>
+
+            <View style={styles.matchCard}>
+              <View style={styles.matchHeader}>
+                <View style={styles.matchHeaderCopy}>
+                  <Text style={styles.sectionTitle}>Communication fit</Text>
+                  <Text style={styles.helper}>{matchComposerState.helper}</Text>
+                </View>
+                <View style={styles.matchModePill}>
+                  <Text style={styles.matchModePillLabel}>Backend</Text>
+                </View>
+              </View>
+
+              <TextInput
+                value={matchText}
+                onChangeText={(value) => {
+                  setMatchText(value);
+                  setMatchStatusMessage("");
+                  setMatchErrorMessage("");
+                  setMatchResult(null);
+                }}
+                placeholder={matchComposerState.placeholder}
+                placeholderTextColor="#7b7280"
+                multiline
+                numberOfLines={6}
+                scrollEnabled
+                textAlignVertical="top"
+                autoCorrect={false}
+                style={[styles.input, styles.matchTextarea]}
+              />
+
+              <Pressable
+                style={({ pressed }) =>
+                  buildPressableStyle(
+                    styles.primaryButton,
+                    styles.buttonPressed,
+                    !matchComposerState.submitEnabled,
+                    pressed
+                  )
+                }
+                disabled={!matchComposerState.submitEnabled}
+                onPress={handleBackendMatch}
+              >
+                <Text style={styles.primaryLabel}>
+                  {matchInProgress ? matchComposerState.statusLabel : "Check communication fit"}
+                </Text>
+              </Pressable>
+
+              {!matchResult && !matchStatusMessage && !matchErrorMessage ? (
+                <View style={styles.matchEmptyState}>
+                  <Text style={styles.matchEmptyTitle}>No match result yet</Text>
+                  <Text style={styles.helper}>{matchComposerState.emptyLabel}</Text>
+                </View>
+              ) : null}
+
+              {!!matchStatusMessage ? (
+                <Text style={styles.statusMessage}>{matchStatusMessage}</Text>
+              ) : null}
+              {!!matchErrorMessage ? (
+                <Text style={styles.errorMessage}>{matchErrorMessage}</Text>
+              ) : null}
+
+              {matchInProgress ? (
+                <View style={styles.matchLoadingRow}>
+                  <ActivityIndicator size="small" color="#111827" />
+                  <Text style={styles.usageMeta}>Waiting for the local backend.</Text>
+                </View>
+              ) : null}
+
+              {matchViewModel.hasResult ? (
+                <View style={styles.matchResultPanel}>
+                  <View style={styles.matchScoreRow}>
+                    <View>
+                      <Text style={styles.matchScoreLabel}>Compatibility score</Text>
+                      <Text style={styles.matchScoreValue}>
+                        {matchViewModel.compatibilityScoreLabel}
+                      </Text>
+                    </View>
+                    <View style={styles.matchBandPill}>
+                      <Text style={styles.matchBandPillLabel}>{matchViewModel.bandLabel}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.matchSection}>
+                    <Text style={styles.matchSectionTitle}>Positive factors</Text>
+                    {(matchViewModel.positiveFactors.length
+                      ? matchViewModel.positiveFactors
+                      : [matchViewModel.emptyPositiveLabel]
+                    ).map((item) => (
+                      <Text key={`positive:${item}`} style={styles.matchListText}>
+                        • {item}
+                      </Text>
+                    ))}
+                  </View>
+
+                  <View style={styles.matchSection}>
+                    <Text style={styles.matchSectionTitle}>Risk factors</Text>
+                    {(matchViewModel.riskFactors.length
+                      ? matchViewModel.riskFactors
+                      : [matchViewModel.emptyRiskLabel]
+                    ).map((item) => (
+                      <Text key={`risk:${item}`} style={styles.matchListText}>
+                        • {item}
+                      </Text>
+                    ))}
+                  </View>
+
+                  <View style={styles.matchSection}>
+                    <Text style={styles.matchSectionTitle}>Evidence phrases</Text>
+                    {(matchViewModel.evidencePhrases.length
+                      ? matchViewModel.evidencePhrases
+                      : [matchViewModel.emptyEvidenceLabel]
+                    ).map((item) => (
+                      <Text key={`evidence:${item}`} style={styles.matchEvidenceText}>
+                        {item}
+                      </Text>
+                    ))}
+                  </View>
+
+                  <View style={styles.matchSection}>
+                    <Text style={styles.matchSectionTitle}>Explanation</Text>
+                    <Text style={styles.matchExplanationText}>{matchViewModel.explanation}</Text>
+                  </View>
+
+                  <Text style={styles.matchDisclosure}>{matchViewModel.disclosure}</Text>
+                </View>
+              ) : null}
             </View>
 
             {localAnalysisResult ? (
@@ -1023,6 +1203,12 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: "600",
   },
+  errorMessage: {
+    color: "#8a2f1f",
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "600",
+  },
   usageMeta: {
     color: "#6a6258",
     fontSize: 13,
@@ -1036,6 +1222,129 @@ const styles = StyleSheet.create({
     gap: 14,
     borderWidth: 1,
     borderColor: "#eadcc8",
+  },
+  matchCard: {
+    width: "100%",
+    backgroundColor: "#eef5f1",
+    borderRadius: 22,
+    padding: 20,
+    gap: 14,
+    borderWidth: 1,
+    borderColor: "#cfe0d5",
+  },
+  matchHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  matchHeaderCopy: {
+    flex: 1,
+    gap: 6,
+  },
+  matchModePill: {
+    borderRadius: 999,
+    backgroundColor: "#d8eadf",
+    paddingVertical: 8,
+    paddingHorizontal: 11,
+  },
+  matchModePillLabel: {
+    color: "#234032",
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  matchTextarea: {
+    minHeight: 150,
+  },
+  matchEmptyState: {
+    borderRadius: 16,
+    padding: 14,
+    backgroundColor: "#f8fbf9",
+    borderWidth: 1,
+    borderColor: "#dcebe2",
+    gap: 6,
+  },
+  matchEmptyTitle: {
+    color: "#193427",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  matchLoadingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  matchResultPanel: {
+    borderRadius: 18,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#d6e5dc",
+    padding: 16,
+    gap: 16,
+  },
+  matchScoreRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  matchScoreLabel: {
+    color: "#4f6257",
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  matchScoreValue: {
+    color: "#10251b",
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: "900",
+  },
+  matchBandPill: {
+    borderRadius: 999,
+    backgroundColor: "#183226",
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+  },
+  matchBandPillLabel: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  matchSection: {
+    gap: 8,
+  },
+  matchSectionTitle: {
+    color: "#10251b",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  matchListText: {
+    color: "#2f3f36",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  matchEvidenceText: {
+    color: "#2f3f36",
+    fontSize: 13,
+    lineHeight: 19,
+    backgroundColor: "#f2f8f4",
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  matchExplanationText: {
+    color: "#2f3f36",
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  matchDisclosure: {
+    color: "#627267",
+    fontSize: 12,
+    lineHeight: 18,
   },
   resultCard: {
     width: "100%",
