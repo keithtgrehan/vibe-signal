@@ -50,6 +50,17 @@ def test_backend_settings_parse_safe_cors_origins_and_warn_on_rejected_values() 
     assert settings.training_enabled is False
 
 
+def test_backend_settings_rejects_secret_shaped_version_labels() -> None:
+    settings = load_backend_settings(
+        {
+            "VIBE_BACKEND_VERSION": "secret-token-version-123",
+        }
+    )
+
+    assert settings.version == "unknown"
+    assert "unsafe_version_defaulted_to_unknown" in settings.config_warnings
+
+
 def test_backend_settings_rejects_path_query_fragment_and_unknown_environment() -> None:
     settings = load_backend_settings(
         {
@@ -88,6 +99,23 @@ def test_readyz_reports_cors_count_without_echoing_origin_values() -> None:
     body = response.json()
     assert body["checks"]["cors_allowed_origins_count"] == 1
     assert "https://private-mobile.example.com" not in json.dumps(body)
+
+
+def test_readyz_does_not_echo_secret_shaped_version_values() -> None:
+    configured_app = create_app(
+        BackendSettings(
+            environment="production",
+            version="secret-token-version-123",
+        )
+    )
+    client = TestClient(configured_app)
+
+    response = client.get("/readyz")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["version"] == "unknown"
+    assert "secret-token-version-123" not in json.dumps(body)
 
 
 def test_configured_cors_allows_only_exact_origins() -> None:

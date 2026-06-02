@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 import backend.routes.match as match_route
 from backend.app import create_app
 from backend.config import BackendSettings
-from backend.monitoring import build_safe_request_log_event
+from backend.monitoring import build_safe_request_log_event, normalize_request_id
 from backend.storage import EVENT_ROWS, FEEDBACK_ROWS
 
 
@@ -24,7 +24,7 @@ def logged_safe_events(caplog) -> list[dict[str, object]]:
 
 def test_safe_request_log_event_contains_only_metadata() -> None:
     event = build_safe_request_log_event(
-        request_id="req-123",
+        request_id="req_abcdef1234567890abcdef1234567890",
         method="post",
         path="/api/match",
         status_code=200,
@@ -33,7 +33,7 @@ def test_safe_request_log_event_contains_only_metadata() -> None:
 
     assert event == {
         "event": "backend_request",
-        "request_id": "req-123",
+        "request_id": "req_abcdef1234567890abcdef1234567890",
         "method": "POST",
         "path": "/api/match",
         "status_code": 200,
@@ -45,6 +45,37 @@ def test_safe_request_log_event_contains_only_metadata() -> None:
         "provider_response_logged": False,
         "secrets_logged": False,
     }
+
+
+def test_safe_request_log_event_sanitizes_unknown_path() -> None:
+    event = build_safe_request_log_event(
+        request_id="closed-beta-smoke-001",
+        method="get",
+        path="/api/match/raw-private-message-secret-111",
+        status_code=404,
+        latency_ms=18,
+    )
+
+    assert event["path"] == "unmatched_route"
+    assert "raw-private-message-secret-111" not in str(event)
+
+
+def test_request_id_normalization_rejects_secret_like_safe_prefixes() -> None:
+    for unsafe_request_id in (
+        "req_secret_token_1234",
+        "trace_abcdef12_secret",
+        "closed-beta-smoke-secret-token",
+        "smoke_private_message",
+        "sk-test-123",
+        "abcdef1234567890abcdef1234567890",
+        "550e8400-e29b-41d4-a716-446655440000",
+    ):
+        normalized = normalize_request_id(unsafe_request_id)
+        assert normalized != unsafe_request_id
+        assert normalized.startswith("req_")
+        assert "secret" not in normalized
+        assert "token" not in normalized
+        assert "private" not in normalized
 
 
 def test_match_request_logging_omits_raw_message_content(caplog) -> None:
@@ -98,15 +129,62 @@ def test_request_id_is_safe_and_query_string_is_not_logged(caplog) -> None:
     assert "private-secret" not in caplog.text
 
 
+def test_client_supplied_opaque_request_ids_are_not_echoed_or_logged(caplog) -> None:
+    caplog.set_level(logging.INFO, logger=LOGGER_NAME)
+    client = TestClient(create_app(BackendSettings()))
+    supplied_ids = (
+        "abcdef1234567890abcdef1234567890",
+        "550e8400-e29b-41d4-a716-446655440000",
+        "req_abcdef1234567890abcdef1234567890",
+    )
+
+    for supplied_id in supplied_ids:
+        response = client.get("/readyz", headers={"X-Request-ID": supplied_id})
+
+        assert response.status_code == 200
+        assert response.headers["X-Request-ID"] != supplied_id
+        assert response.headers["X-Request-ID"].startswith("req_")
+        assert supplied_id not in caplog.text
+
+
+def test_auth_cookie_and_query_values_are_not_logged(caplog) -> None:
+    caplog.set_level(logging.INFO, logger=LOGGER_NAME)
+    client = TestClient(create_app(BackendSettings()))
+    raw_secret = "raw-header-cookie-query-secret-222"
+
+    response = client.get(
+        f"/legal/privacy?token={raw_secret}",
+        headers={
+            "Authorization": f"Bearer {raw_secret}",
+            "Cookie": f"session={raw_secret}",
+        },
+    )
+
+    assert response.status_code == 200
+    assert raw_secret not in caplog.text
+
+
+def test_raw_text_in_unknown_url_path_is_not_logged(caplog) -> None:
+    caplog.set_level(logging.INFO, logger=LOGGER_NAME)
+    client = TestClient(create_app(BackendSettings()))
+
+    response = client.get("/legal/raw-private-message-secret-000")
+
+    assert response.status_code == 404
+    events = logged_safe_events(caplog)
+    assert events[-1]["path"] == "/legal/{page}"
+    assert "raw-private-message-secret-000" not in caplog.text
+
+
 def test_secret_like_request_id_is_not_echoed_or_logged(caplog) -> None:
     caplog.set_level(logging.INFO, logger=LOGGER_NAME)
     client = TestClient(create_app(BackendSettings()))
 
-    response = client.get("/readyz", headers={"X-Request-ID": "secret-token-123"})
+    response = client.get("/readyz", headers={"X-Request-ID": "req_secret_token_1234"})
 
     assert response.status_code == 200
-    assert response.headers["X-Request-ID"] != "secret-token-123"
-    assert "secret-token-123" not in caplog.text
+    assert response.headers["X-Request-ID"] != "req_secret_token_1234"
+    assert "req_secret_token_1234" not in caplog.text
 
 
 def test_unhandled_exceptions_return_generic_error_and_safe_log(caplog) -> None:
@@ -119,19 +197,46 @@ def test_unhandled_exceptions_return_generic_error_and_safe_log(caplog) -> None:
 
     client = TestClient(app, raise_server_exceptions=False)
 
-    response = client.get("/test/unhandled", headers={"X-Request-ID": "req-safe-500"})
+    response = client.get("/test/unhandled", headers={"X-Request-ID": "req_deadbeef"})
 
     assert response.status_code == 500
-    assert response.json() == {
-        "detail": "Internal server error.",
-        "request_id": "req-safe-500",
-    }
+    body = response.json()
+    assert body["detail"] == "Internal server error."
+    assert body["request_id"].startswith("req_")
+    assert body["request_id"] != "req_deadbeef"
     events = logged_safe_events(caplog)
     assert events[-1]["status_code"] == 500
     assert events[-1]["status_category"] == "server_error"
     assert events[-1]["error_category"] == "unhandled_exception"
     assert "raw private chat" not in response.text
     assert "raw private chat" not in caplog.text
+
+
+def test_framework_validation_errors_do_not_echo_raw_payload_input(caplog) -> None:
+    caplog.set_level(logging.INFO, logger=LOGGER_NAME)
+    client = TestClient(create_app(BackendSettings()))
+    raw_secret = "raw-private-message-secret-422"
+
+    probes = (
+        {"json": raw_secret},
+        {"json": [raw_secret]},
+        {"json": 123},
+        {
+            "content": '{"messages": "raw-private-message-secret-malformed"',
+            "headers": {"Content-Type": "application/json"},
+        },
+    )
+
+    for probe in probes:
+        response = client.post("/api/match", **probe)
+
+        assert response.status_code == 400
+        assert response.json() == {"detail": "Invalid request payload."}
+        assert raw_secret not in response.text
+        assert "raw-private-message-secret-malformed" not in response.text
+
+    assert raw_secret not in caplog.text
+    assert "raw-private-message-secret-malformed" not in caplog.text
 
 
 def test_match_runtime_exception_does_not_expose_raw_exception_text(monkeypatch, caplog) -> None:

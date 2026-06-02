@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-from .config import BackendSettings, load_backend_settings
+from .config import BackendSettings, load_backend_settings, safe_version_label
 from .monitoring import LOGGER_NAME, SafeRequestLoggingMiddleware
 from .routes import analyze, events, feedback, legal, match
 
@@ -47,7 +49,7 @@ def _readiness_payload(app: FastAPI) -> dict[str, object]:
         "status": "ready" if deterministic_routes_registered and not unsafe_enabled else "not_ready",
         "service": "vibe-signal-backend",
         "environment": settings.environment,
-        "version": settings.version,
+        "version": safe_version_label(settings.version),
         "log_level": settings.log_level,
         "checks": checks,
         "config_warnings": list(settings.config_warnings),
@@ -57,9 +59,22 @@ def _readiness_payload(app: FastAPI) -> dict[str, object]:
 
 def create_app(settings: BackendSettings | None = None) -> FastAPI:
     resolved_settings = settings or load_backend_settings()
-    backend_app = FastAPI(title="VibeSignal Backend", version=resolved_settings.version)
+    backend_app = FastAPI(
+        title="VibeSignal Backend",
+        version=safe_version_label(resolved_settings.version),
+    )
     backend_app.state.backend_settings = resolved_settings
     logging.getLogger(LOGGER_NAME).setLevel(resolved_settings.log_level)
+
+    @backend_app.exception_handler(RequestValidationError)
+    async def request_validation_error_handler(
+        _request: Request,
+        _exc: RequestValidationError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "Invalid request payload."},
+        )
 
     if resolved_settings.safe_request_logging_enabled:
         backend_app.add_middleware(SafeRequestLoggingMiddleware)

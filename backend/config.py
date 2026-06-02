@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from typing import Mapping
 from urllib.parse import urlparse
 
 
 VALID_LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+SAFE_VERSION_RE = re.compile(r"^(?:v)?[0-9A-Za-z][0-9A-Za-z._-]{0,39}$")
+BLOCKED_VERSION_RE = re.compile(
+    r"secret|token|password|passwd|bearer|cookie|authorization|api[_-]?key|private|raw|message|chat|sk-",
+    re.IGNORECASE,
+)
 ENVIRONMENT_ALIASES = {
     "local": "local",
     "development": "local",
@@ -67,6 +73,17 @@ def _parse_allowed_origins(raw_value: str) -> tuple[tuple[str, ...], tuple[str, 
     return tuple(origins), tuple(dict.fromkeys(warnings))
 
 
+def safe_version_label(value: str) -> str:
+    candidate = str(value or "").strip()
+    if (
+        candidate
+        and SAFE_VERSION_RE.fullmatch(candidate)
+        and not BLOCKED_VERSION_RE.search(candidate)
+    ):
+        return candidate
+    return "unknown"
+
+
 def load_backend_settings(environ: Mapping[str, str] | None = None) -> BackendSettings:
     source = os.environ if environ is None else environ
     warnings: list[str] = []
@@ -83,11 +100,15 @@ def load_backend_settings(environ: Mapping[str, str] | None = None) -> BackendSe
         source.get("VIBE_BACKEND_ENV", "local")
     )
     warnings.extend(environment_warnings)
+    raw_version = str(source.get("VIBE_BACKEND_VERSION", "0.1.0")).strip() or "0.1.0"
+    version = safe_version_label(raw_version)
+    if version == "unknown":
+        warnings.append("unsafe_version_defaulted_to_unknown")
 
     return BackendSettings(
         allowed_origins=allowed_origins,
         environment=environment,
-        version=str(source.get("VIBE_BACKEND_VERSION", "0.1.0")).strip() or "0.1.0",
+        version=version,
         log_level=log_level,
         config_warnings=tuple(dict.fromkeys(warnings)),
     )

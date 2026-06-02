@@ -13,18 +13,49 @@ from starlette.responses import JSONResponse, Response
 
 LOGGER_NAME = "vibe_signal.backend.safe_request"
 REQUEST_ID_HEADER = "X-Request-ID"
-SAFE_REQUEST_ID_RE = re.compile(
-    r"^(?:req|trace|smoke|closed-beta)[A-Za-z0-9_.:-]{0,72}$"
-    r"|^[0-9a-fA-F]{32}$"
-    r"|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+SAFE_REQUEST_ID_RE = re.compile(r"^req_[0-9a-f]{32}$")
+BLOCKED_REQUEST_ID_RE = re.compile(
+    r"secret|token|password|passwd|bearer|cookie|authorization|api[_-]?key|private|raw|message|chat|sk-",
+    re.IGNORECASE,
 )
+SAFE_ENDPOINT_PATHS = {
+    "/healthz",
+    "/readyz",
+    "/api/analyze",
+    "/api/match",
+    "/api/feedback",
+    "/api/events/analysis",
+    "/api/events/quota",
+    "/api/events/billing",
+    "/api/events/state",
+    "/legal/privacy",
+    "/legal/terms",
+    "/legal/data-deletion",
+    "/legal/data-export",
+    "/legal/match-disclaimer",
+}
 
 
 def normalize_request_id(raw_value: str | None) -> str:
     candidate = str(raw_value or "").strip()
-    if candidate and SAFE_REQUEST_ID_RE.fullmatch(candidate):
+    if (
+        candidate
+        and SAFE_REQUEST_ID_RE.fullmatch(candidate)
+        and not BLOCKED_REQUEST_ID_RE.search(candidate)
+    ):
         return candidate
-    return uuid4().hex
+    return f"req_{uuid4().hex}"
+
+
+def safe_log_path(path: str) -> str:
+    candidate = str(path or "").strip()
+    if candidate in SAFE_ENDPOINT_PATHS:
+        return candidate
+    if candidate.startswith("/api/events/"):
+        return "/api/events/{event_type}"
+    if candidate.startswith("/legal/"):
+        return "/legal/{page}"
+    return "unmatched_route"
 
 
 def latency_bucket(latency_ms: float) -> str:
@@ -60,7 +91,7 @@ def build_safe_request_log_event(
         "event": "backend_request",
         "request_id": normalize_request_id(request_id),
         "method": str(method or "").upper(),
-        "path": str(path or ""),
+        "path": safe_log_path(path),
         "status_code": int(status_code),
         "status_category": status_category(int(status_code)),
         "latency_bucket": latency_bucket(float(latency_ms)),
@@ -79,7 +110,7 @@ class SafeRequestLoggingMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         started = time.perf_counter()
-        request_id = normalize_request_id(request.headers.get(REQUEST_ID_HEADER))
+        request_id = normalize_request_id(None)
         status_code = 500
         error_category = ""
         try:
