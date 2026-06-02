@@ -165,7 +165,7 @@ cd mobile
 EXPO_PUBLIC_API_URL=http://127.0.0.1:8000 npm start
 ```
 
-Use `http://<your-machine-lan-ip>:8000` instead of `127.0.0.1` when testing from a physical phone.
+Use `http://10.0.2.2:8000` for the Android emulator. Use `http://<your-machine-lan-ip>:8000` instead of `127.0.0.1` when testing from a physical phone.
 
 The mobile communication-fit card accepts one line per message, for example:
 
@@ -209,7 +209,7 @@ Full endpoint sweep:
 
 - `npm run verify:backend -- --api-url https://<your-backend-host> --all`
 
-This sends one minimal valid event payload and prints the response status/body so the deployed backend can be checked without repeatedly spamming the event routes.
+This sends one minimal synthetic event payload and prints status plus coarse body presence/length only, so the deployed backend can be checked without repeatedly spamming the event routes or printing response bodies.
 
 ## Monetization Status
 

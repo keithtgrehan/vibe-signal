@@ -13,14 +13,18 @@ Run `scripts/smoke_test_deployed_backend.py` against a local or deployed backend
 - `GET /legal/data-deletion`
 - `GET /legal/data-export`
 - `GET /legal/match-disclaimer`
+- `POST /api/analyze`
 - `POST /api/match`
+- `POST /api/feedback`
 
-The `/api/match` check uses only a synthetic toy exchange:
+The `/api/analyze` and `/api/match` checks use only synthetic toy exchanges:
 
 - `self: Can you confirm Tuesday at 10am?`
 - `other: Yes, Tuesday at 10am works. No pressure if we need to adjust.`
 
-The script prints only safe status summaries: method, endpoint, HTTP status, request-ID presence, and coarse validation detail. It does not print request bodies, response bodies, raw chat text, provider responses, secrets, headers, cookies, vectors, model artifacts, or credentials.
+The `/api/feedback` check uses consented synthetic fixture feedback and verifies metadata-only handling.
+
+The script prints only safe status summaries: method, endpoint, HTTP status, allowlisted backend request ID or `unsafe_or_missing`, and coarse validation detail. It does not print request bodies, response bodies, raw chat text, provider responses, secrets, headers, cookies, vectors, model artifacts, or credentials.
 
 When mobile event ingestion is in scope for the deploy, include bounded metadata event routes:
 
@@ -52,15 +56,17 @@ python scripts/smoke_test_deployed_backend.py --base-url http://127.0.0.1:8000
 Expected shape:
 
 ```text
-[PASS] GET /healthz status=200 request_id=yes detail=ok
-[PASS] GET /readyz status=200 request_id=yes detail=ok
-[PASS] GET /legal/privacy status=200 request_id=yes detail=ok
-[PASS] GET /legal/terms status=200 request_id=yes detail=ok
-[PASS] GET /legal/data-deletion status=200 request_id=yes detail=ok
-[PASS] GET /legal/data-export status=200 request_id=yes detail=ok
-[PASS] GET /legal/match-disclaimer status=200 request_id=yes detail=ok
-[PASS] POST /api/match status=200 request_id=yes detail=ok
-Summary: 8/8 deployment smoke checks passed.
+[PASS] GET /healthz status=200 request_id=req_<32-hex> detail=ok
+[PASS] GET /readyz status=200 request_id=req_<32-hex> detail=ok
+[PASS] GET /legal/privacy status=200 request_id=req_<32-hex> detail=ok
+[PASS] GET /legal/terms status=200 request_id=req_<32-hex> detail=ok
+[PASS] GET /legal/data-deletion status=200 request_id=req_<32-hex> detail=ok
+[PASS] GET /legal/data-export status=200 request_id=req_<32-hex> detail=ok
+[PASS] GET /legal/match-disclaimer status=200 request_id=req_<32-hex> detail=ok
+[PASS] POST /api/analyze status=200 request_id=req_<32-hex> detail=ok
+[PASS] POST /api/match status=200 request_id=req_<32-hex> detail=ok
+[PASS] POST /api/feedback status=200 request_id=req_<32-hex> detail=ok
+Summary: 10/10 deployment smoke checks passed.
 ```
 
 ## Deployed Backend Smoke Test
@@ -82,6 +88,13 @@ cd mobile
 EXPO_PUBLIC_API_URL=https://<your-backend-host> npm start
 ```
 
+For Android emulator testing against a local backend, use `10.0.2.2`:
+
+```bash
+cd mobile
+EXPO_PUBLIC_API_URL=http://10.0.2.2:8000 npm start
+```
+
 For physical device testing against a local backend, use your machine LAN address instead of `127.0.0.1`:
 
 ```bash
@@ -98,7 +111,7 @@ cd mobile
 npm run verify:backend -- --api-url https://<your-backend-host> --event state
 ```
 
-The mobile verifier prints generated event payload and response text for operator inspection. Use it only with the built-in synthetic event payloads and a clean base URL. Do not paste private text, credentials, tokens, route paths, query strings, or fragments into the URL.
+The mobile verifier prints generated event type, target URL, status, payload field count, and response-body presence/length only. It does not print payload bodies or response bodies. Use it only with the built-in synthetic event payloads and a clean base URL. Do not paste private text, credentials, tokens, route paths, query strings, or fragments into the URL.
 
 Use `--all` only when the deployed event routes are intentionally in scope for that verification pass:
 
@@ -110,6 +123,8 @@ npm run verify:backend -- --api-url https://<your-backend-host> --all
 ## Failure Triage
 
 - `invalid base url`: pass only a base `http://` or `https://` URL with no credentials, path, query string, or fragment.
+- `timeout_must_be_positive`: pass a positive finite `--timeout` value.
+- `transport_error`: confirm DNS, TLS, firewall, hosting, and timeout settings; the script intentionally does not print exception text.
 - `unexpected_status`: confirm the host is deployed, the route exists, and no gateway/auth layer is blocking the route.
 - `empty_json_body` or `invalid_json_body`: confirm the request reaches the FastAPI backend and not a static hosting error page.
 - `readyz_status_not_ready`: inspect `/readyz` for hard safety flags and route registration.

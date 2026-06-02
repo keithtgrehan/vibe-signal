@@ -20,6 +20,19 @@ def fake_success_transport(
 ) -> smoke.TransportResponse:
     path = urlparse(url).path
     assert timeout > 0
+    if path == "/api/analyze":
+        assert method == "POST"
+        assert headers["Content-Type"] == "application/json"
+        assert body is not None
+        assert json.loads(body.decode("utf-8")) == smoke.SYNTHETIC_ANALYZE_PAYLOAD
+        payload = {
+            "conversation_id": "synthetic_deployment_analyze_smoke",
+            "analysis_mode": "deterministic_local_only",
+            "provider_used": False,
+            "raw_chat_persisted": False,
+            "evidence": [],
+        }
+        return smoke.TransportResponse(200, {"x-request-id": REQUEST_ID}, json.dumps(payload))
     if path == "/api/match":
         assert method == "POST"
         assert headers["Content-Type"] == "application/json"
@@ -35,6 +48,20 @@ def fake_success_transport(
             "safe_summary": "The exchange shows observable fit on directness and low-pressure wording.",
             "safe_explanation": "The smoke test uses synthetic text and verifies the response shape only.",
             "redline_status": "allow",
+        }
+        return smoke.TransportResponse(200, {"x-request-id": REQUEST_ID}, json.dumps(payload))
+    if path == "/api/feedback":
+        assert method == "POST"
+        assert headers["Content-Type"] == "application/json"
+        assert body is not None
+        assert json.loads(body.decode("utf-8")) == smoke.SYNTHETIC_FEEDBACK_PAYLOAD
+        payload = {
+            "status": "accepted",
+            "raw_comment_persisted": False,
+            "stored_feedback": {
+                "match_id": "vibe_match_deployment_smoke",
+                "comment_length": len(str(smoke.SYNTHETIC_FEEDBACK_PAYLOAD["comment"])),
+            },
         }
         return smoke.TransportResponse(200, {"x-request-id": REQUEST_ID}, json.dumps(payload))
     if path in smoke.EVENT_ENDPOINTS:
@@ -95,7 +122,9 @@ def test_smoke_endpoint_list_covers_backend_pre_beta_routes() -> None:
         "/legal/data-deletion",
         "/legal/data-export",
         "/legal/match-disclaimer",
+        "/api/analyze",
         "/api/match",
+        "/api/feedback",
     )
 
 
@@ -120,6 +149,9 @@ def test_normalize_base_url_accepts_safe_http_urls(raw_url: str, expected: str) 
         "https://api.example.test/path",
         "https://api.example.test?debug=true",
         "https://api.example.test#fragment",
+        "https://api.example.test:99999",
+        "https://api.example.test:0",
+        "https://api.example.test /",
     ],
 )
 def test_normalize_base_url_rejects_unsafe_or_route_urls(raw_url: str) -> None:
@@ -127,10 +159,35 @@ def test_normalize_base_url_rejects_unsafe_or_route_urls(raw_url: str) -> None:
         smoke.normalize_base_url(raw_url)
 
 
+@pytest.mark.parametrize("timeout", [0, -1, float("inf"), float("nan")])
+def test_normalize_timeout_rejects_invalid_values(timeout: float) -> None:
+    with pytest.raises(ValueError):
+        smoke.normalize_timeout(timeout)
+
+
+def test_default_transport_maps_timeout_to_safe_failure(monkeypatch) -> None:
+    def fail_timeout(*_args, **_kwargs):
+        raise TimeoutError("raw transport timeout detail")
+
+    monkeypatch.setattr(smoke, "urlopen", fail_timeout)
+
+    response = smoke.default_transport(
+        "GET",
+        "https://api.example.test/healthz",
+        None,
+        {},
+        0.01,
+    )
+
+    assert response == smoke.TransportResponse(status_code=0, headers={}, body_text="")
+
+
 def test_synthetic_match_payload_uses_only_toy_content() -> None:
     serialized = json.dumps(
         {
             "match": smoke.SYNTHETIC_MATCH_PAYLOAD,
+            "analyze": smoke.SYNTHETIC_ANALYZE_PAYLOAD,
+            "feedback": smoke.SYNTHETIC_FEEDBACK_PAYLOAD,
             "events": smoke.SYNTHETIC_EVENT_PAYLOADS,
         }
     ).lower()
@@ -155,7 +212,7 @@ def test_run_smoke_checks_passes_with_safe_fake_transport() -> None:
 
     assert len(results) == len(smoke.SMOKE_ENDPOINTS)
     assert all(result.ok for result in results)
-    assert all(result.request_id_present for result in results)
+    assert all(result.request_id == REQUEST_ID for result in results)
 
 
 def test_run_smoke_checks_can_include_bounded_event_routes() -> None:
@@ -188,6 +245,29 @@ def test_run_smoke_checks_fails_when_request_id_is_missing() -> None:
     assert results
     assert not any(result.ok for result in results)
     assert {result.detail for result in results} == {"request_id_missing"}
+    assert {result.request_id for result in results} == {"unsafe_or_missing"}
+
+
+def test_run_smoke_checks_suppresses_unsafe_request_ids() -> None:
+    def unsafe_request_id_transport(
+        method: str,
+        url: str,
+        body: bytes | None,
+        headers: dict[str, str],
+        timeout: float,
+    ) -> smoke.TransportResponse:
+        response = fake_success_transport(method, url, body, headers, timeout)
+        return smoke.TransportResponse(response.status_code, {"x-request-id": "secret-token-123"}, response.body_text)
+
+    results = smoke.run_smoke_checks(
+        "https://api.example.test",
+        transport=unsafe_request_id_transport,
+    )
+
+    assert results
+    assert not any(result.ok for result in results)
+    assert {result.detail for result in results} == {"request_id_missing"}
+    assert "secret-token-123" not in json.dumps([result.__dict__ for result in results])
 
 
 def test_match_response_user_facing_text_blocks_unsafe_claims() -> None:
@@ -227,12 +307,32 @@ def test_run_smoke_checks_returns_failure_without_printing_body() -> None:
     assert "unexpected backend body" not in json.dumps([result.__dict__ for result in results])
 
 
+def test_run_smoke_checks_reports_transport_error_without_exception_text() -> None:
+    def transport_error(
+        _method: str,
+        _url: str,
+        _body: bytes | None,
+        _headers: dict[str, str],
+        _timeout: float,
+    ) -> smoke.TransportResponse:
+        return smoke.TransportResponse(0, {}, "raw timeout secret should not print")
+
+    results = smoke.run_smoke_checks(
+        "https://api.example.test",
+        transport=transport_error,
+    )
+
+    assert results
+    assert {result.detail for result in results} == {"transport_error"}
+    assert "raw timeout secret" not in json.dumps([result.__dict__ for result in results])
+
+
 def test_main_returns_nonzero_when_any_check_fails(monkeypatch, capsys) -> None:
     monkeypatch.setattr(
         smoke,
         "run_smoke_checks",
         lambda *_args, **_kwargs: [
-            smoke.SmokeResult("GET", "/healthz", False, 500, "unexpected_status", True)
+            smoke.SmokeResult("GET", "/healthz", False, 500, "unexpected_status", REQUEST_ID)
         ],
     )
 
@@ -240,7 +340,7 @@ def test_main_returns_nonzero_when_any_check_fails(monkeypatch, capsys) -> None:
 
     captured = capsys.readouterr()
     assert exit_code == 1
-    assert "[FAIL] GET /healthz status=500" in captured.out
+    assert f"[FAIL] GET /healthz status=500 request_id={REQUEST_ID}" in captured.out
     assert "unexpected backend body" not in captured.out
 
 
@@ -249,7 +349,7 @@ def test_main_include_events_runs_event_endpoints(monkeypatch, capsys) -> None:
 
     def fake_run_smoke_checks(*_args, **kwargs):
         captured_include_events["value"] = kwargs.get("include_events")
-        return [smoke.SmokeResult("GET", "/healthz", True, 200, "ok", True)]
+        return [smoke.SmokeResult("GET", "/healthz", True, 200, "ok", REQUEST_ID)]
 
     monkeypatch.setattr(smoke, "run_smoke_checks", fake_run_smoke_checks)
 
@@ -265,4 +365,12 @@ def test_main_rejects_invalid_base_url(capsys) -> None:
 
     captured = capsys.readouterr()
     assert exit_code == 2
-    assert "invalid base url" in captured.err
+    assert "invalid smoke-test argument" in captured.err
+
+
+def test_main_rejects_invalid_timeout(capsys) -> None:
+    exit_code = smoke.main(["--base-url", "https://api.example.test", "--timeout", "0"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "timeout_must_be_positive" in captured.err

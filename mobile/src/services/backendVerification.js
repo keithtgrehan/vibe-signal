@@ -18,6 +18,13 @@ function parseApiUrl(value) {
   }
 
   try {
+    if (!/^https?:\/\/[^/?#]+\/?$/.test(text)) {
+      return {
+        ok: false,
+        status: "invalid_api_url",
+        apiUrl: text,
+      };
+    }
     const parsed = new URL(text);
     if (!["http:", "https:"].includes(parsed.protocol)) {
       return {
@@ -29,6 +36,7 @@ function parseApiUrl(value) {
     if (
       parsed.username ||
       parsed.password ||
+      parsed.port === "0" ||
       parsed.pathname !== "/" ||
       parsed.search ||
       parsed.hash
