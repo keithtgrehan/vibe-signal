@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from .routes import analyze, events, feedback, match
+from .routes import analyze, events, feedback, legal, match
 
 
 app = FastAPI(title="VibeSignal Backend", version="0.1.0")
@@ -17,3 +17,4 @@ app.include_router(analyze.router)
 app.include_router(match.router)
 app.include_router(feedback.router)
 app.include_router(events.router)
+app.include_router(legal.router)

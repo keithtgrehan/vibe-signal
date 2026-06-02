@@ -176,6 +176,14 @@ other: Yes, Friday at 3pm works. No pressure if we need to adjust.
 
 The result renders the backend score, fit band, positive factors, risk factors, evidence safe phrases, and safe explanation. The match score reflects observable communication-pattern compatibility only; it is not a read on feelings, motives, identity, health, or relationship outcomes.
 
+Match submission copy now also reminds users:
+
+- Vibe Signal matching is communication-support only.
+- Outputs are pattern-based suggestions, not truth claims.
+- Users should submit only messages they have permission to analyze.
+- Users should not include sensitive personal data, secrets, medical data, legal documents, financial data, or third-party private messages without permission.
+- Closed beta is not production launch, and privacy/terms drafts require legal review before public launch.
+
 What is not committed in this repo:
 
 - a `.replit` file

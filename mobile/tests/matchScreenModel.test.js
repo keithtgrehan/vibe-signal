@@ -93,3 +93,24 @@ test("match result view model keeps blocked claims out of UI disclosure", () => 
   assert.equal(combined.includes("manipulat"), false);
   assert.match(viewModel.disclosure, /observable communication-pattern compatibility/);
 });
+
+test("match composer exposes consent and sensitive-data boundaries", () => {
+  const state = buildMatchComposerState({
+    conversationText: "self: Can you confirm?\nother: Yes.",
+    loading: false,
+    apiUrl: "https://example.test",
+  });
+
+  const combined = [state.consentLabel, state.privacyNote].join(" ").toLowerCase();
+  assert.match(combined, /only submit messages you have permission to analyze/);
+  assert.match(combined, /sensitive personal data/);
+  assert.match(combined, /medical data/);
+  assert.match(combined, /legal documents/);
+  assert.match(combined, /financial data/);
+  assert.match(combined, /third-party private messages without permission/);
+  assert.match(combined, /closed beta/);
+  assert.match(combined, /legal review before public launch/);
+  assert.equal(combined.includes("they like you"), false);
+  assert.equal(combined.includes("hidden intent"), false);
+  assert.equal(combined.includes("cheat"), false);
+});

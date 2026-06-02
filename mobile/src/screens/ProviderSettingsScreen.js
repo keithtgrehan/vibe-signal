@@ -491,6 +491,8 @@ export default function ProviderSettingsScreen() {
                 <View style={styles.matchHeaderCopy}>
                   <Text style={styles.sectionTitle}>Communication fit</Text>
                   <Text style={styles.helper}>{matchComposerState.helper}</Text>
+                  <Text style={styles.matchDisclosure}>{matchComposerState.consentLabel}</Text>
+                  <Text style={styles.matchDisclosure}>{matchComposerState.privacyNote}</Text>
                 </View>
                 <View style={styles.matchModePill}>
                   <Text style={styles.matchModePillLabel}>Backend</Text>
