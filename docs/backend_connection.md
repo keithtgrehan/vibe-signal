@@ -19,6 +19,7 @@ The mobile app is environment-driven and expects these routes under the configur
 Set `EXPO_PUBLIC_API_URL` to the backend base URL, not a route path:
 
 - local simulator or same-machine development: `http://127.0.0.1:8000`
+- Android emulator against a local backend: `http://10.0.2.2:8000`
 - physical phone against a local backend: `http://<your-machine-lan-ip>:8000`
 - deployed backend: `https://<your-backend-host>`
 

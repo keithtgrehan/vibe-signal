@@ -32,12 +32,28 @@ test("backend verification request rejects invalid API URLs safely", () => {
   assert.equal(request.status, "invalid_api_url");
 });
 
+test("backend verification request reports missing API URLs safely", () => {
+  for (const apiUrl of ["", "   "]) {
+    const request = buildBackendVerificationRequest({
+      eventType: "analysis",
+      apiUrl,
+    });
+
+    assert.equal(request.ok, false);
+    assert.equal(request.status, "missing_api_url");
+  }
+});
+
 test("backend verification request rejects credentials, paths, queries, and fragments", () => {
   const unsafeUrls = [
     "https://user:pass@example.test",
     "https://example.test/api/events/state",
+    "https://example.test/api/..",
+    "https://example.test/.",
+    "https://example.test/foo/%2e%2e/",
     "https://example.test?token=abc",
     "https://example.test#fragment",
+    "https://example.test:0",
   ];
 
   for (const apiUrl of unsafeUrls) {
@@ -49,6 +65,21 @@ test("backend verification request rejects credentials, paths, queries, and frag
     assert.equal(request.ok, false);
     assert.equal(request.status, "invalid_api_url");
   }
+});
+
+test("backend verification returns before fetch when URL is missing or invalid", async () => {
+  let called = false;
+  const result = await verifyBackendConnection({
+    apiUrl: "",
+    fetchImpl: async () => {
+      called = true;
+      throw new Error("fetch should not be called");
+    },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "missing_api_url");
+  assert.equal(called, false);
 });
 
 test("backend verification request rejects unsupported event types", () => {

@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import re
 import sys
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -16,6 +18,7 @@ from urllib.request import Request, urlopen
 REQUEST_TIMEOUT_SECONDS = 10.0
 MAX_RESPONSE_BYTES = 128_000
 ALLOWED_BANDS = {"low", "mixed", "moderate", "strong"}
+SAFE_REQUEST_ID_RE = re.compile(r"^req_[0-9a-f]{32}$")
 LEGAL_ENDPOINTS = (
     "/legal/privacy",
     "/legal/terms",
@@ -33,8 +36,25 @@ SMOKE_ENDPOINTS = (
     "/healthz",
     "/readyz",
     *LEGAL_ENDPOINTS,
+    "/api/analyze",
     "/api/match",
+    "/api/feedback",
 )
+SYNTHETIC_ANALYZE_PAYLOAD: dict[str, Any] = {
+    "conversation_id": "synthetic_deployment_analyze_smoke",
+    "messages": [
+        {
+            "id": "m1",
+            "author": "self",
+            "text": "Can you confirm Tuesday at 10am?",
+        },
+        {
+            "id": "m2",
+            "author": "other",
+            "text": "Yes, Tuesday at 10am works.",
+        },
+    ],
+}
 SYNTHETIC_MATCH_PAYLOAD: dict[str, Any] = {
     "conversation_id": "synthetic_deployment_smoke",
     "messages": [
@@ -57,6 +77,12 @@ SYNTHETIC_MATCH_PAYLOAD: dict[str, Any] = {
         "prefers_explicit_plans": True,
         "max_message_load": "medium",
     },
+}
+SYNTHETIC_FEEDBACK_PAYLOAD: dict[str, Any] = {
+    "match_id": "vibe_match_deployment_smoke",
+    "rating": 1,
+    "comment": "Synthetic deployment smoke feedback.",
+    "consent_to_store_feedback": True,
 }
 SYNTHETIC_EVENT_PAYLOADS: dict[str, dict[str, Any]] = {
     "analysis": {
@@ -123,7 +149,7 @@ class SmokeResult:
     ok: bool
     status_code: int
     detail: str
-    request_id_present: bool = False
+    request_id: str = "unsafe_or_missing"
 
 
 Transport = Callable[[str, str, bytes | None, dict[str, str], float], TransportResponse]
@@ -133,6 +159,8 @@ def normalize_base_url(raw_value: str) -> str:
     value = str(raw_value or "").strip().rstrip("/")
     if not value:
         raise ValueError("base_url_required")
+    if any(character.isspace() for character in value):
+        raise ValueError("base_url_must_not_include_whitespace")
     parsed = urlparse(value)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise ValueError("base_url_must_be_http_or_https")
@@ -140,12 +168,31 @@ def normalize_base_url(raw_value: str) -> str:
         raise ValueError("base_url_must_not_include_credentials")
     if parsed.path not in {"", "/"} or parsed.params or parsed.query or parsed.fragment:
         raise ValueError("base_url_must_not_include_path_query_or_fragment")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError("base_url_must_include_valid_port") from exc
+    if port is not None and not 1 <= port <= 65535:
+        raise ValueError("base_url_must_include_valid_port")
     return f"{parsed.scheme}://{parsed.netloc}"
 
 
+def normalize_timeout(raw_value: float) -> float:
+    timeout = float(raw_value)
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("timeout_must_be_positive")
+    return timeout
+
+
 def smoke_request_for_path(path: str) -> tuple[str, bytes | None, dict[str, str]]:
+    if path == "/api/analyze":
+        body = json.dumps(SYNTHETIC_ANALYZE_PAYLOAD, separators=(",", ":")).encode("utf-8")
+        return "POST", body, {"Content-Type": "application/json"}
     if path == "/api/match":
         body = json.dumps(SYNTHETIC_MATCH_PAYLOAD, separators=(",", ":")).encode("utf-8")
+        return "POST", body, {"Content-Type": "application/json"}
+    if path == "/api/feedback":
+        body = json.dumps(SYNTHETIC_FEEDBACK_PAYLOAD, separators=(",", ":")).encode("utf-8")
         return "POST", body, {"Content-Type": "application/json"}
     if path in EVENT_ENDPOINTS:
         event_type = path.rsplit("/", 1)[-1]
@@ -185,7 +232,7 @@ def default_transport(
             headers={str(key).lower(): str(value) for key, value in exc.headers.items()},
             body_text="",
         )
-    except URLError:
+    except (URLError, TimeoutError, OSError, ValueError):
         return TransportResponse(status_code=0, headers={}, body_text="")
 
 
@@ -246,6 +293,20 @@ def validate_legal_page(payload: dict[str, Any]) -> str:
     return ""
 
 
+def validate_analyze(payload: dict[str, Any]) -> str:
+    if payload.get("conversation_id") != SYNTHETIC_ANALYZE_PAYLOAD["conversation_id"]:
+        return "analyze_conversation_id_mismatch"
+    if payload.get("analysis_mode") != "deterministic_local_only":
+        return "analyze_mode_mismatch"
+    if payload.get("provider_used") is not False:
+        return "analyze_provider_used"
+    if payload.get("raw_chat_persisted") is not False:
+        return "analyze_raw_chat_persisted"
+    if not isinstance(payload.get("evidence"), list):
+        return "analyze_evidence_missing"
+    return ""
+
+
 def validate_match(payload: dict[str, Any]) -> str:
     if payload.get("conversation_id") != SYNTHETIC_MATCH_PAYLOAD["conversation_id"]:
         return "match_conversation_id_mismatch"
@@ -282,6 +343,23 @@ def validate_match(payload: dict[str, Any]) -> str:
     return ""
 
 
+def validate_feedback(payload: dict[str, Any]) -> str:
+    if payload.get("status") != "accepted":
+        return "feedback_status_not_accepted"
+    if payload.get("raw_comment_persisted") is not False:
+        return "feedback_raw_comment_persisted"
+    stored_feedback = payload.get("stored_feedback")
+    if not isinstance(stored_feedback, dict):
+        return "feedback_stored_metadata_missing"
+    if stored_feedback.get("match_id") != SYNTHETIC_FEEDBACK_PAYLOAD["match_id"]:
+        return "feedback_match_id_mismatch"
+    if "comment" in stored_feedback:
+        return "feedback_raw_comment_returned"
+    if stored_feedback.get("comment_length") != len(str(SYNTHETIC_FEEDBACK_PAYLOAD["comment"])):
+        return "feedback_comment_metadata_mismatch"
+    return ""
+
+
 def validate_event(path: str, payload: dict[str, Any]) -> str:
     expected_type = path.rsplit("/", 1)[-1]
     if payload.get("status") != "accepted":
@@ -305,8 +383,12 @@ def validation_error_for_path(path: str, payload: dict[str, Any]) -> str:
         return validate_readyz(payload)
     if path in LEGAL_ENDPOINTS:
         return validate_legal_page(payload)
+    if path == "/api/analyze":
+        return validate_analyze(payload)
     if path == "/api/match":
         return validate_match(payload)
+    if path == "/api/feedback":
+        return validate_feedback(payload)
     if path in EVENT_ENDPOINTS:
         return validate_event(path, payload)
     return "unsupported_smoke_endpoint"
@@ -320,25 +402,27 @@ def run_smoke_checks(
     include_events: bool = False,
 ) -> list[SmokeResult]:
     normalized_base_url = normalize_base_url(base_url)
+    normalized_timeout = normalize_timeout(timeout)
     results: list[SmokeResult] = []
     endpoints = (*SMOKE_ENDPOINTS, *EVENT_ENDPOINTS) if include_events else SMOKE_ENDPOINTS
     for path in endpoints:
         method, body, headers = smoke_request_for_path(path)
-        response = transport(method, f"{normalized_base_url}{path}", body, headers, timeout)
-        request_id_present = bool(response.headers.get("x-request-id"))
+        response = transport(method, f"{normalized_base_url}{path}", body, headers, normalized_timeout)
+        request_id = safe_request_id(response.headers.get("x-request-id", ""))
         if response.status_code != 200:
+            detail = "transport_error" if response.status_code == 0 else "unexpected_status"
             results.append(
                 SmokeResult(
                     method=method,
                     path=path,
                     ok=False,
                     status_code=response.status_code,
-                    detail="unexpected_status",
-                    request_id_present=request_id_present,
+                    detail=detail,
+                    request_id=request_id,
                 )
             )
             continue
-        if not request_id_present:
+        if request_id == "unsafe_or_missing":
             results.append(
                 SmokeResult(
                     method=method,
@@ -346,14 +430,14 @@ def run_smoke_checks(
                     ok=False,
                     status_code=response.status_code,
                     detail="request_id_missing",
-                    request_id_present=False,
+                    request_id=request_id,
                 )
             )
             continue
         payload, parse_error = parse_json_body(response)
         if parse_error:
             results.append(
-                SmokeResult(method, path, False, response.status_code, parse_error, request_id_present)
+                SmokeResult(method, path, False, response.status_code, parse_error, request_id)
             )
             continue
         validation_error = validation_error_for_path(path, payload)
@@ -364,19 +448,25 @@ def run_smoke_checks(
                 ok=not validation_error,
                 status_code=response.status_code,
                 detail=validation_error or "ok",
-                request_id_present=request_id_present,
+                request_id=request_id,
             )
         )
     return results
 
 
+def safe_request_id(value: str) -> str:
+    candidate = str(value or "").strip()
+    if SAFE_REQUEST_ID_RE.fullmatch(candidate):
+        return candidate
+    return "unsafe_or_missing"
+
+
 def print_summary(results: list[SmokeResult]) -> None:
     for result in results:
         label = "PASS" if result.ok else "FAIL"
-        request_id = "yes" if result.request_id_present else "no"
         print(
             f"[{label}] {result.method} {result.path} "
-            f"status={result.status_code} request_id={request_id} detail={result.detail}"
+            f"status={result.status_code} request_id={result.request_id} detail={result.detail}"
         )
     passed = sum(1 for result in results if result.ok)
     print(f"Summary: {passed}/{len(results)} deployment smoke checks passed.")
@@ -396,7 +486,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         results = run_smoke_checks(args.base_url, timeout=args.timeout, include_events=args.include_events)
     except ValueError as exc:
-        print(f"[FAIL] invalid base url: {exc}", file=sys.stderr)
+        print(f"[FAIL] invalid smoke-test argument: {exc}", file=sys.stderr)
         return 2
 
     print_summary(results)
