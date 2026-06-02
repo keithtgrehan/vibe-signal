@@ -155,7 +155,7 @@ What is wired in code:
 Start the local backend from the repo root:
 
 ```bash
-uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
+PYTHONPATH=src python -m uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
 Start Expo with the backend base URL:
@@ -198,6 +198,8 @@ Current verification result from this environment:
 Required next step:
 
 - set `EXPO_PUBLIC_API_URL` explicitly to the live deployed backend base URL used by the Replit deployment
+- run the Python deployment smoke test from the repo root before connecting mobile:
+  - `python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>`
 
 One-shot backend acceptance check:
 

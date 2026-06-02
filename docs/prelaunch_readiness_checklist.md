@@ -26,6 +26,7 @@ This checklist is an honest split between code-complete work, still-manual confi
 - backend CORS config is exact-origin and environment-driven
 - backend request logs are metadata-only and carry request IDs
 - backend unexpected-error responses are generic and include request IDs
+- backend deployment smoke-test script exists for liveness, readiness, legal draft routes, and synthetic `/api/match`
 
 ## Code-complete but unverified on real device
 
@@ -51,6 +52,8 @@ This checklist is an honest split between code-complete work, still-manual confi
 - set real `EXPO_PUBLIC_TERMS_URL`
 - confirm App Store Connect subscription group and price point
 - confirm RevenueCat offering contains `vibesignal_pro_monthly_ios`
+- run `python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>`
+- run `python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host> --include-events` if mobile event logging is in scope
 - run `npm run verify:backend -- --api-url https://<your-backend-host> --event state`
 - run `curl https://<your-backend-host>/healthz`
 - run `curl https://<your-backend-host>/readyz`

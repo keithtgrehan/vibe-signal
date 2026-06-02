@@ -1,6 +1,6 @@
 # Backend Connection
 
-VibeSignal mobile does not connect to a backend automatically. The app will **not** send telemetry or backend-bound verification requests unless `EXPO_PUBLIC_API_URL` is set to a reachable deployed base URL.
+VibeSignal mobile does not connect to a backend automatically. The app will **not** send match requests, telemetry, or backend-bound verification requests unless `EXPO_PUBLIC_API_URL` is set to a reachable backend base URL.
 
 ## What Is Already Wired
 
@@ -13,6 +13,16 @@ The mobile app is environment-driven and expects these routes under the configur
 - `/api/events/quota`
 - `/api/events/billing`
 - `/api/events/state`
+
+## Backend URL Shapes
+
+Set `EXPO_PUBLIC_API_URL` to the backend base URL, not a route path:
+
+- local simulator or same-machine development: `http://127.0.0.1:8000`
+- physical phone against a local backend: `http://<your-machine-lan-ip>:8000`
+- deployed backend: `https://<your-backend-host>`
+
+Do not include a route path, query string, fragment, username, password, token, or credential in `EXPO_PUBLIC_API_URL`.
 
 ## How To Obtain The Deployed Replit URL
 
@@ -29,8 +39,6 @@ Do not guess the hostname and do not infer it from the Replit workspace slug alo
 
 ## CORS And Mobile URL Configuration
 
-Set `EXPO_PUBLIC_API_URL` to the deployed backend base URL, not a route path.
-
 Native iOS and Android requests are not controlled by browser CORS. Expo web, browser-based testing, or future web/admin surfaces do need CORS. Configure exact allowed browser origins on the backend with:
 
 - `VIBE_BACKEND_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com`
@@ -40,6 +48,10 @@ Do not use wildcard origins in production-facing environments. The backend confi
 See [backend deployment readiness](backend_deployment_readiness.md) for the deployment checklist and logging boundaries.
 
 ## How To Verify Connectivity
+
+Full backend host smoke test from the repo root:
+
+- `python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>`
 
 Single route:
 
@@ -59,6 +71,19 @@ Backend liveness/readiness checks:
 
 - `curl https://<your-backend-host>/healthz`
 - `curl https://<your-backend-host>/readyz`
+
+The Python smoke test checks liveness, readiness, static legal draft routes, and `/api/match` with synthetic toy messages. The mobile verifier checks event-route acceptance only.
+
+## Device QA Notes
+
+The standalone verifier needs only `--api-url` or `EXPO_PUBLIC_API_URL`.
+
+The in-app mobile event pipeline needs both:
+
+- `EXPO_PUBLIC_API_URL`
+- `EXPO_PUBLIC_ENABLE_LOGGING`
+
+The `/api/match` mobile flow needs `EXPO_PUBLIC_API_URL` but does not require `EXPO_PUBLIC_ENABLE_LOGGING`.
 
 ## If `EXPO_PUBLIC_API_URL` Is Missing
 

@@ -26,10 +26,23 @@ function parseApiUrl(value) {
         apiUrl: text,
       };
     }
+    if (
+      parsed.username ||
+      parsed.password ||
+      parsed.pathname !== "/" ||
+      parsed.search ||
+      parsed.hash
+    ) {
+      return {
+        ok: false,
+        status: "invalid_api_url",
+        apiUrl: text,
+      };
+    }
     return {
       ok: true,
       status: "api_url_ready",
-      apiUrl: parsed.toString().replace(/\/$/, ""),
+      apiUrl: parsed.origin,
     };
   } catch (_error) {
     return {

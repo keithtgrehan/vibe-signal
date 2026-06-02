@@ -32,6 +32,25 @@ test("backend verification request rejects invalid API URLs safely", () => {
   assert.equal(request.status, "invalid_api_url");
 });
 
+test("backend verification request rejects credentials, paths, queries, and fragments", () => {
+  const unsafeUrls = [
+    "https://user:pass@example.test",
+    "https://example.test/api/events/state",
+    "https://example.test?token=abc",
+    "https://example.test#fragment",
+  ];
+
+  for (const apiUrl of unsafeUrls) {
+    const request = buildBackendVerificationRequest({
+      eventType: "state",
+      apiUrl,
+    });
+
+    assert.equal(request.ok, false);
+    assert.equal(request.status, "invalid_api_url");
+  }
+});
+
 test("backend verification request rejects unsupported event types", () => {
   const request = buildBackendVerificationRequest({
     eventType: "unknown",

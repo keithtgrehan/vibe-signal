@@ -11,6 +11,7 @@
 - static draft legal routes exist for privacy, terms, deletion, export, and match disclaimer
 - backend `/healthz` and `/readyz` deployment-readiness checks exist
 - backend metadata-only request logging exists with request IDs and no raw body logging
+- deployment smoke-test script exists for `/healthz`, `/readyz`, legal draft routes, and synthetic `/api/match`
 
 ## Research-Only
 
@@ -24,6 +25,7 @@
 - no external datasets, provider calls, model downloads, vectors, checkpoints, or embeddings are required
 - legal routes are static draft artifacts only and do not implement account, analytics, tracking, deletion, or export storage behavior
 - backend deployment readiness docs/config exist, but they do not prove live hosting or production compliance
+- deployment smoke tests prove connectivity and response shape only; they do not prove live hosting until run against the final host
 - bounded metadata monitoring scaffold exists, but production monitoring provider, alerting, and incident ownership are not complete
 
 ## Blocked

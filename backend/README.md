@@ -5,13 +5,13 @@ This backend exposes deterministic local routes for development and integration 
 Run locally:
 
 ```bash
-uvicorn backend.app:app --reload --no-access-log
+PYTHONPATH=src python -m uvicorn backend.app:app --reload --no-access-log
 ```
 
 For Expo/mobile testing on another device, bind to the LAN interface:
 
 ```bash
-uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000 --no-access-log
+PYTHONPATH=src python -m uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
 Routes:
@@ -46,12 +46,19 @@ Safety boundaries:
 Deployment readiness:
 
 - See [docs/backend_deployment_readiness.md](../docs/backend_deployment_readiness.md).
+- See [docs/deployment_smoke_tests.md](../docs/deployment_smoke_tests.md) for local/deployed backend smoke-test commands.
 - See [deployment.env.example](deployment.env.example) for non-secret environment variable examples.
 - `/readyz` reports route registration and hard safety flags; it is readiness metadata only and does not claim production compliance.
 - CORS is opt-in through exact `VIBE_BACKEND_ALLOWED_ORIGINS`; wildcard origins are rejected by config parsing.
 - Logs must stay metadata-only. Do not log raw chat text, request bodies, provider responses, credentials, model artifacts, vectors, or checkpoints.
 - Disable or sanitize server/proxy access logs before handling beta traffic; the safe request logger is metadata-only, but default server access logs can include raw request lines.
 - See [docs/monitoring_no_raw_logs.md](../docs/monitoring_no_raw_logs.md) for closed-beta monitoring checks, no-raw-log rules, and manual incident-response triggers.
+
+Smoke-test the local backend before connecting mobile:
+
+```bash
+python scripts/smoke_test_deployed_backend.py --base-url http://127.0.0.1:8000
+```
 
 Mobile match integration:
 
