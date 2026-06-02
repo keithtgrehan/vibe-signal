@@ -17,14 +17,13 @@ function summarizeVerificationResult(result) {
     status: String(result?.status || ""),
     results: Array.isArray(result?.results)
       ? result.results.map((item) => {
-          const responseBody = String(item?.responseBody || "");
           return {
             eventType: String(item?.eventType || ""),
             url: String(item?.url || ""),
             ok: Boolean(item?.ok),
             status: Number(item?.status || 0),
-            response_body_present: responseBody.length > 0,
-            response_body_length: responseBody.length,
+            response_body_present: Boolean(item?.responseBodyPresent),
+            response_body_length: Number(item?.responseBodyLength || 0),
           };
         })
       : [],

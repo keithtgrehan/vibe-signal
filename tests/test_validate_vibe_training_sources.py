@@ -81,6 +81,27 @@ def test_commercial_mode_rejects_nc_rows(tmp_path: Path) -> None:
     assert "commercial mode rejects research-only source" in result.stdout
 
 
+def test_external_benchmark_registry_rows_are_not_training_ready() -> None:
+    rows = {row["source_id"]: row for row in load_example()["sources"]}
+
+    assert rows["goemotions"]["usage"] == "benchmark_metadata_only"
+    assert rows["goemotions"]["training_use_allowed"] is False
+    assert "58k English Reddit comments" in rows["goemotions"]["access_notes"]
+    assert "27 emotion categories or neutral" in rows["goemotions"]["access_notes"]
+
+    assert rows["tweeteval_sentiment"]["usage"] == "sentiment_benchmark_metadata_only"
+    assert rows["tweeteval_sentiment"]["training_use_allowed"] is False
+    assert "positive, neutral, and negative labels" in rows["tweeteval_sentiment"]["access_notes"]
+
+    assert rows["dailydialog"]["usage"] == "metadata_eval_only"
+    assert rows["dailydialog"]["training_use_allowed"] is False
+
+    assert rows["dair_ai_emotion"]["usage"] == "blocked_pending_license_review"
+    assert rows["empathetic_dialogues"]["usage"] == "blocked_pending_license_review"
+    assert rows["dair_ai_emotion"]["training_use_allowed"] is False
+    assert rows["empathetic_dialogues"]["training_use_allowed"] is False
+
+
 def test_research_mode_rejects_non_synthetic_training_ready_rows(tmp_path: Path) -> None:
     payload = load_example()
     row = next(row for row in payload["sources"] if row["source_id"] == "dailydialog")
@@ -150,7 +171,7 @@ def test_unknown_rights_fail_closed(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("source_id", "rights_tier"),
     [
-        ("goemotions", "manual-review"),
+        ("goemotions", "eval-only"),
         ("cmu_mosei", "restricted"),
         ("meld", "eval-only"),
     ],
@@ -190,6 +211,48 @@ def test_dry_run_downloader_does_not_download(tmp_path: Path) -> None:
     assert payload["raw_data_committed"] is False
     assert payload["selected_source_ids"] == ["synthetic_vibe_matching"]
     assert not cache_dir.exists()
+
+
+def test_dry_run_downloader_refuses_commercial_mode(tmp_path: Path) -> None:
+    result = run_script(
+        DOWNLOADER,
+        "--source-id",
+        "synthetic_vibe_matching",
+        "--project-mode",
+        "commercial",
+        "--dry-run",
+        "--cache-dir",
+        str(tmp_path / "cache"),
+    )
+
+    assert result.returncode == 1
+    assert "commercial dataset access is blocked" in result.stderr.lower()
+
+
+@pytest.mark.parametrize(
+    "source_id",
+    [
+        "goemotions",
+        "tweeteval_sentiment",
+        "dailydialog",
+        "dair_ai_emotion",
+        "empathetic_dialogues",
+    ],
+)
+def test_dry_run_downloader_refuses_external_candidates(source_id: str, tmp_path: Path) -> None:
+    result = run_script(
+        DOWNLOADER,
+        "--source-id",
+        source_id,
+        "--project-mode",
+        "research_only",
+        "--dry-run",
+        "--cache-dir",
+        str(tmp_path / "cache"),
+    )
+
+    assert result.returncode == 1
+    assert "not approved for download dry-run" in result.stderr
 
 
 def test_dry_run_trainer_does_not_train(tmp_path: Path) -> None:

@@ -56,10 +56,10 @@ Built now:
 - privacy, provider-disclosure, and prelaunch-readiness documentation
 
 Code-complete but still needing real-world proof:
-- final mobile/web QA against the deployed Render backend
+- final real-device mobile QA against the deployed Render backend
 - iPhone simulator/device runtime proof
 - RevenueCat/App Store sandbox purchase and restore validation
-- final production privacy / terms / deletion / export URLs and legal review
+- final legal review of privacy / terms / deletion / export / disclaimer copy
 
 ## Architecture Snapshot
 - `mobile/`: Expo / React Native shell, provider setup, quota state, billing scaffolding, and event logging
@@ -88,6 +88,11 @@ Start here if you want the fastest credible walkthrough:
 - [docs/data_deletion_request_draft.md](docs/data_deletion_request_draft.md) and [docs/data_export_request_draft.md](docs/data_export_request_draft.md) for closed-beta deletion/export readiness notes
 - [docs/match_usage_consent_disclaimer.md](docs/match_usage_consent_disclaimer.md) for `/api/match` submission copy boundaries
 - [docs/backend_deployment_readiness.md](docs/backend_deployment_readiness.md) for backend deployment checks, CORS configuration, and safe logging boundaries
+- [docs/hosted_web_deployment.md](docs/hosted_web_deployment.md) for Vercel web deployment settings, Render CORS, smoke tests, and rollback
+- [docs/closed_beta_qa_evidence.md](docs/closed_beta_qa_evidence.md) for metadata-only hosted backend/web QA evidence and blockers
+- [docs/real_device_qa_runbook.md](docs/real_device_qa_runbook.md) for iPhone/Expo real-device QA flow
+- [docs/ethical_engagement_principles.md](docs/ethical_engagement_principles.md) for ethical value-loop and anti-dark-pattern guardrails
+- [docs/closed_beta_monitoring_incident_runbook.md](docs/closed_beta_monitoring_incident_runbook.md) for incident ownership, monitoring, and rollback
 - [docs/deployment_smoke_tests.md](docs/deployment_smoke_tests.md) for repeatable local/deployed backend smoke tests before mobile beta use
 - [docs/monitoring_no_raw_logs.md](docs/monitoring_no_raw_logs.md) for closed-beta monitoring checks and no-raw-log incident triggers
 - [docs/final_closed_beta_launch_gate_report.md](docs/final_closed_beta_launch_gate_report.md) for the final closed-beta gate status, manual deploy QA sequence, and tester-invite decision rule
@@ -120,7 +125,7 @@ Standalone web UI:
 ```bash
 cd web
 npm install
-VITE_API_URL=https://vibe-signal.onrender.com npm run dev
+VITE_API_BASE_URL=https://vibe-signal.onrender.com npm run dev
 ```
 
 Optional backend contract check:
@@ -143,14 +148,14 @@ Then follow [docs/closed_beta_readiness_checklist.md](docs/closed_beta_readiness
 Browser-based local QA against the current Render/FastAPI backend also needs exact CORS origins configured in Render:
 
 ```text
-VIBE_BACKEND_ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081,http://localhost:5173
+VIBE_BACKEND_ALLOWED_ORIGINS=https://vibe-signal.vercel.app,http://localhost:19006,http://localhost:8081,http://localhost:5173
 ```
 
-Do not use wildcard CORS origins. Add a future hosted web frontend origin explicitly when that frontend is deployed.
+Do not use wildcard CORS origins. Add each future hosted web frontend origin explicitly.
 
 Final closed-beta gate:
 
-- [docs/final_closed_beta_launch_gate_report.md](docs/final_closed_beta_launch_gate_report.md) currently places the repo at `READY_FOR_MANUAL_DEPLOY_QA`, not `READY_FOR_TESTER_INVITES`.
+- Backend and hosted web are live, CORS is configured for the hosted web origin, and tester invites remain blocked until real-device QA, legal review, and P0 monitoring gates pass.
 
 ## Repo Truthfulness
 Keep the story narrow:

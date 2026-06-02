@@ -129,3 +129,29 @@ test("match client rejects non-base backend URLs before fetch", async () => {
   assert.match(result.userMessage, /clean http\(s\) backend base URL/);
   assert.equal(called, false);
 });
+
+test("match client does not return raw backend error response bodies", async () => {
+  const rawSecret = "raw-private-message-secret-from-proxy";
+  const client = createMatchClient({
+    apiUrl: "https://example.test",
+    fetchImpl: async () => ({
+      ok: false,
+      status: 502,
+      async text() {
+        return rawSecret;
+      },
+    }),
+  });
+
+  const result = await client.submitMatchDraft({
+    conversationText: "self: Can you confirm Friday?\nother: Yes.",
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "backend_match_failed");
+  assert.equal(result.responseStatus, 502);
+  assert.equal(result.responseBodyPresent, true);
+  assert.equal(result.responseBodyLength, rawSecret.length);
+  assert.equal(Object.hasOwn(result, "responseBody"), false);
+  assert.equal(JSON.stringify(result).includes(rawSecret), false);
+});

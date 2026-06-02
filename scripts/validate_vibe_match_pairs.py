@@ -15,6 +15,7 @@ REQUIRED_FIELDS = {
     "text_b",
     "label",
     "label_value",
+    "categories",
     "evidence",
     "features",
     "blocked_interpretations",
@@ -45,6 +46,25 @@ ALLOWED_LABELS = {
     "specificity_drop",
     "answer_evasion_pattern",
     "contradiction_against_prior_message",
+}
+ALLOWED_CATEGORIES = {
+    "strong_fit",
+    "moderate_fit",
+    "mixed_fit",
+    "low_fit",
+    "high_pressure",
+    "low_pressure",
+    "specificity",
+    "vague_reply",
+    "specificity_drop",
+    "contradiction",
+    "unsupported_claim_shift",
+    "answer_evasion",
+    "overload",
+    "repair",
+    "consent_clarity",
+    "boundary_respect",
+    "boundary_pressure",
 }
 BLOCKED_INTERPRETATIONS = ["deception", "attraction", "diagnosis", "hidden_intent"]
 PRIVATE_CHAT_MARKERS = (
@@ -148,6 +168,13 @@ def validate_row(row: dict[str, Any], index: int) -> list[str]:
     if row.get("label_value") not in {0, 1}:
         errors.append(f"{label}: label_value must be binary")
 
+    categories = row.get("categories")
+    if not isinstance(categories, list) or not categories or not all(str(item).strip() for item in categories):
+        errors.append(f"{label}: categories must be a non-empty list of strings")
+    elif any(category not in ALLOWED_CATEGORIES for category in categories):
+        bad_categories = [category for category in categories if category not in ALLOWED_CATEGORIES]
+        errors.append(f"{label}: unsupported categories {bad_categories!r}")
+
     evidence = row.get("evidence")
     if not isinstance(evidence, list) or not all(str(item).strip() for item in evidence):
         errors.append(f"{label}: evidence must be a non-empty list of strings")
@@ -180,6 +207,11 @@ def validate_row(row: dict[str, Any], index: int) -> list[str]:
             errors.append(f"{label}: provenance.not_copied_from_real_chat must be true")
         if str(provenance.get("created_by", "")).strip() == "":
             errors.append(f"{label}: provenance.created_by is required")
+        template_category = str(provenance.get("template_category", "")).strip()
+        if not template_category:
+            errors.append(f"{label}: provenance.template_category is required")
+        elif isinstance(categories, list) and template_category not in categories:
+            errors.append(f"{label}: provenance.template_category must match a declared category")
 
     text_payload = _text_payload(row)
     private_marker = _contains_marker(text_payload, PRIVATE_CHAT_MARKERS)

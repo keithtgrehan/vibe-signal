@@ -60,13 +60,13 @@ test("local analysis result builder returns a stable insight payload", () => {
   assert.match(result.signalLabel, /subtle|noticeable|clear/i);
   assert.equal(Array.isArray(result.highlights), true);
   assert.equal(result.highlights.length, 3);
-  assert.match(result.summary, /tone, intent, and meaning/i);
-  assert.match(result.pattern, /may indicate|could suggest|becomes|stays/i);
+  assert.match(result.summary, /tone, pacing, specificity, and directness/i);
+  assert.match(result.pattern, /uses|has|becomes|stays|compresses/i);
   assert.equal(Array.isArray(result.spans), true);
   assert.ok(result.spans.every((item) => typeof item.note === "string"));
   assert.match(
     result.shareText,
-    /This message reads differently the second time|Something changed in the tone here|Not what it seems at first glance/
+    /This message reads differently the second time|Something changed in the tone here|This reply shifts away from the earlier wording/
   );
   assert.ok(result.shareText.length < 80);
 });
@@ -79,7 +79,7 @@ test("weak or repetitive input falls back to an honest low-signal result", () =>
   assert.equal(result.signalLabel, "Low-signal input");
   assert.deepEqual(result.highlights.slice(0, 2), [
     "Language stays similar throughout",
-    "No clear change in tone or intent",
+    "No clear change in tone or directness",
   ]);
   assert.match(result.suggestion, /longer exchange/i);
   assert.match(result.shareText, /No strong shift detected|Tone appears consistent here/i);
@@ -111,4 +111,44 @@ test("local analysis result stays inside guardrail language", () => {
   assert.equal(combined.includes("this proves"), false);
   assert.equal(combined.includes("cheating"), false);
   assert.equal(combined.includes("liar"), false);
+});
+
+test("local analysis copy rejects hidden-state and dark-pattern framing", () => {
+  const result = buildLocalAnalysisResult(
+    "Maybe later.\nWhatever works, I guess.\nI need a direct answer now."
+  );
+  const weak = buildLocalAnalysisResult("Okay.\nOkay.\nOkay.");
+  const combined = [
+    result.headline,
+    result.pattern,
+    result.summary,
+    result.disclosure,
+    result.shareText,
+    result.suggestion,
+    ...result.highlights,
+    weak.headline,
+    weak.pattern,
+    weak.summary,
+    weak.disclosure,
+    weak.shareText,
+    weak.suggestion,
+    ...weak.highlights,
+  ].join(" ").toLowerCase();
+
+  for (const forbidden of [
+    "intent",
+    "meaning",
+    "hidden intent",
+    "true emotion",
+    "how they feel",
+    "secretly",
+    "keep checking",
+    "keep comparing",
+    "not what it seems",
+    "streak",
+    "fomo",
+    "shame",
+  ]) {
+    assert.equal(combined.includes(forbidden), false, forbidden);
+  }
 });

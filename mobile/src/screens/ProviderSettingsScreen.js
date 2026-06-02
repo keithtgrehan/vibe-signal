@@ -417,7 +417,7 @@ export default function ProviderSettingsScreen() {
               <Text style={styles.heroEyebrow}>VibeSignal</Text>
               <Text style={styles.heroTitle}>{heroHeadline}</Text>
               <Text style={styles.heroSubtitle}>
-                Paste a message. We highlight what changed - tone, intent, and meaning.
+                Paste a message. We highlight observable shifts in tone, pacing, specificity, and directness.
               </Text>
             </View>
 
@@ -620,7 +620,7 @@ export default function ProviderSettingsScreen() {
                 {resultRevealStage === 0 ? (
                   <View style={styles.revealLoading}>
                     <ActivityIndicator size="small" color="#d8e1ef" />
-                    <Text style={styles.revealLoadingText}>Reading the clearest signal...</Text>
+                    <Text style={styles.revealLoadingText}>Checking observable wording patterns...</Text>
                   </View>
                 ) : null}
 
@@ -791,7 +791,7 @@ export default function ProviderSettingsScreen() {
               <View style={styles.card}>
                 <Text style={styles.sectionTitle}>Recent signals</Text>
                 <Text style={styles.helper}>
-                  Reopen a recent read and keep comparing without starting from scratch.
+                  Reopen a recent synthetic or permissioned example without starting from scratch.
                 </Text>
                 <View style={styles.recentList}>
                   {recentAnalyses
@@ -806,7 +806,7 @@ export default function ProviderSettingsScreen() {
                         onPress={() => {
                           setAnalysisText(item.inputText || item.inputPreview);
                           presentResult(item.result, { staged: false });
-                          setAnalysisStatusMessage("This reads differently.");
+                          setAnalysisStatusMessage("Recent pattern review loaded.");
                         }}
                       >
                         <Text style={styles.historyHeadline}>{item.headline}</Text>

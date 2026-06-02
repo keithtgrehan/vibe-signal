@@ -364,7 +364,7 @@ export function createEventClient({
 
         let responseOk = false;
         let responseStatus = 0;
-        let responseBody = "";
+        let responseBodyLength = 0;
         try {
           const response = await fetchImpl(`${apiUrl}${item.endpoint}`, {
             method: "POST",
@@ -376,9 +376,9 @@ export function createEventClient({
           responseStatus = Number(response?.status || 0);
           if (typeof response?.text === "function") {
             try {
-              responseBody = String(await response.text()).slice(0, 500);
+              responseBodyLength = String(await response.text()).slice(0, 500).length;
             } catch (_error) {
-              responseBody = "";
+              responseBodyLength = 0;
             }
           }
           responseOk = Boolean(response?.ok);
@@ -420,7 +420,8 @@ export function createEventClient({
               eventId: item.event_id,
               eventType: item.event_type,
               responseStatus,
-              responseBody,
+              response_body_present: responseBodyLength > 0,
+              response_body_length: responseBodyLength,
             },
           });
         } else {

@@ -13,7 +13,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import {
-  API_BASE_URL,
+  API_CONFIG,
   fetchLegalPage,
   submitAnalyze,
   submitFeedback,
@@ -137,6 +137,8 @@ function TopNav({ setView }) {
 }
 
 function Home({ setView, setMode }) {
+  const backendLabel = API_CONFIG.ok ? API_CONFIG.host : "backend misconfigured";
+
   const start = (nextMode) => {
     setMode(nextMode);
     setView("analyze");
@@ -169,9 +171,9 @@ function Home({ setView, setMode }) {
           <div className="preview-panel">
             <div>
               <span className="metric-label">Current backend</span>
-              <strong>{API_BASE_URL.replace(/^https?:\/\//, "")}</strong>
+              <strong>{backendLabel}</strong>
             </div>
-            <span className="status-pill">safe routes</span>
+            <span className="status-pill">{API_CONFIG.ok ? "safe routes" : "check env"}</span>
           </div>
         </div>
       </section>
@@ -330,8 +332,14 @@ function MatchResults({ result, setView }) {
   const [feedbackConsent, setFeedbackConsent] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
+  const [submittedFeedbackRatings, setSubmittedFeedbackRatings] = useState([]);
 
   async function sendFeedback(rating) {
+    if (submittedFeedbackRatings.includes(rating)) {
+      setFeedbackStatus("Feedback metadata already accepted for this result.");
+      setFeedbackError("");
+      return;
+    }
     setFeedbackStatus("");
     setFeedbackError("");
     try {
@@ -340,6 +348,9 @@ function MatchResults({ result, setView }) {
         rating,
         consent: feedbackConsent,
       });
+      setSubmittedFeedbackRatings((current) =>
+        current.includes(rating) ? current : [...current, rating]
+      );
       setFeedbackStatus("Feedback metadata accepted. No raw comment was sent.");
     } catch (error) {
       setFeedbackError(
@@ -407,10 +418,18 @@ function MatchResults({ result, setView }) {
           <span>Consent to store bounded feedback metadata.</span>
         </label>
         <div className="feedback-actions">
-          <Button tone="secondary" disabled={!view.matchId} onClick={() => sendFeedback(1)}>
+          <Button
+            tone="secondary"
+            disabled={!view.matchId || submittedFeedbackRatings.includes(1)}
+            onClick={() => sendFeedback(1)}
+          >
             Useful
           </Button>
-          <Button tone="secondary" disabled={!view.matchId} onClick={() => sendFeedback(0)}>
+          <Button
+            tone="secondary"
+            disabled={!view.matchId || submittedFeedbackRatings.includes(0)}
+            onClick={() => sendFeedback(0)}
+          >
             Not useful
           </Button>
         </div>

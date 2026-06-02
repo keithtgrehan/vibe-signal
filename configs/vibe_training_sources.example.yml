@@ -26,23 +26,48 @@ sources:
   - source_id: goemotions
     name: GoEmotions
     modality: text
-    task: emotion_taxonomy_reference
-    license_name: Apache-2.0 repository license; Vibe treats dataset rows as reference-only until dataset-specific training and privacy review is complete
+    task: emotion_taxonomy_benchmark_metadata_reference
+    license_name: Apache-2.0 repository license; Vibe treats Reddit comment rows as benchmark metadata only until dataset-specific rights, privacy, and attribution review is complete
     license_url: https://github.com/google-research/google-research/blob/master/LICENSE
     download_method: none_reference_only
-    access_notes: Official repository metadata may be reviewed by URL only; no rows are downloaded or committed by this registry.
+    access_notes: Google Research describes GoEmotions as 58k English Reddit comments labeled with 27 emotion categories or neutral. Official metadata may be reviewed by URL only; no Reddit rows are downloaded or committed by this registry.
     training_use_allowed: false
     commercial_use_allowed: false
-    research_only: false
-    rights_tier: manual-review
-    usage: reference_only
+    research_only: true
+    rights_tier: eval-only
+    usage: benchmark_metadata_only
     safe_vibe_use:
-      - Compare annotation taxonomy shape against Vibe observable communication-pattern labels.
+      - Metadata-only benchmark planning and taxonomy-shape comparison against Vibe observable communication-pattern labels.
+      - Citation and attribution planning for the GoEmotions paper and Google Research repository before any future benchmark access.
     blocked_vibe_use:
-      - Train product or research models without a completed dataset-specific rights, privacy, and safety review.
+      - Train product or research models without a completed dataset-specific rights, privacy, attribution, and safety review.
+      - Download, commit, embed, or expose raw Reddit comments.
       - Treat annotator labels as internal user truth.
-    registry_status: reference_only
-    notes: "Conservative posture: training and commercial use remain blocked here unless explicit rights support is separately documented."
+    registry_status: benchmark_metadata_only
+    notes: "Research-only benchmark candidate metadata; training, commercial use, raw data commits, and public model-quality claims remain blocked."
+
+  - source_id: tweeteval_sentiment
+    name: TweetEval Sentiment
+    modality: text
+    task: sentiment_benchmark_metadata_reference
+    license_name: TweetEval repository terms plus Twitter/X content terms require review before any row access
+    license_url: https://github.com/cardiffnlp/tweeteval
+    download_method: none_reference_only
+    access_notes: TweetEval includes seven tweet-classification tasks; this entry covers sentiment metadata only with positive, neutral, and negative labels. No tweet text, IDs, or exports are downloaded or committed.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: true
+    rights_tier: manual-review
+    usage: sentiment_benchmark_metadata_only
+    safe_vibe_use:
+      - Metadata-only benchmark planning for positive, neutral, and negative sentiment task shape.
+      - Sentiment-subset citation and attribution planning before any future gated benchmark access.
+    blocked_vibe_use:
+      - Use TweetEval emotion or other subsets unless their licenses and source terms are separately verified.
+      - Download, commit, embed, or expose tweet text, tweet IDs, or derived tweet exports.
+      - Train product or research models without explicit source-rights approval.
+    registry_status: benchmark_metadata_only
+    notes: Sentiment-only benchmark metadata candidate; no raw TweetEval data is authorized by this registry.
 
   - source_id: civil_comments
     name: Civil Comments
@@ -77,35 +102,59 @@ sources:
     commercial_use_allowed: false
     research_only: true
     rights_tier: NC
-    usage: reference_only
+    usage: metadata_eval_only
     safe_vibe_use:
-      - Metadata-only comparison of dialogue-act structure for explicit asks, topic shifts, and repair-message framing.
+      - Metadata-only/eval-planning comparison of dialogue-act structure for explicit asks, topic shifts, and repair-message framing.
     blocked_vibe_use:
+      - Training, fine-tuning, embeddings, or corpus creation.
       - Commercial training or product model training.
       - Commit raw conversations or treat rows as Vibe gold labels.
-    registry_status: reference_only
-    notes: External rows remain metadata-only/manual-review for matching v0; commercial mode must reject it.
+    registry_status: research_eval_only_metadata
+    notes: Non-commercial research/eval metadata only; no commercial training or product model use.
 
   - source_id: empathetic_dialogues
     name: EmpatheticDialogues
     modality: text
     task: supportive_response_metadata_reference
-    license_name: Non-commercial research terms
-    license_url: https://aclanthology.org/P19-1534/
-    download_method: dry_run_only_no_download
-    access_notes: Metadata-only registry entry; no download is performed by the tooling in this repository.
+    license_name: License review required before Vibe use
+    license_url: https://huggingface.co/datasets/facebook/empathetic_dialogues
+    download_method: none_blocked
+    access_notes: Blocked pending source-license and redistribution review; no download is performed by the tooling in this repository.
     training_use_allowed: false
     commercial_use_allowed: false
-    research_only: true
-    rights_tier: NC
-    usage: reference_only
+    research_only: false
+    rights_tier: manual-review
+    usage: blocked_pending_license_review
     safe_vibe_use:
-      - Metadata-only comparison of supportive phrasing patterns for clarity and repair-message scaffolds.
+      - Track as a blocked candidate requiring license, consent, privacy, and attribution review.
     blocked_vibe_use:
+      - Benchmarking, training, fine-tuning, embeddings, or corpus creation before license confirmation.
       - Commercial training or product generation.
       - Claim labels reveal internal emotional states.
-    registry_status: reference_only
-    notes: External rows remain metadata-only/manual-review for matching v0; commercial mode must reject it.
+    registry_status: blocked_pending_license_review
+    notes: Blocked pending license confirmation; no raw rows or benchmark use are authorized by this registry.
+
+  - source_id: dair_ai_emotion
+    name: dair-ai/emotion
+    modality: text
+    task: emotion_dataset_blocked_candidate
+    license_name: License review required before Vibe use
+    license_url: https://huggingface.co/datasets/dair-ai/emotion
+    download_method: none_blocked
+    access_notes: Blocked pending license, provenance, privacy, and redistribution review; no download is performed by the tooling in this repository.
+    training_use_allowed: false
+    commercial_use_allowed: false
+    research_only: false
+    rights_tier: manual-review
+    usage: blocked_pending_license_review
+    safe_vibe_use:
+      - Track as a blocked candidate requiring source-license and attribution review.
+    blocked_vibe_use:
+      - Benchmarking, training, fine-tuning, embeddings, or corpus creation before license confirmation.
+      - Treat emotion labels as internal states or product evidence.
+      - Download, commit, embed, or expose raw rows.
+    registry_status: blocked_pending_license_review
+    notes: Blocked pending license confirmation; no raw rows or benchmark use are authorized by this registry.
 
   - source_id: meld
     name: MELD

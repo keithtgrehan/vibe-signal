@@ -163,16 +163,17 @@ export function createMatchClient({
         );
 
         if (!response?.ok) {
-          let responseBody = "";
+          let responseBodyLength = 0;
           if (typeof response?.text === "function") {
-            responseBody = String(await response.text()).slice(0, 400);
+            responseBodyLength = String(await response.text()).slice(0, 400).length;
           }
           return buildClientError(
             "backend_match_failed",
             "The backend could not complete the match check.",
             {
               responseStatus: Number(response?.status || 0),
-              responseBody,
+              responseBodyPresent: responseBodyLength > 0,
+              responseBodyLength,
             }
           );
         }
@@ -190,7 +191,7 @@ export function createMatchClient({
           timedOut ? "request_timeout" : "network_error",
           "The backend match route could not be reached.",
           {
-            error: String(error?.message || error || ""),
+            errors: [timedOut ? "request_timeout" : "transport_error"],
           }
         );
       }

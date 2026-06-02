@@ -10,13 +10,14 @@ This work does not add dataset downloads, raw rows, corpus generation, model tra
 
 | Mode | Meaning |
 | --- | --- |
-| `research_only` | Allows only explicitly marked research-only training rows and non-training reference rows. NC rows pass only when `research_only: true`, `training_use_allowed: true`, and `usage: research_only`. |
+| `research_only` | Allows only the synthetic Vibe fixtures as training-ready. External rows may appear as metadata-only, benchmark-only, eval-only, manual-review, or blocked registry entries when they are not training-ready. |
 | `commercial` | Fails closed unless every row is training-allowed, commercial-allowed, not research-only, and not in a blocked rights tier. The example registry intentionally fails in this mode. |
 
 ## Allowed Use
 
 - Metadata-only registry review.
-- Research-only rights gating for explicitly marked NC rows.
+- Synthetic-only rights gating for the internal Vibe fixtures.
+- Benchmark-metadata tracking for reviewed external candidates without raw rows.
 - Reference-only tracking for manual-review, restricted, and eval-only sources.
 - Dry-run manifests that confirm no download, corpus, model, vector, provider, or training artifact is produced.
 
@@ -34,10 +35,13 @@ This work does not add dataset downloads, raw rows, corpus generation, model tra
 
 | Source | Rights posture | Training posture | Commercial posture |
 | --- | --- | --- | --- |
-| GoEmotions | Manual review/reference-only until dataset-specific rights are documented. | Blocked. | Blocked. |
+| Synthetic Vibe fixtures | Internal synthetic fixtures created for Vibe tests and scaffolds. | Allowed for synthetic-only research smoke tests and eval scaffolds. | Blocked until a separate commercial rights approval exists. |
+| GoEmotions | Benchmark-metadata only. Google Research describes it as 58k English Reddit comments labeled with 27 emotion categories or neutral; citation, attribution, rights, privacy, and safety review are required before any future access. | Blocked. | Blocked. |
+| TweetEval sentiment | Sentiment-only benchmark metadata candidate. TweetEval includes seven tweet-classification tasks; this row covers positive/neutral/negative sentiment metadata only and requires repository plus Twitter/X source-term review before access. | Blocked. | Blocked. |
 | Civil Comments | Manual review/reference-only until source and competition terms are verified. | Blocked. | Blocked. |
-| DailyDialog | NC research-only. | Allowed only for research-only mode. | Blocked. |
-| EmpatheticDialogues | NC research-only. | Allowed only for research-only mode. | Blocked. |
+| DailyDialog | Non-commercial research/eval metadata only. | Blocked. | Blocked. |
+| dair-ai/emotion | Blocked pending license, provenance, privacy, redistribution, and attribution review. | Blocked. | Blocked. |
+| EmpatheticDialogues | Blocked pending license, source-card, consent, privacy, redistribution, and attribution review. | Blocked. | Blocked. |
 | MELD | Eval-only/reference due media-rights constraints. | Blocked. | Blocked. |
 | CMU-MOSEI / MOSI | Restricted/manual-review. | Blocked. | Blocked. |
 | MSP-Podcast | Restricted/manual-review. | Blocked. | Blocked. |
@@ -92,7 +96,8 @@ python scripts/train_research_vibe_baseline.py \
 - Unknown or ambiguous rights fail validation.
 - Manual-review, restricted, and eval-only rows never pass as training-ready.
 - Commercial mode rejects NC, research-only, manual-review, restricted, eval-only, unknown, non-training, and non-commercial rows.
-- Research-only mode allows NC training only when the row explicitly declares research-only use.
+- Research-only mode exposes only `synthetic_vibe_matching` as training-ready.
+- GoEmotions, TweetEval sentiment, DailyDialog, dair-ai/emotion, and EmpatheticDialogues must not be selected by dry-run download/corpus/training scaffolds.
 - Dry-run scripts never download, create corpus rows, train, create vectors, call providers, or write model artifacts.
 - Restricted artifact scans block raw data, transcripts, audio/video, model artifacts, vector artifacts, provider artifacts, and training outputs.
 

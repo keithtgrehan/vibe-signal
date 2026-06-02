@@ -55,6 +55,25 @@ def test_blocks_training_model_vector_and_raw_source_outputs() -> None:
     assert "reports/vibe_training/raw/manifest.json" in result.stderr
 
 
+def test_blocks_raw_external_benchmark_dataset_paths() -> None:
+    result = run_checker(
+        "data/external/reddit/goemotions.jsonl",
+        "data/external/twitter/tweeteval_sentiment.csv",
+        "tweet_exports/tweeteval_ids.json",
+        "goemotions/raw_rows.parquet",
+        "dair_ai/emotion/train.json",
+        "empathetic_dialogues/raw/train.csv",
+    )
+
+    assert result.returncode == 1
+    assert "goemotions.jsonl" in result.stderr
+    assert "tweeteval_sentiment.csv" in result.stderr
+    assert "tweeteval_ids.json" in result.stderr
+    assert "raw_rows.parquet" in result.stderr
+    assert "emotion/train.json" in result.stderr
+    assert "raw/train.csv" in result.stderr
+
+
 def test_allows_safe_metadata_docs_configs_schemas_and_fixtures() -> None:
     result = run_checker(
         "docs/transcripts/policy.md",

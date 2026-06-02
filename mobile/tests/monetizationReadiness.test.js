@@ -1,8 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import { STORE_METADATA } from "../src/commerce/config.js";
 import { getMonetizationReadiness } from "../src/commerce/monetizationReadiness.js";
 import { buildPaywallViewModel } from "../src/components/paywallViewModel.js";
+
+test("store metadata fallback legal routes match backend legal draft routes", () => {
+  assert.equal(STORE_METADATA.privacyPolicyRouteRef, "/legal/privacy");
+  assert.equal(STORE_METADATA.termsRouteRef, "/legal/terms");
+});
 
 test("monetization readiness reports missing RevenueCat key and legal links honestly", () => {
   const readiness = getMonetizationReadiness();

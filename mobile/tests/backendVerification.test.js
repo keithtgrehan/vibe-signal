@@ -106,6 +106,7 @@ test("backend verification plan can prepare all event routes in one pass", () =>
 });
 
 test("backend verification returns structured per-endpoint results", async () => {
+  const rawSecret = "raw-private-message-secret-from-verification";
   const calls = [];
   const result = await verifyBackendConnection({
     apiUrl: "https://example.test",
@@ -115,7 +116,7 @@ test("backend verification returns structured per-endpoint results", async () =>
         ok: true,
         status: 200,
         async text() {
-          return "accepted";
+          return rawSecret;
         },
       };
     },
@@ -124,5 +125,8 @@ test("backend verification returns structured per-endpoint results", async () =>
   assert.equal(result.ok, true);
   assert.equal(result.results.length, 4);
   assert.equal(calls.length, 4);
-  assert.equal(result.results[0].responseBody, "accepted");
+  assert.equal(result.results[0].responseBodyPresent, true);
+  assert.equal(result.results[0].responseBodyLength, rawSecret.length);
+  assert.equal(Object.hasOwn(result.results[0], "responseBody"), false);
+  assert.equal(JSON.stringify(result).includes(rawSecret), false);
 });

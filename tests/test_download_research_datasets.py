@@ -59,7 +59,7 @@ def test_non_dry_run_download_is_refused(tmp_path: Path) -> None:
     assert "Only --dry-run is implemented" in result.stderr
 
 
-def test_commercial_mode_refuses_nc_source(tmp_path: Path) -> None:
+def test_commercial_mode_refuses_all_dataset_access(tmp_path: Path) -> None:
     result = run_downloader(
         "--source-id",
         "dailydialog",
@@ -71,7 +71,7 @@ def test_commercial_mode_refuses_nc_source(tmp_path: Path) -> None:
     )
 
     assert result.returncode == 1
-    assert "commercial mode rejects rights_tier NC" in result.stderr
+    assert "Commercial dataset access is blocked" in result.stderr
 
 
 def test_restricted_or_manual_review_source_is_refused(tmp_path: Path) -> None:

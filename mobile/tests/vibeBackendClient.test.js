@@ -52,6 +52,55 @@ test("submitFeedbackMetadata fails closed without explicit consent", async () =>
   assert.equal(called, false);
 });
 
+test("submitFeedbackMetadata includes a bounded feedback idempotency key", async () => {
+  const calls = [];
+  const client = createVibeBackendClient({
+    apiUrl: "https://example.test",
+    fetchImpl: async (_url, options) => {
+      calls.push(JSON.parse(options.body));
+      return { ok: true, json: async () => ({ status: "accepted" }) };
+    },
+  });
+
+  const response = await client.submitFeedbackMetadata({
+    matchId: "vibe_match_123",
+    rating: 1,
+    consent: true,
+  });
+
+  assert.equal(response.ok, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].feedback_event_id, "evt_feedback_vibe_match_123_1");
+  assert.equal(calls[0].comment, "");
+  assert.equal(calls[0].consent_to_store_feedback, true);
+});
+
+test("backend client does not return raw backend error response bodies", async () => {
+  const rawSecret = "raw-private-message-secret-from-proxy";
+  const client = createVibeBackendClient({
+    apiUrl: "https://example.test",
+    fetchImpl: async () => ({
+      ok: false,
+      status: 422,
+      async text() {
+        return rawSecret;
+      },
+    }),
+  });
+
+  const response = await client.submitAnalyzeDraft({
+    conversationText: "self: Can you confirm Friday?\nother: Yes.",
+  });
+
+  assert.equal(response.ok, false);
+  assert.equal(response.status, "backend_request_failed");
+  assert.equal(response.responseStatus, 422);
+  assert.equal(response.responseBodyPresent, true);
+  assert.equal(response.responseBodyLength, rawSecret.length);
+  assert.equal(Object.hasOwn(response, "responseBody"), false);
+  assert.equal(JSON.stringify(response).includes(rawSecret), false);
+});
+
 test("fetchLegalDraft allows only known backend legal slugs", async () => {
   const calls = [];
   const client = createVibeBackendClient({

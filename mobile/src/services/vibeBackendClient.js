@@ -13,6 +13,12 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
+function buildFeedbackEventId(matchId, rating) {
+  const safeMatchId = normalizeText(matchId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 48);
+  const safeRating = String(rating === 1 ? 1 : 0);
+  return `evt_feedback_${safeMatchId || "unknown"}_${safeRating}`;
+}
+
 function buildClientError(status, userMessage, extra = {}) {
   return {
     ok: false,
@@ -56,15 +62,16 @@ async function requestJson({ apiUrl, path, method = "GET", body, fetchImpl, time
   );
 
   if (!response?.ok) {
-    let responseBody = "";
+    let responseBodyLength = 0;
     if (typeof response?.text === "function") {
-      responseBody = String(await response.text()).slice(0, 400);
+      responseBodyLength = String(await response.text()).slice(0, 400).length;
     }
     return {
       ok: false,
       status: "backend_request_failed",
       responseStatus: Number(response?.status || 0),
-      responseBody,
+      responseBodyPresent: responseBodyLength > 0,
+      responseBodyLength,
     };
   }
 
@@ -126,7 +133,7 @@ export function createVibeBackendClient({
         timedOut ? "request_timeout" : "network_error",
         "The backend route could not be reached.",
         {
-          error: String(error?.message || error || ""),
+          errors: [timedOut ? "request_timeout" : "transport_error"],
         }
       );
     }
@@ -175,6 +182,7 @@ export function createVibeBackendClient({
       return withApi("/api/feedback", {
         method: "POST",
         body: {
+          feedback_event_id: buildFeedbackEventId(safeMatchId, rating),
           match_id: safeMatchId,
           rating,
           comment: "",

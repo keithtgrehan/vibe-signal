@@ -36,8 +36,15 @@ def _safe_client_timestamp(value: Any) -> str:
 
 def store_feedback_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     comment = str(payload.get("comment", ""))
+    feedback_event_id = _safe_event_id(payload.get("feedback_event_id"), "")
+    if feedback_event_id:
+        for existing in FEEDBACK_ROWS:
+            if existing.get("feedback_event_id") == feedback_event_id:
+                return {**existing, "duplicate": True}
+
     row = {
         "feedback_id": f"feedback_{len(FEEDBACK_ROWS) + 1:06d}",
+        "feedback_event_id": feedback_event_id,
         "match_id": str(payload.get("match_id", "")),
         "rating": payload.get("rating"),
         "comment_length": len(comment),
@@ -50,8 +57,14 @@ def store_feedback_metadata(payload: dict[str, Any]) -> dict[str, Any]:
 
 def store_event_metadata(event_type: str, payload: dict[str, Any]) -> dict[str, Any]:
     fallback_event_id = f"{event_type}_{len(EVENT_ROWS) + 1:06d}"
+    event_id = _safe_event_id(payload.get("event_id"), fallback_event_id)
+    if event_id != fallback_event_id:
+        for existing in EVENT_ROWS:
+            if existing.get("event_id") == event_id and existing.get("event_type") == event_type:
+                return {**existing, "duplicate": True}
+
     row = {
-        "event_id": _safe_event_id(payload.get("event_id"), fallback_event_id),
+        "event_id": event_id,
         "event_type": event_type,
         "client_timestamp": _safe_client_timestamp(payload.get("client_timestamp")),
         "stored_at_unix": round(time(), 3),

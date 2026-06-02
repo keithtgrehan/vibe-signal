@@ -4,7 +4,7 @@ Status: final closed-beta launch gate report only. This document does not approv
 
 ## Executive Status
 
-Current recommended status: `READY_FOR_MANUAL_DEPLOY_QA`
+Current recommended status: `BLOCKED_ON_REAL_DEVICE_QA_AND_LEGAL_REVIEW`
 
 Status meanings:
 
@@ -12,9 +12,23 @@ Status meanings:
 | --- | --- |
 | `CLOSED_BETA_NOT_READY` | Repo or docs have unresolved safety, contract, privacy, deployment, or readiness gaps that block even manual deploy QA. |
 | `READY_FOR_MANUAL_DEPLOY_QA` | Repo-side implementation and runbooks are in place; Keith must run deployed backend smoke tests, legal URL checks, monitoring/no-raw-log checks, and real-device QA before inviting testers. |
+| `BLOCKED_ON_REAL_DEVICE_QA_AND_LEGAL_REVIEW` | Backend and hosted web are live, but tester invites remain blocked until real-device QA, legal review, and P0 monitoring gates pass. |
 | `READY_FOR_TESTER_INVITES` | All manual gates in this report have passed, metadata-only evidence has been captured, and no no-go or rollback trigger is active. |
 
-The repo is currently `READY_FOR_MANUAL_DEPLOY_QA` because the deterministic matching engine, backend routes, mobile integration, legal draft routes, deployment smoke tests, no-raw-log monitoring docs, and closed-beta QA runbooks exist. It is not `READY_FOR_TESTER_INVITES` because no final deployed backend host, deployed legal URLs, platform log review, monitoring owner, or real-device/TestFlight QA evidence is recorded in this repo.
+The repo is currently `BLOCKED_ON_REAL_DEVICE_QA_AND_LEGAL_REVIEW`. Backend and hosted web are live, the Render backend smoke checks passed with synthetic payloads, and Render CORS is configured for the exact Vercel web origin. It is not `READY_FOR_TESTER_INVITES` because real-device iPhone QA, legal review, backup incident ownership, and final metadata-only P0 monitoring evidence are still pending.
+
+## Current Target Status
+
+| Area | Current status |
+| --- | --- |
+| Backend | Green: Render/FastAPI at `https://vibe-signal.onrender.com` |
+| Web frontend | Deployed: Vercel at `https://vibe-signal.vercel.app` |
+| CORS | Configured for exact hosted web origin; wildcard origins remain blocked |
+| Mobile/browser preview | Repo tests and Expo web preview path covered; physical real-device QA pending |
+| Real-device QA | Pending |
+| Legal review | Pending |
+| Tester invites | Blocked until P0 gates pass |
+| Production readiness | No |
 
 ## Current Gate Decision Table
 
@@ -25,10 +39,12 @@ The repo is currently `READY_FOR_MANUAL_DEPLOY_QA` because the deterministic mat
 | Research-only baseline | Pass in repo | Research-only flow is gated to synthetic fixtures. |
 | Commercial training | Not claimed | Commercial mode must continue to fail closed until rights are approved. |
 | Backend routes | Pass in repo | Health, readiness, legal, analyze, match, feedback, and event routes exist. |
-| Deployed backend host | Blocked until live validation | No final deployed host smoke evidence is recorded. |
-| Mobile backend connection | Blocked until live validation | Final `EXPO_PUBLIC_API_URL` and device behavior must be verified. |
-| Legal/privacy URLs | Blocked until live validation | Draft routes exist, but final deployed URLs and legal review remain open. |
-| Monitoring/no-raw-log review | Blocked until live validation | Repo has metadata-only logging scaffold; platform/proxy logs and owner path must be verified. |
+| Deployed backend host | Pass for closed-beta smoke | Render smoke status is green with synthetic payloads. |
+| Hosted web frontend | Pass for closed-beta web smoke | Vercel frontend is live and wired to the Render backend. |
+| CORS | Pass for hosted web | Exact Vercel origin is configured; wildcard CORS remains prohibited. |
+| Mobile backend connection | Blocked until real-device QA | Final `EXPO_PUBLIC_API_URL` and device behavior must be verified on the target device/build. |
+| Legal/privacy URLs | Draft route reachable; legal review blocked | Draft routes exist, but legal review remains open. |
+| Monitoring/no-raw-log review | Partial | Metadata-only logging scaffold exists and Keith is primary incident owner; backup owner and final manual evidence remain pending. |
 | Real-device/TestFlight QA | Blocked until live validation | Device QA script exists, but final beta build evidence is not recorded. |
 | Model-quality claims | Not claimed | Synthetic-only checks do not support model-quality claims. |
 | Production readiness | Not claimed | This report is closed-beta operational gating only. |
@@ -51,13 +67,11 @@ The repo is currently `READY_FOR_MANUAL_DEPLOY_QA` because the deterministic mat
 
 These block tester invites until resolved or explicitly marked not in beta scope:
 
-- No final deployed backend host has been smoke-tested in this report.
-- No final deployed legal URLs have been manually verified.
+- Real-device iPhone QA has not been completed against the intended beta build.
+- Legal review has not approved privacy, terms, deletion, export, or match-disclaimer drafts.
 - No platform/proxy/server access-log sanitization evidence has been captured.
-- No monitoring provider, dashboard/manual review path, alert route, primary incident owner, or backup owner has been recorded.
-- No real-device or TestFlight QA evidence has been captured.
+- No backup incident owner, upgraded alert route, or final manual monitoring evidence has been recorded.
 - No final beta build label has been recorded.
-- No legal review has approved privacy, terms, deletion, export, or match-disclaimer drafts.
 - No reviewed-label set supports model-quality claims.
 - No commercial-safe training rights are approved.
 - No production compliance, GDPR/CCPA compliance, App Store readiness, or public-launch readiness is claimed.
@@ -243,7 +257,7 @@ Manual log review must confirm:
 
 | Gate | Go | No-go |
 | --- | --- | --- |
-| Executive status | All manual gates passed, then update to `READY_FOR_TESTER_INVITES` | Current repo-only state remains `READY_FOR_MANUAL_DEPLOY_QA` |
+| Executive status | All manual gates passed, then update to `READY_FOR_TESTER_INVITES` | Current state remains `BLOCKED_ON_REAL_DEVICE_QA_AND_LEGAL_REVIEW` |
 | Backend host | Concrete backend host label and git SHA recorded outside repo | No concrete host or guessed host |
 | Local smoke | `10/10` default checks pass locally | Any local smoke failure |
 | Deployed smoke | Default deployed smoke passes | Any deployed smoke failure |
@@ -349,7 +363,7 @@ Model-quality evidence:
 
 ## Final Decision Rule
 
-Do not invite testers while the status is `READY_FOR_MANUAL_DEPLOY_QA`.
+Do not invite testers while the status is `BLOCKED_ON_REAL_DEVICE_QA_AND_LEGAL_REVIEW`.
 
 Update the status to `READY_FOR_TESTER_INVITES` only after:
 
