@@ -6,49 +6,73 @@ Use synthetic toy messages only. Do not use real tester chats, third-party priva
 
 ## Setup
 
-1. Confirm backend smoke tests passed for the target host:
+1. Obtain the concrete backend host before starting.
+
+   - Use the deployment tracker, hosting provider dashboard, or Replit deployment settings.
+   - Record only a non-secret host label and git SHA in QA notes.
+   - Do not guess the host from a workspace slug.
+   - If no concrete backend host is available, mark deployed-device QA blocked.
+
+2. Confirm backend smoke tests passed for the target host:
 
    ```bash
    python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>
    ```
 
-2. If mobile event logging is enabled for this build, confirm event routes:
+3. If mobile event logging is enabled for this build, confirm event routes:
 
    ```bash
    python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host> --include-events
    ```
 
-3. Start the mobile app with a clean backend base URL.
+4. Choose the beta distribution path before launch:
+
+   - Expo Go/dev server for local QA.
+   - Development build for native-module QA.
+   - TestFlight build for iOS beta-distribution QA.
+
+   For TestFlight or other native builds, confirm `EXPO_PUBLIC_API_URL` was set at build time. A shell env var changed after installation may not update an already-built app.
+
+5. Start the mobile app with a clean backend base URL.
 
    Deployed backend:
 
    ```bash
    cd mobile
-   EXPO_PUBLIC_API_URL=https://<your-backend-host> npm start
+   EXPO_PUBLIC_API_URL=https://<your-backend-host> npm start -- --clear
    ```
 
    iOS simulator against a local backend:
 
    ```bash
    cd mobile
-   EXPO_PUBLIC_API_URL=http://127.0.0.1:8000 npm start
+   EXPO_PUBLIC_API_URL=http://127.0.0.1:8000 npm start -- --clear
    ```
 
    Android emulator against a local backend:
 
    ```bash
    cd mobile
-   EXPO_PUBLIC_API_URL=http://10.0.2.2:8000 npm start
+   EXPO_PUBLIC_API_URL=http://10.0.2.2:8000 npm start -- --clear
    ```
 
    Physical phone against a local backend:
 
+   From the repo root:
+
    ```bash
-   cd mobile
-   EXPO_PUBLIC_API_URL=http://<your-machine-lan-ip>:8000 npm start
+   ipconfig getifaddr en0 || ipconfig getifaddr en1
+   PYTHONPATH=src python -m uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000 --no-access-log
    ```
 
-4. Do not put route paths, query strings, fragments, usernames, passwords, tokens, or credentials in `EXPO_PUBLIC_API_URL`.
+   Confirm the phone is on the same network and can open `http://<your-machine-lan-ip>:8000/healthz` in its browser. Then start Expo:
+
+   ```bash
+   cd mobile
+   EXPO_PUBLIC_API_URL=http://<your-machine-lan-ip>:8000 npm start -- --clear
+   ```
+
+6. Do not put route paths, query strings, fragments, usernames, passwords, tokens, or credentials in `EXPO_PUBLIC_API_URL`.
 
 ## Device Matrix
 
@@ -63,17 +87,26 @@ Run at least one pass on the actual beta distribution target. Mark unavailable p
 
 ## App Start And Backend URL
 
-1. Start app without `EXPO_PUBLIC_API_URL`.
-2. Confirm backend-bound flows fail safely or remain disabled.
-3. Start app with a clean valid backend URL.
-4. Confirm no screen displays the raw URL with secrets, paths, queries, fragments, or credentials.
-5. Confirm backend verification or match request does not run until explicitly triggered by the user flow.
+1. Close the app and stop Metro.
+2. Start app without `EXPO_PUBLIC_API_URL`:
+
+   ```bash
+   cd mobile
+   env -u EXPO_PUBLIC_API_URL npm start -- --clear
+   ```
+
+   For a native/TestFlight build, reinstall or rebuild with the backend URL omitted if this state is in scope for the QA pass.
+
+3. Confirm backend-bound flows fail safely or remain disabled.
+4. Start app with a clean valid backend URL.
+5. Confirm no screen displays the raw URL with secrets, paths, queries, fragments, or credentials.
+6. Confirm backend verification or match request does not run until explicitly triggered by the user flow.
 
 Pass criteria:
 
 - Missing backend URL does not crash the app.
 - Missing backend URL copy tells the operator to set `EXPO_PUBLIC_API_URL`.
-- Invalid backend URL does not send network traffic.
+- Invalid backend URL does not send network traffic; verify from visible app state plus absence of a new request ID in safe backend logs when a backend host is available.
 - Error copy is user-facing and does not expose stack traces or raw backend traces.
 
 ## `/api/match` Happy Path
@@ -130,16 +163,37 @@ Pass criteria:
 - Submit controls do not create accidental duplicate sends.
 - Existing consent/disclaimer copy remains reachable or previously visible.
 
-## Error State
+## Error States
 
-Use a deliberately unreachable placeholder base URL in a local QA build, not a real credential or secret:
+Use synthetic input for every error-state test. Do not use a real credential or secret in the URL.
+
+Missing URL:
 
 ```bash
 cd mobile
-EXPO_PUBLIC_API_URL=https://unreachable.example.invalid npm start
+env -u EXPO_PUBLIC_API_URL npm start -- --clear
 ```
 
-Submit the synthetic happy-path input.
+Invalid URL shape:
+
+```bash
+cd mobile
+EXPO_PUBLIC_API_URL=https://example.invalid/path npm start -- --clear
+```
+
+Unreachable backend:
+
+```bash
+cd mobile
+EXPO_PUBLIC_API_URL=https://unreachable.example.invalid npm start -- --clear
+```
+
+Backend non-OK or gateway failure:
+
+- point the app at a controlled test host or temporary local route that returns a non-OK status.
+- do not use a real third-party URL, credential, token, query string, or private payload.
+
+Submit the synthetic happy-path input after each setup.
 
 Pass criteria:
 
@@ -159,11 +213,21 @@ Check the build surfaces for:
 - privacy and terms links where required by the current mobile surface.
 - match disclaimer route or copy when exposed.
 
+Open the deployed legal draft routes or the app links that point to them:
+
+- `/legal/privacy`
+- `/legal/terms`
+- `/legal/data-deletion`
+- `/legal/data-export`
+- `/legal/match-disclaimer`
+
 Pass criteria:
 
 - Copy is visible before or at the point of submission.
 - Copy does not imply legal review is complete.
 - Copy does not imply production launch.
+- Draft legal routes are reachable when the build exposes legal links.
+- Draft legal routes do not claim production compliance, GDPR/CCPA compliance, or final legal review.
 
 ## Event Logging Verification
 
@@ -196,6 +260,18 @@ Use this section only if the beta build includes subscription or paywall checks.
 - Confirm restore purchases does not crash.
 - Do not use real payment credentials in repo notes.
 - Do not call purchase success production-ready until sandbox purchase and restore are verified on device.
+
+## Device QA No-Go Triggers
+
+Pause tester invites, roll back, or rerun deployment smoke checks when any of these occur during device QA:
+
+- deployed legal draft routes are unreachable or contradict the app copy.
+- `/api/match` cannot be reached with the configured backend base URL.
+- missing or invalid backend URL states attempt network requests.
+- loading, empty, error, or result states crash or render raw debug details.
+- user-facing output includes attraction, hidden intent, cheating, diagnosis, neurotype, attachment-style, emotional-truth, manipulation, or relationship-success claims.
+- request IDs are missing from backend errors that need operator follow-up.
+- screenshots, bug reports, logs, or QA notes contain private chats, secrets, credentials, provider responses, request bodies, response bodies, or real tester contact details.
 
 ## Recording Results
 

@@ -14,6 +14,7 @@ Use this checklist before inviting any closed-beta tester. Record the backend ho
 - Backend access logs are disabled or sanitized; safe metadata request logging remains enabled.
 - Draft privacy, terms, deletion, export, and match-disclaimer URLs are reachable.
 - Privacy/terms/deletion/export drafts are still marked as drafts requiring legal review.
+- A beta incident owner, backup owner, and manual monitoring review path are recorded outside this repo.
 - Beta tester instructions have been shared before any app access is granted.
 
 ## Deployed Backend Smoke Gate
@@ -143,10 +144,13 @@ Go only if:
 Pause tester invites or roll back the beta build when any trigger below occurs:
 
 - `/healthz` or `/readyz` fails repeatedly.
+- the backend is unreachable because of DNS, TLS, gateway, firewall, hosting, or repeated `transport_error` failures.
+- 5xx responses are sustained on any beta route, not only match or analysis routes.
 - any smoke-test endpoint returns an unexpected status after retry.
 - request IDs are missing from smoke responses or reviewed error responses.
 - `/readyz` reports unsafe logging, raw persistence, analytics/tracking, or training flags.
 - `/api/match` returns unsafe wording or blocked claims.
+- any legal draft URL returns `404`, `5xx`, redirects unexpectedly, or is unreachable.
 - raw message text, request bodies, credentials, provider responses, vectors, checkpoints, or model artifacts appear in logs or artifacts.
 - platform logs expose arbitrary paths, query strings, headers, cookies, or request bodies.
 - error responses expose stack traces or raw backend details.
@@ -177,8 +181,22 @@ Rollback steps:
 | Consent copy | Sensitive-data and permission warnings visible | Users can submit without seeing boundaries |
 | Legal drafts | Draft routes reachable and clearly marked | Routes missing or imply final legal compliance |
 | Logs | Metadata only, no raw content | Raw messages, bodies, secrets, headers, provider responses, or artifacts logged |
+| Monitoring and incidents | Beta incident owner, backup, and manual/dashboard review path documented | No incident owner or monitoring review path |
 | Claims | Observable communication-pattern wording only | Attraction, hidden intent, cheating, diagnosis, neurotype, attachment-style, emotional-truth, manipulation, or relationship-success claim |
 | Data rights | Commercial gates still fail closed | Any commercial training path opens without explicit rights |
+
+## Remaining Blockers To Record
+
+Before tester invites, the beta operator should record whether each blocker below is resolved or accepted as still blocking:
+
+- final deployed backend host and git SHA have not been smoke-verified until the commands above pass.
+- final deployed privacy, terms, deletion, export, and match-disclaimer URLs still require legal review.
+- release tracker entry for backend host, git SHA, mobile build, smoke result, log review, device QA result, incident owner, and reviewer is still required.
+- monitoring provider, dashboard, alert routing, and incident owner assignment remain manual unless separately configured.
+- backend/admin event ingestion and dashboard gaps remain outside this checklist unless event logging is explicitly included in beta scope.
+- reviewed labels are still required before model-quality claims.
+- commercial-safe training rights are still required before commercial training use.
+- real-device/TestFlight QA remains required for every beta build and backend host.
 
 ## Known Limitations
 

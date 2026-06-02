@@ -7,7 +7,7 @@ Vibe Signal is communication-support only. It compares observable communication 
 ## Before You Start
 
 - Use the beta only if you understand it is experimental closed-beta software.
-- Use synthetic or low-sensitivity examples first.
+- Use the synthetic examples in this document for closed-beta QA.
 - Only submit messages you have permission to analyze.
 - Do not submit sensitive personal data, secrets, medical data, legal documents, financial data, workplace confidential information, or third-party private messages without permission.
 - Do not submit phone numbers, emails, addresses, API keys, passwords, tokens, account numbers, or payment details.
@@ -50,7 +50,7 @@ These are authored test examples, not private chats and not dataset rows.
 
 Do not test with:
 
-- real private chats from someone who has not given permission.
+- real private chats.
 - medical, legal, financial, employment, school, or account-security content.
 - secrets, tokens, passwords, API keys, payment details, addresses, phone numbers, or emails.
 - content intended to test attraction prediction, hidden intent, cheating, diagnosis, neurotype, attachment style, emotional truth, or manipulation.
