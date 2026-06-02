@@ -1,8 +1,8 @@
 # Closed-Beta Readiness Checklist
 
-Status: closed-beta operator checklist only. This document does not approve production launch, legal compliance, GDPR/CCPA compliance, model quality, commercial data use, or public marketing claims.
+Status: closed-beta operator checklist only. This document does not approve production launch, legal compliance, GDPR/CCPA compliance, model quality, commercial data use, or public marketing claims. The final gate summary is [final_closed_beta_launch_gate_report.md](final_closed_beta_launch_gate_report.md).
 
-Use this checklist before inviting any closed-beta tester. Record the backend host, mobile build, git SHA, reviewer, and date in the deployment tracker or release notes. Do not record private chats, secrets, phone numbers, emails, provider responses, request bodies, vectors, checkpoints, or real tester account data in this repo.
+Use this checklist before inviting any closed-beta tester. Record the backend host label, mobile build label, git SHA, reviewer, and date outside this repo in the deployment tracker or approved release notes. Do not record real backend URLs, private chats, secrets, phone numbers, emails, provider responses, request bodies, vectors, checkpoints, or real tester account data in this repo.
 
 ## Prerequisites
 
@@ -22,13 +22,13 @@ Use this checklist before inviting any closed-beta tester. Record the backend ho
 Run these from the repo root against the deployed backend host:
 
 ```bash
-python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>
+python scripts/smoke_test_deployed_backend.py --base-url https://YOUR_BACKEND_HOST
 ```
 
 If mobile event logging is in scope for the beta build, also run:
 
 ```bash
-python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host> --include-events
+python scripts/smoke_test_deployed_backend.py --base-url https://YOUR_BACKEND_HOST --include-events
 ```
 
 Go only if:
@@ -52,28 +52,30 @@ For a deployed backend:
 
 ```bash
 cd mobile
-EXPO_PUBLIC_API_URL=https://<your-backend-host> npm start
+EXPO_PUBLIC_API_URL=https://YOUR_BACKEND_HOST npm start -- --clear
 ```
 
 For Android emulator against a local backend:
 
 ```bash
 cd mobile
-EXPO_PUBLIC_API_URL=http://10.0.2.2:8000 npm start
+EXPO_PUBLIC_API_URL=http://10.0.2.2:8000 npm start -- --clear
 ```
 
 For a physical phone against a local backend:
 
 ```bash
 cd mobile
-EXPO_PUBLIC_API_URL=http://<your-machine-lan-ip>:8000 npm start
+EXPO_PUBLIC_API_URL=http://YOUR_MACHINE_LAN_IP:8000 npm start -- --clear
 ```
+
+These `npm start` commands are Expo dev-runtime checks. If the beta distribution target is TestFlight or another packaged build, install that build on the target device, record the build label outside the repo, and rerun the real-device QA script against the deployed backend before tester invites.
 
 Optional event-route verifier:
 
 ```bash
 cd mobile
-npm run verify:backend -- --api-url https://<your-backend-host> --event state
+npm run verify:backend -- --api-url https://YOUR_BACKEND_HOST --event state
 ```
 
 Go only if the verifier uses a clean base URL, prints no payload body or response body, and returns a success status for the intended route.
