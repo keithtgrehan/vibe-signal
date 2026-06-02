@@ -27,6 +27,7 @@ This checklist is an honest split between code-complete work, still-manual confi
 - backend request logs are metadata-only and carry request IDs
 - backend unexpected-error responses are generic and include request IDs
 - backend deployment smoke-test script exists for liveness, readiness, legal draft routes, and synthetic `/api/match`
+- closed-beta readiness, tester instruction, and real-device QA documents exist
 
 ## Code-complete but unverified on real device
 
@@ -37,6 +38,7 @@ This checklist is an honest split between code-complete work, still-manual confi
 - backend acceptance of the full mobile payload shape against the deployed backend base URL
 - premium UI changes after real entitlement refresh
 - paywall disclosure copy rendered in the final iPhone build
+- closed-beta device QA script completed against the final backend host and beta build
 
 ## Still manual
 
@@ -59,6 +61,9 @@ This checklist is an honest split between code-complete work, still-manual confi
 - run `curl https://<your-backend-host>/readyz`
 - confirm deployed logs do not include raw chat text, request bodies, provider responses, credentials, model artifacts, vectors, or checkpoints
 - record one closed-beta monitoring review using [monitoring_no_raw_logs.md](monitoring_no_raw_logs.md)
+- complete [closed_beta_readiness_checklist.md](closed_beta_readiness_checklist.md) before tester invites
+- complete [device_qa_script.md](device_qa_script.md) on each target beta device class
+- share [closed_beta_tester_instructions.md](closed_beta_tester_instructions.md) before testers receive access
 
 ## Still missing in this workspace
 
@@ -70,6 +75,7 @@ This checklist is an honest split between code-complete work, still-manual confi
 - legal-reviewed deletion/export support workflow and retention policy
 - production monitoring and incident-response process
 - alert routing and incident owner assignment
+- completed release tracker entry for final closed-beta backend host, git SHA, mobile build, smoke result, log review, and device QA result
 
 ## Remaining live sandbox dependency
 

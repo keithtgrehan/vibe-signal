@@ -87,6 +87,9 @@ Start here if you want the fastest credible walkthrough:
 - [docs/backend_deployment_readiness.md](docs/backend_deployment_readiness.md) for backend deployment checks, CORS configuration, and safe logging boundaries
 - [docs/deployment_smoke_tests.md](docs/deployment_smoke_tests.md) for repeatable local/deployed backend smoke tests before mobile beta use
 - [docs/monitoring_no_raw_logs.md](docs/monitoring_no_raw_logs.md) for closed-beta monitoring checks and no-raw-log incident triggers
+- [docs/closed_beta_readiness_checklist.md](docs/closed_beta_readiness_checklist.md) for the operator go/no-go checklist before tester invites
+- [docs/device_qa_script.md](docs/device_qa_script.md) for real-device `/api/match`, legal-copy, and backend URL QA
+- [docs/closed_beta_tester_instructions.md](docs/closed_beta_tester_instructions.md) for tester-facing boundaries and bug report format
 - [docs/provider_disclosure_notes.md](docs/provider_disclosure_notes.md) for optional provider positioning
 - [docs/legal_safe_output_policy.md](docs/legal_safe_output_policy.md) for wording and safety constraints
 - [docs/proof/phase_validation_2026-04-07/final_phase_validation_summary.md](docs/proof/phase_validation_2026-04-07/final_phase_validation_summary.md) for bounded execution proof
@@ -115,6 +118,15 @@ python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-h
 cd mobile
 npm run verify:backend -- --api-url https://<your-backend-host> --event state
 ```
+
+Closed-beta operator flow:
+
+```bash
+python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>
+python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host> --include-events
+```
+
+Then follow [docs/closed_beta_readiness_checklist.md](docs/closed_beta_readiness_checklist.md) and [docs/device_qa_script.md](docs/device_qa_script.md) before inviting testers. These checks prove only closed-beta connectivity and basic behavior, not production readiness, legal compliance, GDPR/CCPA readiness, model quality, or commercial data rights.
 
 ## Repo Truthfulness
 Keep the story narrow:

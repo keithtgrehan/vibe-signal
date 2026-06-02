@@ -1,10 +1,10 @@
 # VibeSignal AI Mobile Support
 
-This folder contains the mobile-ready BYOK layer for optional provider connectors plus the current iOS-first subscription and quota scaffolding.
+This folder contains the mobile support layer for optional provider connectors plus the current iOS-first subscription and quota scaffolding.
 
 The app will **not** connect to a backend unless `EXPO_PUBLIC_API_URL` is provided.
 
-## Current Mobile UX Guarantees
+## Current Mobile UX Behavior
 
 The current Expo shell now keeps the local analysis path obvious on small screens:
 
@@ -17,7 +17,7 @@ The current Expo shell now keeps the local analysis path obvious on small screen
 - provider setup never blocks local analysis
 - recent analysis results can be reopened locally
 
-The current BYOK flow guarantees:
+The current BYOK flow covers:
 
 - no provider selected
 - provider selected
@@ -26,7 +26,7 @@ The current BYOK flow guarantees:
 - verified
 - failed
 
-Behavioral guarantees:
+Implemented behavior:
 
 - `Verify key` only enables when the entered key length is greater than `10`
 - invalid keys are not saved
@@ -35,7 +35,7 @@ Behavioral guarantees:
 - web falls back to localStorage only when a real round-trip probe succeeds
 - remove-key flow is available once a credential exists
 
-The current local analysis result flow also guarantees:
+The current local analysis result flow covers:
 
 - deterministic local signal extraction
 - structured output with:
@@ -121,7 +121,7 @@ Flush behavior:
 - queued events flush on app foreground
 - queued events schedule a bounded retry after retryable send failures
 
-Current guarantees:
+Current expected behavior:
 
 - callers do not await telemetry for purchase, restore, analysis, or state updates
 - logging becomes a safe no-op when env config is missing or disabled
@@ -183,6 +183,14 @@ Match submission copy now also reminds users:
 - Users should submit only messages they have permission to analyze.
 - Users should not include sensitive personal data, secrets, medical data, legal documents, financial data, or third-party private messages without permission.
 - Closed beta is not production launch, and privacy/terms drafts require legal review before public launch.
+
+Closed-beta device QA is documented in:
+
+- [../docs/device_qa_script.md](../docs/device_qa_script.md)
+- [../docs/closed_beta_readiness_checklist.md](../docs/closed_beta_readiness_checklist.md)
+- [../docs/closed_beta_tester_instructions.md](../docs/closed_beta_tester_instructions.md)
+
+The match-screen QA pass should cover missing `EXPO_PUBLIC_API_URL`, empty input, `Checking communication fit...` loading state, unreachable-backend error state, and the synthetic happy-path result. Use synthetic toy messages only; do not paste real private chats into QA notes or screenshots.
 
 What is not committed in this repo:
 
