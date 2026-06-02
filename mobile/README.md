@@ -1,23 +1,25 @@
 # VibeSignal AI Mobile Support
 
-This folder contains the mobile support layer for optional provider connectors plus the current iOS-first subscription and quota scaffolding.
+This folder contains the current Expo UI plus support layers for optional provider connectors, event contracts, and iOS-first subscription/quota scaffolding.
 
 The app will **not** connect to a backend unless `EXPO_PUBLIC_API_URL` is provided.
 
 ## Current Mobile UX Behavior
 
-The current Expo shell now keeps the local analysis path obvious on small screens:
+The current Expo shell opens to the polished Vibe Signal flow restored from the old UI artifacts, wired to the current backend contracts:
 
-- one mobile-first column
-- bounded content width
-- the primary text input is always visible
-- upload and analyze actions stay in the primary card
-- keyboard-safe layout on iPhone-sized screens
-- the external provider section stays optional and collapsed by default
-- provider setup never blocks local analysis
-- recent analysis results can be reopened locally
+- home, analyze, results, and legal screens
+- match and evidence modes backed by `/api/match` and `/api/analyze`
+- feedback metadata submission through `/api/feedback` after explicit consent
+- backend legal drafts through `/legal/{slug}` with safe fallback copy
+- visible communication-support disclaimers before submission
+- loading, missing-config, unreachable-backend, empty-input, and fallback-legal states
+- safe result rendering for score, fit band, positive factors, risk factors, evidence phrases, and empty evidence arrays
+- synthetic or permissioned text examples only
 
-The current BYOK flow covers:
+Basic QA of this restored UI does not require RevenueCat, StoreKit, paywall setup, or a provider API key. Provider, quota, billing, and local-analysis scaffolds remain in the repo for existing tests and future reviewed flows, but they are not required for the PR #17 match/evidence/legal QA path.
+
+The existing BYOK support flow covers:
 
 - no provider selected
 - provider selected
@@ -35,7 +37,7 @@ Implemented behavior:
 - web falls back to localStorage only when a real round-trip probe succeeds
 - remove-key flow is available once a credential exists
 
-The current local analysis result flow covers:
+The existing local-analysis support modules still cover:
 
 - deterministic local signal extraction
 - structured output with:
@@ -134,14 +136,19 @@ Current limits:
 - `app_version` is included in the envelope shape, but this shell leaves it empty unless `EXPO_PUBLIC_APP_VERSION` is configured
 - the backend/admin event-ingestion code is not present in this workspace, so backend compatibility is enforced from the mobile contract side only
 
-## Replit / Backend Wiring
+## Render / Backend Wiring
 
-This repo is not hard-wired to a committed Replit deployment host.
+The current reviewed backend is the Render/FastAPI deployment:
+
+- `https://vibe-signal.onrender.com`
+
+The mobile app remains environment-driven through `EXPO_PUBLIC_API_URL` so local, staging, and future reviewed backend hosts can be tested without code changes.
 
 What is wired in code:
 
 - the mobile event client is environment-driven through `EXPO_PUBLIC_API_URL`
 - the communication-fit match client is environment-driven through `EXPO_PUBLIC_API_URL`
+- cue-evidence, feedback, and legal-route clients are environment-driven through `EXPO_PUBLIC_API_URL`
 - event endpoints are appended from that base URL:
   - `/api/events/analysis`
   - `/api/events/quota`
@@ -149,6 +156,12 @@ What is wired in code:
   - `/api/events/state`
 - match requests are posted to:
   - `/api/match`
+- cue-evidence requests are posted to:
+  - `/api/analyze`
+- feedback metadata is posted to:
+  - `/api/feedback`
+- legal drafts are fetched from:
+  - `/legal/{slug}`
 
 ## Local Backend + Mobile Match Flow
 
@@ -197,15 +210,16 @@ What is not committed in this repo:
 - a `.replit` file
 - a `replit.nix` file
 - a hardcoded `replit.app` backend host
+- old Replit backend, admin, database, auth, billing, or analytics logic
 
-Current verification result from this environment:
+Current backend QA target:
 
-- the provided public workspace URL `https://replit.com/@grehanke/Vibe-Signal` returned `404`
-- because of that, the repo cannot safely infer the live deployment host from source control alone
+- `https://vibe-signal.onrender.com`
 
 Required next step:
 
-- set `EXPO_PUBLIC_API_URL` explicitly to the live deployed backend base URL used by the Replit deployment
+- set `EXPO_PUBLIC_API_URL` explicitly to the reviewed backend base URL, for example:
+  - `EXPO_PUBLIC_API_URL=https://vibe-signal.onrender.com`
 - run the Python deployment smoke test from the repo root before connecting mobile:
   - `python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>`
 

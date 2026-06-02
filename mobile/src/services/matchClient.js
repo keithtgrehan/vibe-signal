@@ -1,3 +1,5 @@
+import { parseBackendBaseUrl } from "./backendUrl.js";
+
 const AUTHOR_ALIASES = {
   self: "self",
   me: "self",
@@ -7,39 +9,6 @@ const AUTHOR_ALIASES = {
   they: "other",
   unknown: "unknown",
 };
-
-function parseApiUrl(value) {
-  const text = String(value || "").trim();
-  if (!text) {
-    return {
-      ok: false,
-      status: "missing_api_url",
-      apiUrl: "",
-    };
-  }
-
-  try {
-    const parsed = new URL(text);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return {
-        ok: false,
-        status: "invalid_api_url",
-        apiUrl: text,
-      };
-    }
-    return {
-      ok: true,
-      status: "api_url_ready",
-      apiUrl: parsed.toString().replace(/\/$/, ""),
-    };
-  } catch (_error) {
-    return {
-      ok: false,
-      status: "invalid_api_url",
-      apiUrl: text,
-    };
-  }
-}
 
 function parseMessageLine(line, index) {
   const trimmed = String(line || "").trim();
@@ -121,9 +90,29 @@ function buildClientError(status, userMessage, extra = {}) {
   };
 }
 
+function withTimeout(promise, timeoutMs) {
+  const timeout = Number(timeoutMs || 0);
+  if (!Number.isFinite(timeout) || timeout <= 0) {
+    return promise;
+  }
+
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new Error("request_timeout"));
+      }, timeout);
+    }),
+  ]).finally(() => {
+    clearTimeout(timer);
+  });
+}
+
 export function createMatchClient({
   apiUrl = process.env.EXPO_PUBLIC_API_URL || "",
   fetchImpl = globalThis.fetch,
+  timeoutMs = 15000,
 } = {}) {
   return {
     async submitMatchDraft({
@@ -144,11 +133,13 @@ export function createMatchClient({
         );
       }
 
-      const parsedApiUrl = parseApiUrl(apiUrl);
+      const parsedApiUrl = parseBackendBaseUrl(apiUrl);
       if (!parsedApiUrl.ok) {
         return buildClientError(
           parsedApiUrl.status,
-          "Set EXPO_PUBLIC_API_URL to run the local backend match route.",
+          parsedApiUrl.status === "missing_api_url"
+            ? "Set EXPO_PUBLIC_API_URL to run the backend match route."
+            : "EXPO_PUBLIC_API_URL must be a clean http(s) backend base URL.",
           { errors: [parsedApiUrl.status] }
         );
       }
@@ -160,13 +151,16 @@ export function createMatchClient({
       }
 
       try {
-        const response = await fetchImpl(`${parsedApiUrl.apiUrl}/api/match`, {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify(request.payload),
-        });
+        const response = await withTimeout(
+          fetchImpl(`${parsedApiUrl.apiUrl}/api/match`, {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify(request.payload),
+          }),
+          timeoutMs
+        );
 
         if (!response?.ok) {
           let responseBody = "";
@@ -191,9 +185,14 @@ export function createMatchClient({
           result,
         };
       } catch (error) {
-        return buildClientError("network_error", "The backend match route could not be reached.", {
-          error: String(error?.message || error || ""),
-        });
+        const timedOut = String(error?.message || error || "") === "request_timeout";
+        return buildClientError(
+          timedOut ? "request_timeout" : "network_error",
+          "The backend match route could not be reached.",
+          {
+            error: String(error?.message || error || ""),
+          }
+        );
       }
     },
   };

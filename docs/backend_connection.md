@@ -1,14 +1,21 @@
 # Backend Connection
 
-VibeSignal mobile does not connect to a backend automatically. The app will **not** send match requests, telemetry, or backend-bound verification requests unless `EXPO_PUBLIC_API_URL` is set to a reachable backend base URL.
+VibeSignal uses a FastAPI backend. The current reviewed backend deployment is Render:
+
+- `https://vibe-signal.onrender.com`
+
+The mobile app will **not** send match requests, telemetry, or backend-bound verification requests unless `EXPO_PUBLIC_API_URL` is set to a reachable backend base URL. The standalone `web/` Vite frontend defaults to the Render backend, and can be pointed at another reviewed backend with `VITE_API_URL` or `EXPO_PUBLIC_API_URL`.
 
 ## What Is Already Wired
 
-The mobile app is environment-driven and expects these routes under the configured base URL:
+The mobile and web clients expect these routes under the configured base URL:
 
 - `/healthz`
 - `/readyz`
 - `/api/match`
+- `/api/analyze`
+- `/api/feedback`
+- `/legal/{slug}`
 - `/api/events/analysis`
 - `/api/events/quota`
 - `/api/events/billing`
@@ -21,32 +28,41 @@ Set `EXPO_PUBLIC_API_URL` to the backend base URL, not a route path:
 - local simulator or same-machine development: `http://127.0.0.1:8000`
 - Android emulator against a local backend: `http://10.0.2.2:8000`
 - physical phone against a local backend: `http://<your-machine-lan-ip>:8000`
-- deployed backend: `https://<your-backend-host>`
+- current deployed Render backend: `https://vibe-signal.onrender.com`
+- future reviewed backend: `https://<your-backend-host>`
 
 Do not include a route path, query string, fragment, username, password, token, or credential in `EXPO_PUBLIC_API_URL`.
 
-## How To Obtain The Deployed Replit URL
+For the standalone web frontend, set the same backend base URL with:
 
-This repo does not contain a committed `.replit` file, `replit.nix`, or a hardcoded deployment hostname.
+```bash
+VITE_API_URL=https://vibe-signal.onrender.com npm run dev
+```
 
-To get the correct live URL:
-
-1. Open the actual Replit deployment/project settings for VibeSignal.
-2. Copy the deployed public backend base URL.
-3. Set that exact value in:
-   - `EXPO_PUBLIC_API_URL`
-
-Do not guess the hostname and do not infer it from the Replit workspace slug alone.
+The Vite config also exposes `EXPO_PUBLIC_API_URL` for MacBook web preview parity, but `VITE_API_URL` is the clearest web-specific name.
 
 ## CORS And Mobile URL Configuration
 
 Native iOS and Android requests are not controlled by browser CORS. Expo web, browser-based testing, or future web/admin surfaces do need CORS. Configure exact allowed browser origins on the backend with:
 
-- `VIBE_BACKEND_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com`
+- local PR #17 web QA:
+  - `VIBE_BACKEND_ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081,http://localhost:5173`
+- future hosted frontend examples:
+  - `VIBE_BACKEND_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com`
 
 Do not use wildcard origins in production-facing environments. The backend config parser rejects `*`, non-HTTP(S) origins, and origins with paths, query strings, or fragments.
 
+The `web/` frontend can be hosted separately later. When that happens, add the exact hosted frontend origin to `VIBE_BACKEND_ALLOWED_ORIGINS`; do not broaden CORS to cover arbitrary origins.
+
 See [backend deployment readiness](backend_deployment_readiness.md) for the deployment checklist and logging boundaries.
+
+## Current Render Backend
+
+The Render backend deployment remains the source of truth for backend QA. For local browser QA of PR #17, configure this exact Render environment value:
+
+- `VIBE_BACKEND_ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081,http://localhost:5173`
+
+The backend deploy itself does not need code changes for these frontend clients.
 
 ## How To Verify Connectivity
 

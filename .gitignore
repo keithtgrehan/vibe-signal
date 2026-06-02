@@ -22,5 +22,6 @@ reports/vibe_training/generated/
 .expo/
 mobile/.expo/
 mobile/node_modules/
+web/node_modules/
 **/__pycache__/
 *.log

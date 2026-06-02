@@ -42,6 +42,8 @@ Vibe Matching Engine v0 now adds a deterministic communication-fit layer:
 ## Current Repo Reality
 Built now:
 - Expo mobile shell with an always-available local analysis path
+- polished Expo mobile UI for match, cue evidence, feedback, and legal draft routes
+- standalone Vite React web UI for the same backend-only match, cue evidence, feedback, and legal flows
 - deterministic local analysis and structured result rendering
 - deterministic communication-fit matching engine with `/api/match`
 - synthetic matching corpus and validator
@@ -54,16 +56,17 @@ Built now:
 - privacy, provider-disclosure, and prelaunch-readiness documentation
 
 Code-complete but still needing real-world proof:
-- deployed backend verification against the final live host
+- final mobile/web QA against the deployed Render backend
 - iPhone simulator/device runtime proof
 - RevenueCat/App Store sandbox purchase and restore validation
 - final production privacy / terms / deletion / export URLs and legal review
 
 ## Architecture Snapshot
 - `mobile/`: Expo / React Native shell, provider setup, quota state, billing scaffolding, and event logging
+- `web/`: standalone Vite / React browser frontend that can be deployed separately from the backend
 - `src/vibesignal_ai/`: deterministic conversation analysis, contracts, providers, safety rules, and UI payload builders
 - `docs/`: privacy flow, provider disclosure, backend contract notes, and execution-proof material
-- `backend/`: local FastAPI routes for health, analyze, match, feedback, and event acceptance
+- `backend/`: FastAPI routes for health, analyze, match, feedback, legal copy, and event acceptance
 - `data/vibe_matching/synthetic/`: synthetic-only match-pair fixture corpus
 - `reports/vibe_matching/`: synthetic-only baseline and optional experiment reports
 - `docs/proof/phase_validation_2026-04-07/`: bounded validation artifacts for the current mobile/provider pass
@@ -109,7 +112,15 @@ Mobile shell:
 cd mobile
 npm install
 npm test
-npm start
+EXPO_PUBLIC_API_URL=https://vibe-signal.onrender.com npx expo start --web --clear
+```
+
+Standalone web UI:
+
+```bash
+cd web
+npm install
+VITE_API_URL=https://vibe-signal.onrender.com npm run dev
 ```
 
 Optional backend contract check:
@@ -128,6 +139,14 @@ python scripts/smoke_test_deployed_backend.py --base-url https://YOUR_BACKEND_HO
 ```
 
 Then follow [docs/closed_beta_readiness_checklist.md](docs/closed_beta_readiness_checklist.md) and [docs/device_qa_script.md](docs/device_qa_script.md) before inviting testers. These checks prove only closed-beta connectivity and basic behavior, not production readiness, legal compliance, GDPR/CCPA readiness, model quality, or commercial data rights.
+
+Browser-based local QA against the current Render/FastAPI backend also needs exact CORS origins configured in Render:
+
+```text
+VIBE_BACKEND_ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081,http://localhost:5173
+```
+
+Do not use wildcard CORS origins. Add a future hosted web frontend origin explicitly when that frontend is deployed.
 
 Final closed-beta gate:
 
