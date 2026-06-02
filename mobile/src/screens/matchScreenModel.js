@@ -55,6 +55,10 @@ export function buildMatchComposerState({
       "self: Can you confirm Friday at 3pm?\nother: Yes, Friday at 3pm works. No pressure if we need to adjust.",
     helper:
       "Use one line per message. Prefix lines with self: or other: for stronger evidence.",
+    consentLabel:
+      "Only submit messages you have permission to analyze. Matching is communication-support only.",
+    privacyNote:
+      "Do not include sensitive personal data, secrets, medical data, legal documents, financial data, or third-party private messages without permission. Closed beta privacy and terms drafts require legal review before public launch.",
     statusLabel: loading ? "Checking communication fit..." : "Check communication fit",
     submitEnabled: hasText && backendConfigured && !loading,
     emptyLabel: backendConfigured
