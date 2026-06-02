@@ -87,6 +87,7 @@ Start here if you want the fastest credible walkthrough:
 - [docs/backend_deployment_readiness.md](docs/backend_deployment_readiness.md) for backend deployment checks, CORS configuration, and safe logging boundaries
 - [docs/deployment_smoke_tests.md](docs/deployment_smoke_tests.md) for repeatable local/deployed backend smoke tests before mobile beta use
 - [docs/monitoring_no_raw_logs.md](docs/monitoring_no_raw_logs.md) for closed-beta monitoring checks and no-raw-log incident triggers
+- [docs/final_closed_beta_launch_gate_report.md](docs/final_closed_beta_launch_gate_report.md) for the final closed-beta gate status, manual deploy QA sequence, and tester-invite decision rule
 - [docs/closed_beta_readiness_checklist.md](docs/closed_beta_readiness_checklist.md) for the operator go/no-go checklist before tester invites
 - [docs/device_qa_script.md](docs/device_qa_script.md) for real-device `/api/match`, legal-copy, and backend URL QA
 - [docs/closed_beta_tester_instructions.md](docs/closed_beta_tester_instructions.md) for tester-facing boundaries and bug report format
@@ -127,6 +128,10 @@ python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-h
 ```
 
 Then follow [docs/closed_beta_readiness_checklist.md](docs/closed_beta_readiness_checklist.md) and [docs/device_qa_script.md](docs/device_qa_script.md) before inviting testers. These checks prove only closed-beta connectivity and basic behavior, not production readiness, legal compliance, GDPR/CCPA readiness, model quality, or commercial data rights.
+
+Final closed-beta gate:
+
+- [docs/final_closed_beta_launch_gate_report.md](docs/final_closed_beta_launch_gate_report.md) currently places the repo at `READY_FOR_MANUAL_DEPLOY_QA`, not `READY_FOR_TESTER_INVITES`.
 
 ## Repo Truthfulness
 Keep the story narrow:

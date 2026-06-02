@@ -1,6 +1,6 @@
 # Closed-Beta Readiness Checklist
 
-Status: closed-beta operator checklist only. This document does not approve production launch, legal compliance, GDPR/CCPA compliance, model quality, commercial data use, or public marketing claims.
+Status: closed-beta operator checklist only. This document does not approve production launch, legal compliance, GDPR/CCPA compliance, model quality, commercial data use, or public marketing claims. The final gate summary is [final_closed_beta_launch_gate_report.md](final_closed_beta_launch_gate_report.md).
 
 Use this checklist before inviting any closed-beta tester. Record the backend host, mobile build, git SHA, reviewer, and date in the deployment tracker or release notes. Do not record private chats, secrets, phone numbers, emails, provider responses, request bodies, vectors, checkpoints, or real tester account data in this repo.
 

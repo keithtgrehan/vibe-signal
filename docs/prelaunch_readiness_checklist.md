@@ -28,6 +28,7 @@ This checklist is an honest split between code-complete work, still-manual confi
 - backend unexpected-error responses are generic and include request IDs
 - backend deployment smoke-test script exists for liveness, readiness, legal draft routes, and synthetic `/api/match`
 - closed-beta readiness, tester instruction, and real-device QA documents exist
+- final closed-beta launch gate report exists with current status `READY_FOR_MANUAL_DEPLOY_QA`
 
 ## Code-complete but unverified on real device
 
@@ -64,6 +65,7 @@ This checklist is an honest split between code-complete work, still-manual confi
 - complete [closed_beta_readiness_checklist.md](closed_beta_readiness_checklist.md) before tester invites
 - complete [device_qa_script.md](device_qa_script.md) on each target beta device class
 - share [closed_beta_tester_instructions.md](closed_beta_tester_instructions.md) before testers receive access
+- complete [final_closed_beta_launch_gate_report.md](final_closed_beta_launch_gate_report.md) and capture metadata-only evidence before tester invites
 
 ## Still missing in this workspace
 

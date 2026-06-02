@@ -13,6 +13,7 @@
 - backend metadata-only request logging exists with request IDs and no raw body logging
 - deployment smoke-test script exists for `/healthz`, `/readyz`, legal draft routes, and synthetic `/api/match`
 - closed-beta readiness checklist, tester instructions, and device QA script exist
+- final closed-beta launch gate report exists and currently requires manual deployed-backend and real-device QA before tester invites
 
 ## Research-Only
 
@@ -39,6 +40,7 @@
 - Deletion/export workflow requires reviewed support channel, identity checks, retention policy, and response timelines.
 - Live backend deployment must be verified with the final host and environment values.
 - Closed-beta device QA must be completed against the final beta build and backend host before tester invites.
+- [final_closed_beta_launch_gate_report.md](final_closed_beta_launch_gate_report.md) must be moved from `READY_FOR_MANUAL_DEPLOY_QA` to `READY_FOR_TESTER_INVITES` using metadata-only evidence before tester invites.
 - Any raw user message, provider response, secret, vector, checkpoint, or request body in logs blocks launch.
 
 ## Future Work
