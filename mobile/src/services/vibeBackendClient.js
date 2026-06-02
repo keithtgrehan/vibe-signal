@@ -1,4 +1,5 @@
 import { buildMatchRequestFromDraft } from "./matchClient.js";
+import { parseBackendBaseUrl } from "./backendUrl.js";
 
 const LEGAL_SLUGS = new Set([
   "privacy",
@@ -10,39 +11,6 @@ const LEGAL_SLUGS = new Set([
 
 function normalizeText(value) {
   return String(value || "").trim();
-}
-
-function parseApiUrl(value) {
-  const text = normalizeText(value);
-  if (!text) {
-    return {
-      ok: false,
-      status: "missing_api_url",
-      apiUrl: "",
-    };
-  }
-
-  try {
-    const parsed = new URL(text);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return {
-        ok: false,
-        status: "invalid_api_url",
-        apiUrl: text,
-      };
-    }
-    return {
-      ok: true,
-      status: "api_url_ready",
-      apiUrl: parsed.toString().replace(/\/$/, ""),
-    };
-  } catch (_error) {
-    return {
-      ok: false,
-      status: "invalid_api_url",
-      apiUrl: text,
-    };
-  }
 }
 
 function buildClientError(status, userMessage, extra = {}) {
@@ -114,11 +82,13 @@ export function createVibeBackendClient({
   timeoutMs = 15000,
 } = {}) {
   async function withApi(path, options = {}) {
-    const parsedApiUrl = parseApiUrl(apiUrl);
+    const parsedApiUrl = parseBackendBaseUrl(apiUrl);
     if (!parsedApiUrl.ok) {
       return buildClientError(
         parsedApiUrl.status,
-        "Set EXPO_PUBLIC_API_URL to reach the Vibe Signal backend.",
+        parsedApiUrl.status === "missing_api_url"
+          ? "Set EXPO_PUBLIC_API_URL to reach the Vibe Signal backend."
+          : "EXPO_PUBLIC_API_URL must be a clean http(s) backend base URL.",
         { errors: [parsedApiUrl.status] }
       );
     }

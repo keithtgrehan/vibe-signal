@@ -1,3 +1,5 @@
+import { parseBackendBaseUrl } from "./backendUrl.js";
+
 const AUTHOR_ALIASES = {
   self: "self",
   me: "self",
@@ -7,39 +9,6 @@ const AUTHOR_ALIASES = {
   they: "other",
   unknown: "unknown",
 };
-
-function parseApiUrl(value) {
-  const text = String(value || "").trim();
-  if (!text) {
-    return {
-      ok: false,
-      status: "missing_api_url",
-      apiUrl: "",
-    };
-  }
-
-  try {
-    const parsed = new URL(text);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return {
-        ok: false,
-        status: "invalid_api_url",
-        apiUrl: text,
-      };
-    }
-    return {
-      ok: true,
-      status: "api_url_ready",
-      apiUrl: parsed.toString().replace(/\/$/, ""),
-    };
-  } catch (_error) {
-    return {
-      ok: false,
-      status: "invalid_api_url",
-      apiUrl: text,
-    };
-  }
-}
 
 function parseMessageLine(line, index) {
   const trimmed = String(line || "").trim();
@@ -164,11 +133,13 @@ export function createMatchClient({
         );
       }
 
-      const parsedApiUrl = parseApiUrl(apiUrl);
+      const parsedApiUrl = parseBackendBaseUrl(apiUrl);
       if (!parsedApiUrl.ok) {
         return buildClientError(
           parsedApiUrl.status,
-          "Set EXPO_PUBLIC_API_URL to run the local backend match route.",
+          parsedApiUrl.status === "missing_api_url"
+            ? "Set EXPO_PUBLIC_API_URL to run the backend match route."
+            : "EXPO_PUBLIC_API_URL must be a clean http(s) backend base URL.",
           { errors: [parsedApiUrl.status] }
         );
       }

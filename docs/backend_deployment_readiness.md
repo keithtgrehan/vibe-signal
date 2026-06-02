@@ -2,6 +2,12 @@
 
 Status: deployment-readiness scaffold only. This document does not claim production compliance, legal compliance, security certification, GDPR completion, or public-launch readiness.
 
+Current reviewed backend target for closed-beta QA is the Render/FastAPI deployment at:
+
+- `https://vibe-signal.onrender.com`
+
+The restored `web/` frontend is a separate Vite app and may be deployed separately later. That future frontend host must be added to CORS as an exact origin before browser submits can reach the backend.
+
 ## Implemented Backend Surface
 
 - `GET /healthz`: minimal liveness check.
@@ -40,7 +46,7 @@ Use the platform-provided port when available:
 PYTHONPATH=src python -m uvicorn backend.app:app --host 0.0.0.0 --port "${PORT:-8000}" --no-access-log
 ```
 
-This repo does not commit a provider-specific deployment target, hostname, `.replit`, Dockerfile, Procfile, or secret-bearing config. Disable or sanitize server, proxy, and platform access logs before beta traffic; the safe request logger is metadata-only, but default access logs can include raw request lines.
+This repo does not commit provider secrets, `.replit`, Dockerfile, Procfile, or secret-bearing deployment config. The current reviewed backend host is Render, but backend code should still be promoted through explicit environment configuration. Disable or sanitize server, proxy, and platform access logs before beta traffic; the safe request logger is metadata-only, but default access logs can include raw request lines.
 
 ## Backend Environment Variables
 
@@ -73,7 +79,21 @@ EXPO_PUBLIC_API_URL=https://<your-backend-host>
 
 Native iOS/Android requests are not governed by browser CORS. Expo web, browser-based testing, or future web/admin surfaces do require CORS, so set `VIBE_BACKEND_ALLOWED_ORIGINS` to exact deployed origins when those surfaces are used.
 
-Do not hardcode a production host into source. Keep `EXPO_PUBLIC_API_URL` environment-driven for local, staging, and production builds.
+For local browser QA of PR #17 against the current Render backend, configure this exact Render environment value:
+
+```bash
+VIBE_BACKEND_ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081,http://localhost:5173
+```
+
+Do not use wildcard CORS origins. For a future hosted web frontend, add that hosted frontend's exact origin to the comma-separated list.
+
+Set the standalone web app backend base URL with `VITE_API_URL` when overriding the reviewed Render default:
+
+```bash
+VITE_API_URL=https://vibe-signal.onrender.com
+```
+
+Keep `EXPO_PUBLIC_API_URL` environment-driven for mobile local, staging, and production builds.
 
 ## Safe Logging Guidance
 
@@ -113,6 +133,7 @@ Before deploying:
 - Confirm no secrets, raw chats, external datasets, provider responses, model binaries, vectors, checkpoints, or cached embeddings are staged.
 - Set `VIBE_BACKEND_ENV`, `VIBE_BACKEND_VERSION`, and any exact `VIBE_BACKEND_ALLOWED_ORIGINS`.
 - Set the mobile build/runtime `EXPO_PUBLIC_API_URL` to the deployed backend base URL.
+- Set the standalone web frontend `VITE_API_URL` if a non-default backend is used.
 - Keep `EXPO_PUBLIC_ENABLE_LOGGING` disabled unless bounded event metadata ingestion has been reviewed for that environment.
 
 After deploying:

@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import { buildMatchResultViewModel } from "./matchScreenModel.js";
+import { formatBackendUrlStatus, parseBackendBaseUrl } from "../services/backendUrl.js";
 import { createMatchClient } from "../services/matchClient.js";
 import { createVibeBackendClient } from "../services/vibeBackendClient.js";
 
@@ -78,7 +79,7 @@ function PressableText({ children, style, textStyle, disabled = false, ...props 
     <Pressable
       disabled={disabled}
       style={({ pressed }) => [
-        style,
+        ...(Array.isArray(style) ? style : [style]),
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
       ]}
@@ -207,12 +208,19 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
 
-  const apiConfigured = Boolean(normalizeText(apiUrl));
+  const apiUrlState = parseBackendBaseUrl(apiUrl);
+  const apiConfigured = apiUrlState.ok;
   const canSubmit = Boolean(normalizeText(text)) && consent && apiConfigured && !loading;
 
   async function handleSubmit() {
     if (!canSubmit) {
-      setStatus(apiConfigured ? "Confirm permission before sending." : "Set EXPO_PUBLIC_API_URL first.");
+      setStatus(
+        apiConfigured
+          ? "Confirm permission before sending."
+          : apiUrlState.status === "missing_api_url"
+            ? "Set EXPO_PUBLIC_API_URL first."
+            : "EXPO_PUBLIC_API_URL must be a clean http(s) backend base URL."
+      );
       return;
     }
 
@@ -262,9 +270,7 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
       <View style={styles.card}>
         <Text style={styles.eyebrow}>Backend route</Text>
         <Text style={styles.screenTitle}>Look Again</Text>
-        <Text style={styles.helperText}>
-          {apiConfigured ? apiUrl : "Set EXPO_PUBLIC_API_URL to use the backend."}
-        </Text>
+        <Text style={styles.helperText}>{formatBackendUrlStatus(apiUrl)}</Text>
 
         <View style={styles.segmented}>
           <PressableText
@@ -382,22 +388,31 @@ function MatchResult({ result, setScreen, setMode }) {
   const { backendClient } = useBackendClients();
   const viewModel = buildMatchResultViewModel(result || {});
   const [feedbackConsent, setFeedbackConsent] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
 
   async function sendFeedback(rating) {
-    setFeedbackStatus("");
-    setFeedbackError("");
-    const response = await backendClient.submitFeedbackMetadata({
-      matchId: result?.match_id || "",
-      rating,
-      consent: feedbackConsent,
-    });
-    if (response.ok) {
-      setFeedbackStatus("Feedback metadata accepted. No raw comment was sent.");
+    if (feedbackLoading) {
       return;
     }
-    setFeedbackError(response.userMessage || "Feedback could not be sent.");
+    setFeedbackLoading(true);
+    setFeedbackStatus("");
+    setFeedbackError("");
+    try {
+      const response = await backendClient.submitFeedbackMetadata({
+        matchId: result?.match_id || "",
+        rating,
+        consent: feedbackConsent,
+      });
+      if (response.ok) {
+        setFeedbackStatus("Feedback metadata accepted. No raw comment was sent.");
+        return;
+      }
+      setFeedbackError(response.userMessage || "Feedback could not be sent.");
+    } finally {
+      setFeedbackLoading(false);
+    }
   }
 
   return (
@@ -451,18 +466,20 @@ function MatchResult({ result, setScreen, setMode }) {
         </Pressable>
         <View style={styles.buttonRow}>
           <PressableText
+            disabled={feedbackLoading}
             style={[styles.secondaryButton, styles.flexButton]}
             textStyle={styles.secondaryButtonText}
             onPress={() => sendFeedback(1)}
           >
-            Useful
+            {feedbackLoading ? "Sending..." : "Useful"}
           </PressableText>
           <PressableText
+            disabled={feedbackLoading}
             style={[styles.secondaryButton, styles.flexButton]}
             textStyle={styles.secondaryButtonText}
             onPress={() => sendFeedback(0)}
           >
-            Not useful
+            {feedbackLoading ? "Sending..." : "Not useful"}
           </PressableText>
         </View>
         {feedbackStatus ? <Text style={styles.statusText}>{feedbackStatus}</Text> : null}

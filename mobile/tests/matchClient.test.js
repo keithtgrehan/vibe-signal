@@ -109,3 +109,23 @@ test("match client fails safely when backend URL is missing", async () => {
   assert.equal(result.status, "missing_api_url");
   assert.match(result.userMessage, /EXPO_PUBLIC_API_URL/);
 });
+
+test("match client rejects non-base backend URLs before fetch", async () => {
+  let called = false;
+  const client = createMatchClient({
+    apiUrl: "https://example.test/api?token=secret",
+    fetchImpl: async () => {
+      called = true;
+      throw new Error("fetch should not run");
+    },
+  });
+
+  const result = await client.submitMatchDraft({
+    conversationText: "self: Can you confirm Friday?\nother: Yes.",
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "invalid_api_url");
+  assert.match(result.userMessage, /clean http\(s\) backend base URL/);
+  assert.equal(called, false);
+});

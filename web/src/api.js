@@ -1,4 +1,5 @@
 const DEFAULT_API_URL = "https://vibe-signal.onrender.com";
+const REQUEST_TIMEOUT_MS = 15000;
 
 export const API_BASE_URL =
   String(import.meta.env.VITE_API_URL || import.meta.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL)
@@ -46,18 +47,47 @@ function buildConversationId(prefix) {
   return `${prefix}_${Date.now().toString(16)}`;
 }
 
+function buildSafeRequestError(path, status) {
+  const routeLabel =
+    path === "/api/match"
+      ? "The match request"
+      : path === "/api/analyze"
+        ? "The cue-evidence request"
+        : path === "/api/feedback"
+          ? "Feedback metadata"
+          : path.startsWith("/legal/")
+            ? "The legal draft"
+            : "The backend request";
+  const statusLabel = status ? ` Status ${status}.` : "";
+  return new Error(
+    `${routeLabel} could not be completed by the backend.${statusLabel} Check the backend URL and CORS configuration, then try again with synthetic or permissioned text.`
+  );
+}
+
 async function requestJson(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "content-type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
+  const controller = new AbortController();
+  const timer = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "content-type": "application/json",
+        ...(options.headers || {}),
+      },
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error("The backend request timed out. Check the backend URL and CORS configuration.");
+    }
+    throw new Error("The backend route could not be reached. Check the backend URL and CORS configuration.");
+  } finally {
+    globalThis.clearTimeout(timer);
+  }
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || `Request failed with ${response.status}`);
+    throw buildSafeRequestError(path, response.status);
   }
 
   return response.json();

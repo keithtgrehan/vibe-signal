@@ -70,3 +70,31 @@ test("fetchLegalDraft allows only known backend legal slugs", async () => {
     "https://example.test/legal/match-disclaimer",
   ]);
 });
+
+test("backend client rejects non-base URLs before analyze, feedback, or legal fetch", async () => {
+  let called = false;
+  const client = createVibeBackendClient({
+    apiUrl: "https://user:pass@example.test/api?token=secret",
+    fetchImpl: async () => {
+      called = true;
+      throw new Error("fetch should not run");
+    },
+  });
+
+  const analyze = await client.submitAnalyzeDraft({
+    conversationText: "self: Can you confirm Friday?\nother: Yes.",
+  });
+  const feedback = await client.submitFeedbackMetadata({
+    matchId: "vibe_match_123",
+    rating: 1,
+    consent: true,
+  });
+  const legal = await client.fetchLegalDraft("privacy");
+
+  for (const response of [analyze, feedback, legal]) {
+    assert.equal(response.ok, false);
+    assert.equal(response.status, "invalid_api_url");
+    assert.match(response.userMessage, /clean http\(s\) backend base URL/);
+  }
+  assert.equal(called, false);
+});
