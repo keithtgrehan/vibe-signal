@@ -1,1 +1,1 @@
-export { default } from "./src/screens/ProviderSettingsScreen.js";
+export { default } from "./src/screens/VibeSignalApp.js";

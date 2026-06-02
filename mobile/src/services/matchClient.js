@@ -121,9 +121,29 @@ function buildClientError(status, userMessage, extra = {}) {
   };
 }
 
+function withTimeout(promise, timeoutMs) {
+  const timeout = Number(timeoutMs || 0);
+  if (!Number.isFinite(timeout) || timeout <= 0) {
+    return promise;
+  }
+
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new Error("request_timeout"));
+      }, timeout);
+    }),
+  ]).finally(() => {
+    clearTimeout(timer);
+  });
+}
+
 export function createMatchClient({
   apiUrl = process.env.EXPO_PUBLIC_API_URL || "",
   fetchImpl = globalThis.fetch,
+  timeoutMs = 15000,
 } = {}) {
   return {
     async submitMatchDraft({
@@ -160,13 +180,16 @@ export function createMatchClient({
       }
 
       try {
-        const response = await fetchImpl(`${parsedApiUrl.apiUrl}/api/match`, {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify(request.payload),
-        });
+        const response = await withTimeout(
+          fetchImpl(`${parsedApiUrl.apiUrl}/api/match`, {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+            },
+            body: JSON.stringify(request.payload),
+          }),
+          timeoutMs
+        );
 
         if (!response?.ok) {
           let responseBody = "";
@@ -191,9 +214,14 @@ export function createMatchClient({
           result,
         };
       } catch (error) {
-        return buildClientError("network_error", "The backend match route could not be reached.", {
-          error: String(error?.message || error || ""),
-        });
+        const timedOut = String(error?.message || error || "") === "request_timeout";
+        return buildClientError(
+          timedOut ? "request_timeout" : "network_error",
+          "The backend match route could not be reached.",
+          {
+            error: String(error?.message || error || ""),
+          }
+        );
       }
     },
   };

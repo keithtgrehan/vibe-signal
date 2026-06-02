@@ -1,6 +1,16 @@
 {
-  "plugins": [
-    "expo-asset",
-    "expo-secure-store"
-  ]
+  "expo": {
+    "name": "Vibe Signal",
+    "slug": "vibe-signal",
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0F1C"
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-secure-store"
+    ]
+  }
 }
