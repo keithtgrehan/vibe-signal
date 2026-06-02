@@ -21,6 +21,7 @@ def test_readyz_exposes_deployment_safe_flags() -> None:
     assert body["deployment_claim"] == "readiness metadata only; no production compliance claim."
     assert body["checks"]["raw_message_persistence_enabled"] is False
     assert body["checks"]["raw_message_logging_enabled"] is False
+    assert body["checks"]["safe_request_logging_enabled"] is True
     assert body["checks"]["analytics_tracking_enabled"] is False
     assert body["checks"]["training_enabled"] is False
     assert body["checks"]["deterministic_routes_registered"] is True
@@ -44,6 +45,7 @@ def test_backend_settings_parse_safe_cors_origins_and_warn_on_rejected_values() 
     assert "unsupported_origin_scheme_rejected" in settings.config_warnings
     assert settings.raw_message_persistence_enabled is False
     assert settings.raw_message_logging_enabled is False
+    assert settings.safe_request_logging_enabled is True
     assert settings.analytics_tracking_enabled is False
     assert settings.training_enabled is False
 

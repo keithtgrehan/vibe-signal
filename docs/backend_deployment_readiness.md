@@ -6,6 +6,7 @@ Status: deployment-readiness scaffold only. This document does not claim product
 
 - `GET /healthz`: minimal liveness check.
 - `GET /readyz`: readiness metadata for route registration, CORS count, and hard safety flags.
+- Backend request logging emits metadata-only operational events with request IDs, endpoint path, status code, status category, latency bucket, and coarse error category.
 - `POST /api/analyze`: deterministic local cue evidence, no raw message persistence by default.
 - `POST /api/match`: deterministic communication-fit matching, no raw message persistence by default.
 - `POST /api/feedback`: requires explicit consent and stores metadata only by default.
@@ -70,7 +71,7 @@ Do not hardcode a production host into source. Keep `EXPO_PUBLIC_API_URL` enviro
 
 ## Safe Logging Guidance
 
-Deployment logs must stay metadata-only.
+Deployment logs must stay metadata-only. See [monitoring and no-raw-log readiness](monitoring_no_raw_logs.md) for the closed-beta monitoring checklist and incident-response triggers.
 
 Do not log:
 
@@ -89,6 +90,8 @@ Allowed operational log examples:
 - request ID
 - deployment environment label
 - bounded error category
+- latency bucket
+- explicit false flags for raw body, raw message, provider response, and secret logging
 
 This PR does not add analytics, tracking, account storage, raw message persistence, training, embeddings, datasets, model files, vectors, checkpoints, cached artifacts, or provider calls.
 

@@ -19,6 +19,6 @@ def create_match(payload: dict[str, Any]) -> dict[str, Any]:
     try:
         return match_conversation(payload)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail="match request could not be processed safely") from exc
     except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(status_code=500, detail="match service unavailable") from exc

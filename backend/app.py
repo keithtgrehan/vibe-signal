@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import BackendSettings, load_backend_settings
+from .monitoring import LOGGER_NAME, SafeRequestLoggingMiddleware
 from .routes import analyze, events, feedback, legal, match
 
 
@@ -28,6 +31,7 @@ def _readiness_payload(app: FastAPI) -> dict[str, object]:
         "cors_allowed_origins_count": len(settings.allowed_origins),
         "raw_message_persistence_enabled": settings.raw_message_persistence_enabled,
         "raw_message_logging_enabled": settings.raw_message_logging_enabled,
+        "safe_request_logging_enabled": settings.safe_request_logging_enabled,
         "analytics_tracking_enabled": settings.analytics_tracking_enabled,
         "training_enabled": settings.training_enabled,
     }
@@ -55,6 +59,10 @@ def create_app(settings: BackendSettings | None = None) -> FastAPI:
     resolved_settings = settings or load_backend_settings()
     backend_app = FastAPI(title="VibeSignal Backend", version=resolved_settings.version)
     backend_app.state.backend_settings = resolved_settings
+    logging.getLogger(LOGGER_NAME).setLevel(resolved_settings.log_level)
+
+    if resolved_settings.safe_request_logging_enabled:
+        backend_app.add_middleware(SafeRequestLoggingMiddleware)
 
     if resolved_settings.allowed_origins:
         backend_app.add_middleware(

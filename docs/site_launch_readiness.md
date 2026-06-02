@@ -10,6 +10,7 @@
 - draft privacy, terms, match disclaimer, deletion request, and export request documents exist
 - static draft legal routes exist for privacy, terms, deletion, export, and match disclaimer
 - backend `/healthz` and `/readyz` deployment-readiness checks exist
+- backend metadata-only request logging exists with request IDs and no raw body logging
 
 ## Research-Only
 
@@ -23,6 +24,7 @@
 - no external datasets, provider calls, model downloads, vectors, checkpoints, or embeddings are required
 - legal routes are static draft artifacts only and do not implement account, analytics, tracking, deletion, or export storage behavior
 - backend deployment readiness docs/config exist, but they do not prove live hosting or production compliance
+- bounded metadata monitoring scaffold exists, but production monitoring provider, alerting, and incident ownership are not complete
 
 ## Blocked
 
@@ -32,12 +34,13 @@
 - Privacy and terms drafts require legal review before public launch.
 - Deletion/export workflow requires reviewed support channel, identity checks, retention policy, and response timelines.
 - Live backend deployment must be verified with the final host and environment values.
+- Any raw user message, provider response, secret, vector, checkpoint, or request body in logs blocks launch.
 
 ## Future Work
 
 - No live backend deployment has been verified.
 - Final privacy, terms, deletion, and export URLs are not deployed.
-- Production monitoring is not implemented.
+- Production monitoring provider, alerting, incident owner assignment, and incident-response process are not complete.
 - GDPR, CCPA, App Store, and platform-policy review are not complete and are not claimed.
 
 ## Allowed Launch Copy
@@ -65,5 +68,6 @@ Any of the following blocks launch:
 - raw private chat committed
 - raw external dataset committed
 - provider response committed
+- raw request body or raw message logged
 - commercial-unsafe source used in commercial mode
 - model-quality claim made below reviewed-label thresholds

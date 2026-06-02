@@ -35,6 +35,8 @@ Safety boundaries:
 
 - `/api/match` calls the deterministic matcher.
 - Raw chats are not persisted by default.
+- Request logs are metadata-only and include request ID, path, status code, status category, latency bucket, and coarse error category.
+- Unexpected backend exceptions return a generic error with a request ID instead of raw exception text.
 - Feedback requires explicit consent.
 - Feedback stores metadata only, not raw comment text.
 - Event routes store bounded metadata only.
@@ -48,6 +50,7 @@ Deployment readiness:
 - `/readyz` reports route registration and hard safety flags; it is readiness metadata only and does not claim production compliance.
 - CORS is opt-in through exact `VIBE_BACKEND_ALLOWED_ORIGINS`; wildcard origins are rejected by config parsing.
 - Logs must stay metadata-only. Do not log raw chat text, request bodies, provider responses, credentials, model artifacts, vectors, or checkpoints.
+- See [docs/monitoring_no_raw_logs.md](../docs/monitoring_no_raw_logs.md) for closed-beta monitoring checks, no-raw-log rules, and manual incident-response triggers.
 
 Mobile match integration:
 

@@ -28,6 +28,7 @@ class BackendSettings:
     config_warnings: tuple[str, ...] = field(default_factory=tuple)
     raw_message_persistence_enabled: bool = False
     raw_message_logging_enabled: bool = False
+    safe_request_logging_enabled: bool = True
     analytics_tracking_enabled: bool = False
     training_enabled: bool = False
 
