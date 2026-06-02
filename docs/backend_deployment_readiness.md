@@ -6,6 +6,7 @@ Status: deployment-readiness scaffold only. This document does not claim product
 
 - `GET /healthz`: minimal liveness check.
 - `GET /readyz`: readiness metadata for route registration, CORS count, and hard safety flags.
+- Backend request logging emits metadata-only operational events with request IDs, safe route templates/categories, status code, status category, latency bucket, and coarse error category.
 - `POST /api/analyze`: deterministic local cue evidence, no raw message persistence by default.
 - `POST /api/match`: deterministic communication-fit matching, no raw message persistence by default.
 - `POST /api/feedback`: requires explicit consent and stores metadata only by default.
@@ -15,7 +16,7 @@ Status: deployment-readiness scaffold only. This document does not claim product
 ## Local Run
 
 ```bash
-uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
+uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
 Check liveness and readiness:
@@ -30,10 +31,10 @@ curl http://127.0.0.1:8000/readyz
 Use the platform-provided port when available:
 
 ```bash
-python -m uvicorn backend.app:app --host 0.0.0.0 --port "${PORT:-8000}"
+python -m uvicorn backend.app:app --host 0.0.0.0 --port "${PORT:-8000}" --no-access-log
 ```
 
-This repo does not commit a provider-specific deployment target, hostname, `.replit`, Dockerfile, Procfile, or secret-bearing config.
+This repo does not commit a provider-specific deployment target, hostname, `.replit`, Dockerfile, Procfile, or secret-bearing config. Disable or sanitize server, proxy, and platform access logs before beta traffic; the safe request logger is metadata-only, but default access logs can include raw request lines.
 
 ## Backend Environment Variables
 
@@ -70,7 +71,7 @@ Do not hardcode a production host into source. Keep `EXPO_PUBLIC_API_URL` enviro
 
 ## Safe Logging Guidance
 
-Deployment logs must stay metadata-only.
+Deployment logs must stay metadata-only. See [monitoring and no-raw-log readiness](monitoring_no_raw_logs.md) for the closed-beta monitoring checklist and incident-response triggers.
 
 Do not log:
 
@@ -83,12 +84,14 @@ Do not log:
 
 Allowed operational log examples:
 
-- route name
+- safe route template or endpoint category
 - status code
 - request duration
 - request ID
 - deployment environment label
 - bounded error category
+- latency bucket
+- explicit false flags for raw body, raw message, provider response, and secret logging
 
 This PR does not add analytics, tracking, account storage, raw message persistence, training, embeddings, datasets, model files, vectors, checkpoints, cached artifacts, or provider calls.
 
@@ -114,6 +117,7 @@ After deploying:
 - Send one synthetic `/api/match` request; do not use private chats for smoke tests.
 - Run `cd mobile && npm run verify:backend -- --api-url https://<your-backend-host> --event state` if event routes are in scope.
 - Confirm logs do not contain raw message text, secrets, provider responses, or request bodies.
+- Confirm server/proxy/platform access logs are disabled or sanitized so they do not include query strings, arbitrary URL paths, authorization headers, cookies, or request bodies.
 
 ## Remaining Launch Blockers
 

@@ -24,6 +24,8 @@ This checklist is an honest split between code-complete work, still-manual confi
 - purchase and restore failure states are bounded and non-crashing
 - backend `/readyz` readiness metadata exists
 - backend CORS config is exact-origin and environment-driven
+- backend request logs are metadata-only and carry request IDs
+- backend unexpected-error responses are generic and include request IDs
 
 ## Code-complete but unverified on real device
 
@@ -53,6 +55,7 @@ This checklist is an honest split between code-complete work, still-manual confi
 - run `curl https://<your-backend-host>/healthz`
 - run `curl https://<your-backend-host>/readyz`
 - confirm deployed logs do not include raw chat text, request bodies, provider responses, credentials, model artifacts, vectors, or checkpoints
+- record one closed-beta monitoring review using [monitoring_no_raw_logs.md](monitoring_no_raw_logs.md)
 
 ## Still missing in this workspace
 
@@ -63,6 +66,7 @@ This checklist is an honest split between code-complete work, still-manual confi
 - final deployed privacy, terms, deletion, and export URLs
 - legal-reviewed deletion/export support workflow and retention policy
 - production monitoring and incident-response process
+- alert routing and incident owner assignment
 
 ## Remaining live sandbox dependency
 

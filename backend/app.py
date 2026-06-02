@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+import logging
 
-from .config import BackendSettings, load_backend_settings
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from .config import BackendSettings, load_backend_settings, safe_version_label
+from .monitoring import LOGGER_NAME, SafeRequestLoggingMiddleware
 from .routes import analyze, events, feedback, legal, match
 
 
@@ -28,6 +33,7 @@ def _readiness_payload(app: FastAPI) -> dict[str, object]:
         "cors_allowed_origins_count": len(settings.allowed_origins),
         "raw_message_persistence_enabled": settings.raw_message_persistence_enabled,
         "raw_message_logging_enabled": settings.raw_message_logging_enabled,
+        "safe_request_logging_enabled": settings.safe_request_logging_enabled,
         "analytics_tracking_enabled": settings.analytics_tracking_enabled,
         "training_enabled": settings.training_enabled,
     }
@@ -43,7 +49,7 @@ def _readiness_payload(app: FastAPI) -> dict[str, object]:
         "status": "ready" if deterministic_routes_registered and not unsafe_enabled else "not_ready",
         "service": "vibe-signal-backend",
         "environment": settings.environment,
-        "version": settings.version,
+        "version": safe_version_label(settings.version),
         "log_level": settings.log_level,
         "checks": checks,
         "config_warnings": list(settings.config_warnings),
@@ -53,8 +59,25 @@ def _readiness_payload(app: FastAPI) -> dict[str, object]:
 
 def create_app(settings: BackendSettings | None = None) -> FastAPI:
     resolved_settings = settings or load_backend_settings()
-    backend_app = FastAPI(title="VibeSignal Backend", version=resolved_settings.version)
+    backend_app = FastAPI(
+        title="VibeSignal Backend",
+        version=safe_version_label(resolved_settings.version),
+    )
     backend_app.state.backend_settings = resolved_settings
+    logging.getLogger(LOGGER_NAME).setLevel(resolved_settings.log_level)
+
+    @backend_app.exception_handler(RequestValidationError)
+    async def request_validation_error_handler(
+        _request: Request,
+        _exc: RequestValidationError,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "Invalid request payload."},
+        )
+
+    if resolved_settings.safe_request_logging_enabled:
+        backend_app.add_middleware(SafeRequestLoggingMiddleware)
 
     if resolved_settings.allowed_origins:
         backend_app.add_middleware(

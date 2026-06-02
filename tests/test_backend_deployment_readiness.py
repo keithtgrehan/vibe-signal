@@ -21,6 +21,7 @@ def test_readyz_exposes_deployment_safe_flags() -> None:
     assert body["deployment_claim"] == "readiness metadata only; no production compliance claim."
     assert body["checks"]["raw_message_persistence_enabled"] is False
     assert body["checks"]["raw_message_logging_enabled"] is False
+    assert body["checks"]["safe_request_logging_enabled"] is True
     assert body["checks"]["analytics_tracking_enabled"] is False
     assert body["checks"]["training_enabled"] is False
     assert body["checks"]["deterministic_routes_registered"] is True
@@ -44,8 +45,20 @@ def test_backend_settings_parse_safe_cors_origins_and_warn_on_rejected_values() 
     assert "unsupported_origin_scheme_rejected" in settings.config_warnings
     assert settings.raw_message_persistence_enabled is False
     assert settings.raw_message_logging_enabled is False
+    assert settings.safe_request_logging_enabled is True
     assert settings.analytics_tracking_enabled is False
     assert settings.training_enabled is False
+
+
+def test_backend_settings_rejects_secret_shaped_version_labels() -> None:
+    settings = load_backend_settings(
+        {
+            "VIBE_BACKEND_VERSION": "secret-token-version-123",
+        }
+    )
+
+    assert settings.version == "unknown"
+    assert "unsafe_version_defaulted_to_unknown" in settings.config_warnings
 
 
 def test_backend_settings_rejects_path_query_fragment_and_unknown_environment() -> None:
@@ -86,6 +99,23 @@ def test_readyz_reports_cors_count_without_echoing_origin_values() -> None:
     body = response.json()
     assert body["checks"]["cors_allowed_origins_count"] == 1
     assert "https://private-mobile.example.com" not in json.dumps(body)
+
+
+def test_readyz_does_not_echo_secret_shaped_version_values() -> None:
+    configured_app = create_app(
+        BackendSettings(
+            environment="production",
+            version="secret-token-version-123",
+        )
+    )
+    client = TestClient(configured_app)
+
+    response = client.get("/readyz")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["version"] == "unknown"
+    assert "secret-token-version-123" not in json.dumps(body)
 
 
 def test_configured_cors_allows_only_exact_origins() -> None:
