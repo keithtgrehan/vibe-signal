@@ -184,6 +184,14 @@ Match submission copy now also reminds users:
 - Users should not include sensitive personal data, secrets, medical data, legal documents, financial data, or third-party private messages without permission.
 - Closed beta is not production launch, and privacy/terms drafts require legal review before public launch.
 
+Closed-beta device QA is documented in:
+
+- [../docs/device_qa_script.md](../docs/device_qa_script.md)
+- [../docs/closed_beta_readiness_checklist.md](../docs/closed_beta_readiness_checklist.md)
+- [../docs/closed_beta_tester_instructions.md](../docs/closed_beta_tester_instructions.md)
+
+The match-screen QA pass should cover missing `EXPO_PUBLIC_API_URL`, empty input, `Checking communication fit...` loading state, unreachable-backend error state, and the synthetic happy-path result. Use synthetic toy messages only; do not paste real private chats into QA notes or screenshots.
+
 What is not committed in this repo:
 
 - a `.replit` file
