@@ -84,6 +84,7 @@ Start here if you want the fastest credible walkthrough:
 - [docs/privacy_policy_draft.md](docs/privacy_policy_draft.md) and [docs/terms_draft.md](docs/terms_draft.md) for draft app/site legal copy that still requires legal review
 - [docs/data_deletion_request_draft.md](docs/data_deletion_request_draft.md) and [docs/data_export_request_draft.md](docs/data_export_request_draft.md) for closed-beta deletion/export readiness notes
 - [docs/match_usage_consent_disclaimer.md](docs/match_usage_consent_disclaimer.md) for `/api/match` submission copy boundaries
+- [docs/backend_deployment_readiness.md](docs/backend_deployment_readiness.md) for backend deployment checks, CORS configuration, and safe logging boundaries
 - [docs/provider_disclosure_notes.md](docs/provider_disclosure_notes.md) for optional provider positioning
 - [docs/legal_safe_output_policy.md](docs/legal_safe_output_policy.md) for wording and safety constraints
 - [docs/proof/phase_validation_2026-04-07/final_phase_validation_summary.md](docs/proof/phase_validation_2026-04-07/final_phase_validation_summary.md) for bounded execution proof

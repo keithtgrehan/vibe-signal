@@ -17,6 +17,7 @@ uvicorn backend.app:app --reload --host 0.0.0.0 --port 8000
 Routes:
 
 - `GET /healthz`
+- `GET /readyz`
 - `POST /api/analyze`
 - `POST /api/match`
 - `POST /api/feedback`
@@ -39,6 +40,14 @@ Safety boundaries:
 - Event routes store bounded metadata only.
 - Legal routes are static draft artifacts for closed-beta readiness and do not claim production compliance.
 - Privacy, terms, deletion, export, and match disclaimer drafts require legal review before public launch.
+
+Deployment readiness:
+
+- See [docs/backend_deployment_readiness.md](../docs/backend_deployment_readiness.md).
+- See [deployment.env.example](deployment.env.example) for non-secret environment variable examples.
+- `/readyz` reports route registration and hard safety flags; it is readiness metadata only and does not claim production compliance.
+- CORS is opt-in through exact `VIBE_BACKEND_ALLOWED_ORIGINS`; wildcard origins are rejected by config parsing.
+- Logs must stay metadata-only. Do not log raw chat text, request bodies, provider responses, credentials, model artifacts, vectors, or checkpoints.
 
 Mobile match integration:
 
