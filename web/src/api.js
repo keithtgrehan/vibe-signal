@@ -1,10 +1,70 @@
 const DEFAULT_API_URL = "https://vibe-signal.onrender.com";
 const REQUEST_TIMEOUT_MS = 15000;
 
-export const API_BASE_URL =
-  String(import.meta.env.VITE_API_URL || import.meta.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL)
-    .trim()
-    .replace(/\/$/, "");
+function normalizeText(value) {
+  return String(value || "").trim();
+}
+
+export function parseApiBaseUrl(value) {
+  const text = normalizeText(value);
+  if (!text) {
+    return {
+      ok: false,
+      status: "missing_api_url",
+      apiUrl: "",
+      host: "",
+    };
+  }
+
+  try {
+    const parsed = new URL(text);
+    const hasUnsafeParts =
+      parsed.username ||
+      parsed.password ||
+      parsed.search ||
+      parsed.hash ||
+      (parsed.pathname && parsed.pathname !== "/");
+
+    if (!["http:", "https:"].includes(parsed.protocol) || hasUnsafeParts) {
+      return {
+        ok: false,
+        status: "invalid_api_url",
+        apiUrl: "",
+        host: "",
+      };
+    }
+
+    return {
+      ok: true,
+      status: "api_url_ready",
+      apiUrl: parsed.origin,
+      host: parsed.host,
+    };
+  } catch (_error) {
+    return {
+      ok: false,
+      status: "invalid_api_url",
+      apiUrl: "",
+      host: "",
+    };
+  }
+}
+
+export function getApiBaseUrlStatus(env = {}) {
+  const candidate =
+    normalizeText(env.VITE_API_URL) ||
+    normalizeText(env.VITE_API_BASE_URL) ||
+    normalizeText(env.EXPO_PUBLIC_API_URL) ||
+    DEFAULT_API_URL;
+  return parseApiBaseUrl(candidate);
+}
+
+export function resolveApiBaseUrl(env = {}) {
+  return getApiBaseUrlStatus(env).apiUrl;
+}
+
+export const API_CONFIG = getApiBaseUrlStatus(import.meta.env || {});
+export const API_BASE_URL = API_CONFIG.apiUrl;
 
 const AUTHOR_ALIASES = {
   self: "self",
@@ -47,6 +107,12 @@ function buildConversationId(prefix) {
   return `${prefix}_${Date.now().toString(16)}`;
 }
 
+function buildFeedbackEventId(matchId, rating) {
+  const safeMatchId = normalizeText(matchId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 48);
+  const safeRating = String(rating === 1 ? 1 : 0);
+  return `evt_feedback_${safeMatchId || "unknown"}_${safeRating}`;
+}
+
 function buildSafeRequestError(path, status) {
   const routeLabel =
     path === "/api/match"
@@ -65,6 +131,12 @@ function buildSafeRequestError(path, status) {
 }
 
 async function requestJson(path, options = {}) {
+  if (!API_CONFIG.ok) {
+    throw new Error(
+      "The backend URL is misconfigured. Set VITE_API_BASE_URL to a clean http(s) backend origin."
+    );
+  }
+
   const controller = new AbortController();
   const timer = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   let response;
@@ -130,10 +202,12 @@ export async function submitAnalyze(conversationText) {
 }
 
 export async function submitFeedback({ matchId, rating, consent }) {
+  const safeMatchId = normalizeText(matchId);
   return requestJson("/api/feedback", {
     method: "POST",
     body: JSON.stringify({
-      match_id: matchId,
+      feedback_event_id: buildFeedbackEventId(safeMatchId, rating),
+      match_id: safeMatchId,
       rating,
       comment: "",
       consent_to_store_feedback: consent === true,

@@ -71,19 +71,34 @@ def _fallback_metric(y_true: list[int]) -> dict[str, Any]:
     }
 
 
+def _template_category(row: dict[str, Any]) -> str:
+    return str(row.get("provenance", {}).get("template_category", "")).strip()
+
+
 def train_baseline(rows: list[dict[str, Any]], *, project_mode: str) -> dict[str, Any]:
     try:
         from sklearn.feature_extraction.text import TfidfVectorizer
         from sklearn.linear_model import LogisticRegression
         from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_fscore_support
-        from sklearn.model_selection import train_test_split
         from sklearn.pipeline import FeatureUnion
     except Exception as exc:  # pragma: no cover - environment-specific
         raise RuntimeError("scikit-learn is required for the research-only matching baseline") from exc
 
     texts = [pair_text(row) for row in rows]
-    indices = list(range(len(rows)))
-    train_indices, test_indices = train_test_split(indices, test_size=0.25, random_state=42, shuffle=True)
+    template_categories = sorted({_template_category(row) for row in rows if _template_category(row)})
+    test_template_categories = set(template_categories[::4])
+    if not test_template_categories and template_categories:
+        test_template_categories = {template_categories[-1]}
+
+    train_indices = [
+        index
+        for index, row in enumerate(rows)
+        if _template_category(row) not in test_template_categories
+    ]
+    test_indices = [index for index in range(len(rows)) if index not in set(train_indices)]
+    if not train_indices or not test_indices:
+        raise ValueError("template-category holdout split requires at least one train and test category")
+
     x_train = [texts[index] for index in train_indices]
     x_test = [texts[index] for index in test_indices]
 
@@ -121,9 +136,30 @@ def train_baseline(rows: list[dict[str, Any]], *, project_mode: str) -> dict[str
         "status": "trained",
         "project_mode": project_mode,
         "row_count": len(rows),
-        "split": {"train_rows": len(train_indices), "test_rows": len(test_indices), "random_seed": 42},
+        "source_id": "synthetic_vibe_matching",
+        "split": {
+            "strategy": "template_category_holdout",
+            "train_rows": len(train_indices),
+            "test_rows": len(test_indices),
+            "test_template_categories": sorted(test_template_categories),
+        },
         "metrics_by_label": metrics_by_label,
         "macro_f1_trained_labels": round(sum(f1_values) / len(f1_values), 4) if f1_values else 0.0,
+        "benchmark_scope": "synthetic_fixture_template_holdout",
+        "production_claims": False,
+        "public_quality_claims_supported": False,
+        "blocked_claims": [
+            "deception",
+            "hidden_intent",
+            "attraction",
+            "cheating",
+            "diagnosis",
+            "neurotype",
+            "attachment_style",
+            "manipulation",
+            "emotional_truth",
+            "relationship_success",
+        ],
         "provider_calls_made": False,
         "model_artifacts_saved": False,
         "vector_artifacts_created": False,

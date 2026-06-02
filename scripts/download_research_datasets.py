@@ -41,6 +41,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args.dry_run:
         print("Only --dry-run is implemented; real source download is blocked.", file=sys.stderr)
         return 1
+    if args.project_mode == "commercial":
+        print("Commercial dataset access is blocked; this dry-run tool is research-only.", file=sys.stderr)
+        return 1
 
     rows = source_rows(read_structured(Path(args.config)))
     selected = _select_rows(rows, args.source_id, args.all_approved_research)

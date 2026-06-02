@@ -1,202 +1,185 @@
 {
-  "macro_f1_trained_labels": 1.0,
+  "benchmark_scope": "synthetic_fixture_template_holdout",
+  "blocked_claims": [
+    "deception",
+    "hidden_intent",
+    "attraction",
+    "cheating",
+    "diagnosis",
+    "neurotype",
+    "attachment_style",
+    "manipulation",
+    "emotional_truth",
+    "relationship_success"
+  ],
+  "macro_f1_trained_labels": 0.1945,
   "metrics_by_label": {
     "answer_evasion_pattern": {
-      "accuracy": 1.0,
+      "accuracy": 0.6,
       "confusion_matrix": [
         [
-          31,
+          27,
           0
         ],
         [
-          0,
-          7
+          18,
+          0
         ]
       ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
       "trained": true
     },
     "boundary_fit": {
       "accuracy": 1.0,
-      "confusion_matrix": [
-        [
-          25,
-          0
-        ],
-        [
-          0,
-          13
-        ]
-      ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "trained": true
+      "confusion_matrix": [],
+      "f1": 0.0,
+      "note": "Skipped classifier because only one class was present.",
+      "precision": 0.0,
+      "recall": 0.0,
+      "trained": false
     },
     "clarity_fit": {
-      "accuracy": 1.0,
+      "accuracy": 0.6,
       "confusion_matrix": [
         [
-          20,
+          27,
           0
         ],
-        [
-          0,
-          18
-        ]
-      ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "trained": true
-    },
-    "cognitive_load_fit": {
-      "accuracy": 1.0,
-      "confusion_matrix": [
         [
           18,
           0
-        ],
-        [
-          0,
-          20
         ]
       ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "trained": true
+    },
+    "cognitive_load_fit": {
+      "accuracy": 0.6,
+      "confusion_matrix": [
+        [
+          9,
+          9
+        ],
+        [
+          9,
+          18
+        ]
+      ],
+      "f1": 0.6667,
+      "precision": 0.6667,
+      "recall": 0.6667,
       "trained": true
     },
     "communication_fit": {
-      "accuracy": 1.0,
+      "accuracy": 0.6,
       "confusion_matrix": [
         [
-          22,
-          0
+          18,
+          18
         ],
         [
           0,
-          16
+          9
         ]
       ],
-      "f1": 1.0,
-      "precision": 1.0,
+      "f1": 0.5,
+      "precision": 0.3333,
       "recall": 1.0,
       "trained": true
     },
     "contradiction_against_prior_message": {
-      "accuracy": 1.0,
-      "confusion_matrix": [
-        [
-          34,
-          0
-        ],
-        [
-          0,
-          4
-        ]
-      ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "trained": true
+      "accuracy": 0.8,
+      "confusion_matrix": [],
+      "f1": 0.0,
+      "note": "Skipped classifier because only one class was present.",
+      "precision": 0.0,
+      "recall": 0.0,
+      "trained": false
     },
     "inconsistency_cues": {
-      "accuracy": 1.0,
+      "accuracy": 0.8,
       "confusion_matrix": [
         [
-          31,
+          36,
           0
         ],
         [
-          0,
-          7
+          9,
+          0
         ]
       ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
       "trained": true
     },
     "pressure_risk": {
       "accuracy": 1.0,
-      "confusion_matrix": [
-        [
-          33,
-          0
-        ],
-        [
-          0,
-          5
-        ]
-      ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "trained": true
+      "confusion_matrix": [],
+      "f1": 0.0,
+      "note": "Skipped classifier because only one class was present.",
+      "precision": 0.0,
+      "recall": 0.0,
+      "trained": false
     },
     "repair_fit": {
       "accuracy": 1.0,
-      "confusion_matrix": [
-        [
-          35,
-          0
-        ],
-        [
-          0,
-          3
-        ]
-      ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "trained": true
+      "confusion_matrix": [],
+      "f1": 0.0,
+      "note": "Skipped classifier because only one class was present.",
+      "precision": 0.0,
+      "recall": 0.0,
+      "trained": false
     },
     "specificity_drop": {
-      "accuracy": 1.0,
+      "accuracy": 0.8,
       "confusion_matrix": [
         [
-          31,
+          36,
           0
         ],
         [
-          0,
-          7
+          9,
+          0
         ]
       ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
       "trained": true
     },
     "unsupported_claim_shift": {
       "accuracy": 1.0,
-      "confusion_matrix": [
-        [
-          35,
-          0
-        ],
-        [
-          0,
-          3
-        ]
-      ],
-      "f1": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "trained": true
+      "confusion_matrix": [],
+      "f1": 0.0,
+      "note": "Skipped classifier because only one class was present.",
+      "precision": 0.0,
+      "recall": 0.0,
+      "trained": false
     }
   },
   "model_artifacts_saved": false,
+  "production_claims": false,
   "project_mode": "research_only",
   "provider_calls_made": false,
+  "public_quality_claims_supported": false,
   "row_count": 150,
+  "source_id": "synthetic_vibe_matching",
   "split": {
-    "random_seed": 42,
-    "test_rows": 38,
-    "train_rows": 112
+    "strategy": "template_category_holdout",
+    "test_rows": 45,
+    "test_template_categories": [
+      "answer_evasion",
+      "contradiction",
+      "mixed_fit",
+      "specificity",
+      "vague_reply"
+    ],
+    "train_rows": 105
   },
   "status": "trained",
   "training_data": "synthetic_vibe_matching_only",

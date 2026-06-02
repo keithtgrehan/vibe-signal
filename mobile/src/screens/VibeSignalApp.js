@@ -391,9 +391,15 @@ function MatchResult({ result, setScreen, setMode }) {
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
+  const [submittedFeedbackRatings, setSubmittedFeedbackRatings] = useState([]);
 
   async function sendFeedback(rating) {
     if (feedbackLoading) {
+      return;
+    }
+    if (submittedFeedbackRatings.includes(rating)) {
+      setFeedbackStatus("Feedback metadata already accepted for this result.");
+      setFeedbackError("");
       return;
     }
     setFeedbackLoading(true);
@@ -406,6 +412,9 @@ function MatchResult({ result, setScreen, setMode }) {
         consent: feedbackConsent,
       });
       if (response.ok) {
+        setSubmittedFeedbackRatings((current) =>
+          current.includes(rating) ? current : [...current, rating]
+        );
         setFeedbackStatus("Feedback metadata accepted. No raw comment was sent.");
         return;
       }
@@ -466,7 +475,7 @@ function MatchResult({ result, setScreen, setMode }) {
         </Pressable>
         <View style={styles.buttonRow}>
           <PressableText
-            disabled={feedbackLoading}
+            disabled={feedbackLoading || submittedFeedbackRatings.includes(1)}
             style={[styles.secondaryButton, styles.flexButton]}
             textStyle={styles.secondaryButtonText}
             onPress={() => sendFeedback(1)}
@@ -474,7 +483,7 @@ function MatchResult({ result, setScreen, setMode }) {
             {feedbackLoading ? "Sending..." : "Useful"}
           </PressableText>
           <PressableText
-            disabled={feedbackLoading}
+            disabled={feedbackLoading || submittedFeedbackRatings.includes(0)}
             style={[styles.secondaryButton, styles.flexButton]}
             textStyle={styles.secondaryButtonText}
             onPress={() => sendFeedback(0)}

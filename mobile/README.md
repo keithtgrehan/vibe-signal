@@ -17,7 +17,7 @@ The current Expo shell opens to the polished Vibe Signal flow restored from the 
 - safe result rendering for score, fit band, positive factors, risk factors, evidence phrases, and empty evidence arrays
 - synthetic or permissioned text examples only
 
-Basic QA of this restored UI does not require RevenueCat, StoreKit, paywall setup, or a provider API key. Provider, quota, billing, and local-analysis scaffolds remain in the repo for existing tests and future reviewed flows, but they are not required for the PR #17 match/evidence/legal QA path.
+Basic QA of this restored UI does not require RevenueCat, StoreKit, paywall setup, or a provider API key. Provider, quota, billing, and local-analysis scaffolds remain in the repo for existing tests and future reviewed flows, but they are not required for the current match/evidence/legal QA path.
 
 The existing BYOK support flow covers:
 
@@ -134,7 +134,7 @@ Current limits:
 - reconnect-triggered flush is not implemented because this checkout does not yet include a dedicated network-status listener
 - event ordering is strongest within one device and one local install because ordering depends on device-local persisted sequence numbers
 - `app_version` is included in the envelope shape, but this shell leaves it empty unless `EXPO_PUBLIC_APP_VERSION` is configured
-- the backend/admin event-ingestion code is not present in this workspace, so backend compatibility is enforced from the mobile contract side only
+- backend event acceptance routes are present in the current Render/FastAPI backend; an admin dashboard for event review is not present in this workspace
 
 ## Render / Backend Wiring
 
@@ -420,8 +420,8 @@ What still depends on later store wiring:
 - restore/sync execution against live store accounts
 - mobile UI for purchase, restore, and paywall presentation
   - the current Expo shell now has the real wiring for quota and paywall state, but still needs on-device iPhone sandbox validation for the Apple purchase path
-- backend/admin event-ingestion implementation
-  - this mobile repo now sends the bounded event contract, but the actual server-side ingestion code is not present here
+- admin event-review dashboard implementation
+  - this mobile repo now sends the bounded event contract and the backend accepts event metadata, but no admin dashboard behavior is implemented here
 
 Still unverified here:
 

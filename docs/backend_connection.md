@@ -4,7 +4,7 @@ VibeSignal uses a FastAPI backend. The current reviewed backend deployment is Re
 
 - `https://vibe-signal.onrender.com`
 
-The mobile app will **not** send match requests, telemetry, or backend-bound verification requests unless `EXPO_PUBLIC_API_URL` is set to a reachable backend base URL. The standalone `web/` Vite frontend defaults to the Render backend, and can be pointed at another reviewed backend with `VITE_API_URL` or `EXPO_PUBLIC_API_URL`.
+The mobile app will **not** send match requests, telemetry, or backend-bound verification requests unless `EXPO_PUBLIC_API_URL` is set to a reachable backend base URL. The standalone `web/` Vite frontend defaults to the Render backend, and can be pointed at another reviewed backend with `VITE_API_BASE_URL`, `VITE_API_URL`, or `EXPO_PUBLIC_API_URL`.
 
 ## What Is Already Wired
 
@@ -36,19 +36,19 @@ Do not include a route path, query string, fragment, username, password, token, 
 For the standalone web frontend, set the same backend base URL with:
 
 ```bash
-VITE_API_URL=https://vibe-signal.onrender.com npm run dev
+VITE_API_BASE_URL=https://vibe-signal.onrender.com npm run dev
 ```
 
-The Vite config also exposes `EXPO_PUBLIC_API_URL` for MacBook web preview parity, but `VITE_API_URL` is the clearest web-specific name.
+The Vite app also supports `VITE_API_URL` and `EXPO_PUBLIC_API_URL` for local preview parity, but `VITE_API_BASE_URL` is the clearest hosted-web name.
 
 ## CORS And Mobile URL Configuration
 
 Native iOS and Android requests are not controlled by browser CORS. Expo web, browser-based testing, or future web/admin surfaces do need CORS. Configure exact allowed browser origins on the backend with:
 
-- local PR #17 web QA:
-  - `VIBE_BACKEND_ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081,http://localhost:5173`
+- hosted web plus local QA:
+  - `VIBE_BACKEND_ALLOWED_ORIGINS=https://vibe-signal.vercel.app,http://localhost:19006,http://localhost:8081,http://localhost:5173`
 - future hosted frontend examples:
-  - `VIBE_BACKEND_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com`
+  - `VIBE_BACKEND_ALLOWED_ORIGINS=https://vibe-signal.vercel.app,https://app.example.com,https://admin.example.com`
 
 Do not use wildcard origins in production-facing environments. The backend config parser rejects `*`, non-HTTP(S) origins, and origins with paths, query strings, or fragments.
 
@@ -58,9 +58,9 @@ See [backend deployment readiness](backend_deployment_readiness.md) for the depl
 
 ## Current Render Backend
 
-The Render backend deployment remains the source of truth for backend QA. For local browser QA of PR #17, configure this exact Render environment value:
+The Render backend deployment remains the source of truth for backend QA. For hosted web and local browser QA, configure this exact Render environment value:
 
-- `VIBE_BACKEND_ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081,http://localhost:5173`
+- `VIBE_BACKEND_ALLOWED_ORIGINS=https://vibe-signal.vercel.app,http://localhost:19006,http://localhost:8081,http://localhost:5173`
 
 The backend deploy itself does not need code changes for these frontend clients.
 

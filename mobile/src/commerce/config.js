@@ -47,7 +47,7 @@ export const BILLING_PRODUCTS = [
 
 export const STORE_METADATA = {
   supportContactRef: readEnv("EXPO_PUBLIC_SUPPORT_CONTACT_REF", "support-contact-placeholder"),
-  privacyPolicyRouteRef: readEnv("EXPO_PUBLIC_PRIVACY_POLICY_ROUTE_REF", "/legal/privacy-policy"),
+  privacyPolicyRouteRef: readEnv("EXPO_PUBLIC_PRIVACY_POLICY_ROUTE_REF", "/legal/privacy"),
   termsRouteRef: readEnv("EXPO_PUBLIC_TERMS_ROUTE_REF", "/legal/terms"),
   privacyPolicyUrl: readEnv("EXPO_PUBLIC_PRIVACY_POLICY_URL", ""),
   termsUrl: readEnv("EXPO_PUBLIC_TERMS_URL", ""),

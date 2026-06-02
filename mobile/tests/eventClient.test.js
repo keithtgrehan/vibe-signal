@@ -169,6 +169,63 @@ test("event client persists failed events, retries them, and drops them after ma
   assert.equal(finalState.dropped_due_max_attempts, 1);
 });
 
+test("event client diagnostics do not retain raw rejected backend response bodies", async () => {
+  const rawSecret = "raw-private-message-secret-from-rejected-event";
+  const { client } = buildClient({
+    fetchImpl: async () => ({
+      ok: false,
+      status: 422,
+      async text() {
+        return rawSecret;
+      },
+    }),
+  });
+
+  await client.enqueueEvent("analysis", {
+    analysis_id: "analysis_rejected",
+    success: true,
+    mode: "relationship_chat",
+  });
+  const flush = await client.flushQueue({ reason: "test" });
+  const state = await client.getDebugState();
+  const rejection = state.diagnostics.find((item) => item.code === "backend_rejected_event");
+
+  assert.equal(flush.dropped_due_rejection, 1);
+  assert.ok(rejection);
+  assert.equal(rejection.details.responseStatus, 422);
+  assert.equal(rejection.details.response_body_present, true);
+  assert.equal(rejection.details.response_body_length, rawSecret.length);
+  assert.equal(Object.hasOwn(rejection.details, "responseBody"), false);
+  assert.equal(JSON.stringify(state.diagnostics).includes(rawSecret), false);
+});
+
+test("event client treats backend duplicate acknowledgements as safely flushed", async () => {
+  const { client } = buildClient({
+    fetchImpl: async () => ({
+      ok: false,
+      status: 409,
+      async text() {
+        return "duplicate";
+      },
+    }),
+  });
+
+  await client.enqueueEvent("analysis", {
+    analysis_id: "analysis_duplicate",
+    success: true,
+    mode: "relationship_chat",
+  });
+  const flush = await client.flushQueue({ reason: "test" });
+  const state = await client.getDebugState();
+
+  assert.equal(flush.queue_length, 0);
+  assert.equal(state.queue.length, 0);
+  assert.equal(
+    state.diagnostics.some((item) => item.code === "backend_duplicate_ack"),
+    true
+  );
+});
+
 test("event client flushes queued events on startup and on app foreground", async () => {
   const startupRequests = [];
   const startupBuild = buildClient({

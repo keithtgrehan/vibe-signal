@@ -79,18 +79,18 @@ EXPO_PUBLIC_API_URL=https://<your-backend-host>
 
 Native iOS/Android requests are not governed by browser CORS. Expo web, browser-based testing, or future web/admin surfaces do require CORS, so set `VIBE_BACKEND_ALLOWED_ORIGINS` to exact deployed origins when those surfaces are used.
 
-For local browser QA of PR #17 against the current Render backend, configure this exact Render environment value:
+For hosted web and local browser QA against the current Render backend, configure this exact Render environment value:
 
 ```bash
-VIBE_BACKEND_ALLOWED_ORIGINS=http://localhost:19006,http://localhost:8081,http://localhost:5173
+VIBE_BACKEND_ALLOWED_ORIGINS=https://vibe-signal.vercel.app,http://localhost:19006,http://localhost:8081,http://localhost:5173
 ```
 
-Do not use wildcard CORS origins. For a future hosted web frontend, add that hosted frontend's exact origin to the comma-separated list.
+Do not use wildcard CORS origins. For any future hosted web frontend, add that hosted frontend's exact origin to the comma-separated list.
 
-Set the standalone web app backend base URL with `VITE_API_URL` when overriding the reviewed Render default:
+Set the standalone web app backend base URL with `VITE_API_BASE_URL` when overriding the reviewed Render default:
 
 ```bash
-VITE_API_URL=https://vibe-signal.onrender.com
+VITE_API_BASE_URL=https://vibe-signal.onrender.com
 ```
 
 Keep `EXPO_PUBLIC_API_URL` environment-driven for mobile local, staging, and production builds.

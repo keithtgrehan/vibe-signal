@@ -25,6 +25,7 @@ export function SignalShareCard({
         ))}
       </View>
       {!!suggestion ? <Text style={styles.suggestion}>{suggestion}</Text> : null}
+      <Text style={styles.disclosure}>Pattern-based support only; not a conclusion about anyone.</Text>
     </View>
   );
 }
@@ -96,5 +97,10 @@ const styles = StyleSheet.create({
     color: "#9fb0c5",
     fontSize: 13,
     lineHeight: 20,
+  },
+  disclosure: {
+    color: "#8291a7",
+    fontSize: 12,
+    lineHeight: 18,
   },
 });

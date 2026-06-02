@@ -38,9 +38,14 @@ def test_embedding_experiment_writes_skipped_report_without_local_model(tmp_path
     assert result.returncode == 0, result.stdout + result.stderr
     payload = json.loads(report.read_text(encoding="utf-8"))
     assert payload["status"] == "SKIPPED"
+    assert payload["input"] == "data/vibe_matching/synthetic/synthetic_match_pairs.jsonl"
+    assert not payload["input"].startswith(str(ROOT))
+    assert payload["source_id"] == "synthetic_vibe_matching"
+    assert payload["benchmark_scope"] == "synthetic_fixture_local_embedding_diagnostic"
     assert payload["provider_calls_made"] is False
     assert payload["model_downloaded"] is False
     assert payload["dataset_downloaded"] is False
+    assert payload["public_quality_claims_supported"] is False
     assert "No production claims" in markdown.read_text(encoding="utf-8")
 
 

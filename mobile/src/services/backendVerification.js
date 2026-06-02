@@ -261,7 +261,7 @@ export async function verifyBackendConnection({
   const results = [];
   for (const request of plan.requests) {
     let responseStatus = 0;
-    let responseBody = "";
+    let responseBodyLength = 0;
     let responseOk = false;
     try {
       const response = await fetchImpl(request.url, {
@@ -274,10 +274,10 @@ export async function verifyBackendConnection({
       responseStatus = Number(response?.status || 0);
       responseOk = Boolean(response?.ok);
       if (typeof response?.text === "function") {
-        responseBody = String(await response.text()).slice(0, 1000);
+        responseBodyLength = String(await response.text()).slice(0, 1000).length;
       }
-    } catch (error) {
-      responseBody = String(error?.message || error || "");
+    } catch (_error) {
+      responseBodyLength = 0;
     }
 
     results.push({
@@ -285,7 +285,8 @@ export async function verifyBackendConnection({
       url: request.url,
       ok: responseOk,
       status: responseStatus || (responseOk ? 200 : 0),
-      responseBody,
+      responseBodyPresent: responseBodyLength > 0,
+      responseBodyLength,
     });
   }
 

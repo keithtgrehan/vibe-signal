@@ -54,8 +54,17 @@ def test_research_only_training_runs_on_synthetic_corpus(tmp_path: Path) -> None
     assert payload["row_count"] >= 150
     assert payload["provider_calls_made"] is False
     assert payload["model_artifacts_saved"] is False
+    assert payload["source_id"] == "synthetic_vibe_matching"
+    assert payload["split"]["strategy"] == "template_category_holdout"
+    assert payload["split"]["test_template_categories"]
+    assert payload["benchmark_scope"] == "synthetic_fixture_template_holdout"
+    assert payload["production_claims"] is False
+    assert payload["public_quality_claims_supported"] is False
+    assert "hidden_intent" in payload["blocked_claims"]
     assert "communication_fit" in payload["metrics_by_label"]
-    assert "Synthetic-only" in markdown.read_text(encoding="utf-8")
+    markdown_text = markdown.read_text(encoding="utf-8")
+    assert "Synthetic-only" in markdown_text
+    assert "Template-category holdout" in markdown_text
 
 
 def test_commercial_training_fails_closed(tmp_path: Path) -> None:

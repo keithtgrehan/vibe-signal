@@ -100,6 +100,7 @@ def test_validator_rejects_missing_provenance_and_unsafe_labels(tmp_path: Path) 
         "text_b": "They lied.",
         "label": "deception",
         "label_value": 1,
+        "categories": ["strong_fit"],
         "evidence": ["They lied."],
         "features": {feature: 0 for feature in REQUIRED_FEATURES},
         "blocked_interpretations": ["deception", "attraction", "diagnosis", "hidden_intent"],
@@ -122,10 +123,11 @@ def test_validator_rejects_private_or_copied_dataset_markers_and_non_binary_feat
         "text_b": "Copied from DailyDialog row 7",
         "label": "communication_fit",
         "label_value": 1,
+        "categories": ["strong_fit"],
         "evidence": ["specific evidence"],
         "features": {feature: 0 for feature in REQUIRED_FEATURES},
         "blocked_interpretations": ["deception", "attraction", "diagnosis", "hidden_intent"],
-        "provenance": {"created_by": "codex", "not_copied_from_real_chat": True, "synthetic": True},
+        "provenance": {"created_by": "codex", "not_copied_from_real_chat": True, "synthetic": True, "template_category": "strong_fit"},
     }
     bad["features"]["communication_fit"] = 2
     path = tmp_path / "bad_markers.jsonl"
@@ -137,3 +139,56 @@ def test_validator_rejects_private_or_copied_dataset_markers_and_non_binary_feat
     assert "private chat marker" in result.stderr
     assert "copied dataset marker" in result.stderr
     assert "feature communication_fit must be binary" in result.stderr
+
+
+def test_validator_requires_categories_and_matching_template_category(tmp_path: Path) -> None:
+    base = {
+        "pair_id": "bad_003",
+        "source_type": "synthetic_fixture",
+        "text_a": "Can you confirm Friday?",
+        "text_b": "Friday works for me.",
+        "label": "communication_fit",
+        "label_value": 1,
+        "evidence": ["specific evidence"],
+        "features": {feature: 0 for feature in REQUIRED_FEATURES},
+        "blocked_interpretations": ["deception", "attraction", "diagnosis", "hidden_intent"],
+        "provenance": {
+            "created_by": "codex",
+            "not_copied_from_real_chat": True,
+            "synthetic": True,
+            "template_category": "strong_fit",
+        },
+    }
+    missing_categories = tmp_path / "missing_categories.jsonl"
+    missing_categories.write_text(json.dumps(base) + "\n", encoding="utf-8")
+
+    result = run_script(VALIDATOR, "--input", str(missing_categories))
+
+    assert result.returncode == 1
+    assert "missing categories" in result.stderr
+
+    bad_category = {
+        **base,
+        "pair_id": "bad_004",
+        "categories": ["unknown_category"],
+    }
+    unsupported_categories = tmp_path / "unsupported_categories.jsonl"
+    unsupported_categories.write_text(json.dumps(bad_category) + "\n", encoding="utf-8")
+
+    result = run_script(VALIDATOR, "--input", str(unsupported_categories))
+
+    assert result.returncode == 1
+    assert "unsupported categories" in result.stderr
+
+    mismatch = {
+        **base,
+        "pair_id": "bad_005",
+        "categories": ["moderate_fit"],
+    }
+    mismatched_template = tmp_path / "mismatched_template.jsonl"
+    mismatched_template.write_text(json.dumps(mismatch) + "\n", encoding="utf-8")
+
+    result = run_script(VALIDATOR, "--input", str(mismatched_template))
+
+    assert result.returncode == 1
+    assert "provenance.template_category must match a declared category" in result.stderr

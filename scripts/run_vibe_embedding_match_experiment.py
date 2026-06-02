@@ -33,16 +33,26 @@ def _is_under(path: Path, parent: Path) -> bool:
     return True
 
 
+def _repo_relative(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def _skipped(reason: str, *, input_path: Path, model_name: str) -> dict[str, Any]:
     return {
         "status": "SKIPPED",
         "reason": reason,
-        "input": str(input_path),
+        "input": _repo_relative(input_path),
+        "source_id": "synthetic_vibe_matching",
         "model_name": model_name,
         "provider_calls_made": False,
         "model_downloaded": False,
         "dataset_downloaded": False,
+        "benchmark_scope": "synthetic_fixture_local_embedding_diagnostic",
         "production_claims": False,
+        "public_quality_claims_supported": False,
     }
 
 
@@ -92,7 +102,8 @@ def run_experiment(input_path: Path, model_name: str) -> dict[str, Any]:
     labels = [float(row["features"]["communication_fit"]) for row in rows]
     return {
         "status": "completed",
-        "input": str(input_path),
+        "input": _repo_relative(input_path),
+        "source_id": "synthetic_vibe_matching",
         "model_name": model_name,
         "row_count": len(rows),
         "communication_fit_similarity_correlation": round(_pearson(similarities, labels), 4),
@@ -100,7 +111,9 @@ def run_experiment(input_path: Path, model_name: str) -> dict[str, Any]:
         "provider_calls_made": False,
         "model_downloaded": False,
         "dataset_downloaded": False,
+        "benchmark_scope": "synthetic_fixture_local_embedding_diagnostic",
         "production_claims": False,
+        "public_quality_claims_supported": False,
     }
 
 
@@ -111,6 +124,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         "No production claims. This is an optional local-only research diagnostic on synthetic fixtures.",
         "",
         f"- Status: `{report.get('status')}`",
+        f"- Source: `{report.get('source_id')}`",
+        f"- Benchmark scope: `{report.get('benchmark_scope')}`",
         f"- Model: `{report.get('model_name')}`",
         f"- Provider calls made: `{report.get('provider_calls_made')}`",
         f"- Model downloaded: `{report.get('model_downloaded')}`",

@@ -67,6 +67,15 @@ RISK_MARKERS = (
     "data/vibe_training/derived/",
     "data/vibe_training/corpus/",
     "reports/vibe_training/raw/",
+    "reddit/",
+    "twitter/",
+    "tweets/",
+    "tweet_exports/",
+    "goemotions/",
+    "tweeteval/",
+    "daily_dialog/",
+    "dair_ai/",
+    "empathetic_dialogues/",
 )
 SAFE_PREFIXES = (
     "docs/",

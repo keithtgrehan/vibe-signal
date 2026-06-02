@@ -241,10 +241,10 @@ function describeSignalStrength(profile) {
 
 function buildHeadlineInsight(profile) {
   if (profile.overlapLow && profile.directDown) {
-    return "This may be avoiding a direct answer";
+    return "The reply is less direct than the earlier point";
   }
   if (profile.hedgeUp && profile.vagueUp) {
-    return "They’re pulling back slightly";
+    return "The wording becomes more reserved";
   }
   if (profile.hedgeUp) {
     return "Tone just became less certain";
@@ -269,13 +269,13 @@ function buildHeadlineInsight(profile) {
 
 function describePrimaryPattern(earlierMetrics, laterMetrics, profile) {
   if (profile.overlapLow && profile.directDown) {
-    return "The later wording could suggest a looser reply to the earlier point, with less direct follow-through.";
+    return "The later wording has a looser connection to the earlier point, with less direct follow-through.";
   }
   if (profile.hedgeUp && profile.vagueUp) {
-    return "The later wording may indicate more distance, using softer and less specific phrasing.";
+    return "The later wording uses softer and less specific phrasing than the opening.";
   }
   if (profile.hedgeUp) {
-    return "The later wording may indicate more uncertainty than the opening.";
+    return "The later wording uses more uncertainty markers than the opening.";
   }
   if (profile.vagueUp) {
     return "The later wording becomes broader and less pinned to detail.";
@@ -391,7 +391,7 @@ function formatSpanNote(notes, fallback) {
 
 function buildShareText(profile) {
   if (profile.overlapLow) {
-    return "Not what it seems at first glance";
+    return "This reply shifts away from the earlier wording";
   }
   if (profile.hedgeUp || profile.vagueUp) {
     return "Something changed in the tone here";
@@ -416,13 +416,13 @@ function buildWeakSignalPattern(weakSignal) {
   if (weakSignal.highLexicalSimilarity) {
     return "The wording stays very close from start to finish, so the signal looks steady rather than changed.";
   }
-  return "The language stays fairly consistent throughout, without a strong change in tone or intent.";
+  return "The language stays fairly consistent throughout, without a strong change in tone or directness.";
 }
 
 function buildWeakSignalHighlights(weakSignal) {
   const highlights = [
     "Language stays similar throughout",
-    "No clear change in tone or intent",
+    "No clear change in tone or directness",
   ];
   if (weakSignal.highLexicalSimilarity) {
     highlights.push("The wording overlaps heavily between earlier and later lines");
@@ -588,7 +588,7 @@ export function buildLocalAnalysisResult(text) {
     analysisMode: "signal",
     pattern,
     summary:
-      "We compare the opening and the later wording to surface tone, intent, and meaning shifts.",
+      "We compare the opening and the later wording to surface tone, pacing, specificity, and directness shifts.",
     highlights: whatChanged,
     spans: [
       {
@@ -603,7 +603,7 @@ export function buildLocalAnalysisResult(text) {
       },
     ].filter((item) => item.excerpt),
     disclosure:
-      "Pattern-based only. This may indicate a subtle shift, not intent, truth, or motive.",
+      "Pattern-based only. This may indicate a subtle wording shift, not a conclusion about anyone.",
     shareTitle: "VibeSignal",
     shareText,
     suggestion: "",
