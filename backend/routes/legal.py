@@ -14,6 +14,9 @@ BASE_DRAFT_BOUNDARIES: dict[str, Any] = {
     "closed_beta_only": True,
     "production_compliance_claimed": False,
     "raw_message_persistence_added": False,
+    "account_storage_added": False,
+    "analytics_tracking_added": False,
+    "training_use_added": False,
     "review_note": "Draft copy for closed-beta readiness; requires legal review before public launch.",
 }
 

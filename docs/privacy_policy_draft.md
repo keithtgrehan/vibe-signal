@@ -51,6 +51,8 @@ Users should not submit:
 - secrets or API keys
 - model vectors, checkpoints, or embeddings
 - analytics or tracking data added by this draft
+- account profiles or account storage added by this draft
+- training use added by this draft
 
 ## Deletion And Export
 

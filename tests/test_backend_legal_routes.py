@@ -24,6 +24,12 @@ def test_legal_routes_return_draft_review_boundaries() -> None:
         assert body["closed_beta_only"] is True
         assert body["production_compliance_claimed"] is False
         assert body["raw_message_persistence_added"] is False
+        assert body["account_storage_added"] is False
+        assert body["analytics_tracking_added"] is False
+        assert body["training_use_added"] is False
+        assert body["title"]
+        assert body["document_ref"].startswith("docs/")
+        assert body["sections"]
         assert "legal review before public launch" in body["review_note"].lower()
 
 
