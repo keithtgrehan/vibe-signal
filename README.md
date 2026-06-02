@@ -85,6 +85,7 @@ Start here if you want the fastest credible walkthrough:
 - [docs/data_deletion_request_draft.md](docs/data_deletion_request_draft.md) and [docs/data_export_request_draft.md](docs/data_export_request_draft.md) for closed-beta deletion/export readiness notes
 - [docs/match_usage_consent_disclaimer.md](docs/match_usage_consent_disclaimer.md) for `/api/match` submission copy boundaries
 - [docs/backend_deployment_readiness.md](docs/backend_deployment_readiness.md) for backend deployment checks, CORS configuration, and safe logging boundaries
+- [docs/deployment_smoke_tests.md](docs/deployment_smoke_tests.md) for repeatable local/deployed backend smoke tests before mobile beta use
 - [docs/monitoring_no_raw_logs.md](docs/monitoring_no_raw_logs.md) for closed-beta monitoring checks and no-raw-log incident triggers
 - [docs/provider_disclosure_notes.md](docs/provider_disclosure_notes.md) for optional provider positioning
 - [docs/legal_safe_output_policy.md](docs/legal_safe_output_policy.md) for wording and safety constraints
@@ -110,6 +111,7 @@ npm start
 Optional backend contract check:
 
 ```bash
+python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>
 cd mobile
 npm run verify:backend -- --api-url https://<your-backend-host> --event state
 ```
