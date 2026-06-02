@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from fastapi.testclient import TestClient
 
 from backend.app import app, create_app
@@ -44,6 +46,46 @@ def test_backend_settings_parse_safe_cors_origins_and_warn_on_rejected_values() 
     assert settings.raw_message_logging_enabled is False
     assert settings.analytics_tracking_enabled is False
     assert settings.training_enabled is False
+
+
+def test_backend_settings_rejects_path_query_fragment_and_unknown_environment() -> None:
+    settings = load_backend_settings(
+        {
+            "VIBE_BACKEND_ENV": "mystery-prod",
+            "VIBE_BACKEND_ALLOWED_ORIGINS": (
+                "https://app.example.com/path,"
+                "https://admin.example.com?debug=true,"
+                "https://mobile.example.com#fragment,"
+                "https://safe.example.com"
+            ),
+            "VIBE_BACKEND_LOG_LEVEL": "verbose",
+        }
+    )
+
+    assert settings.environment == "local"
+    assert settings.log_level == "INFO"
+    assert settings.allowed_origins == ("https://safe.example.com",)
+    assert "unsupported_environment_defaulted_to_local" in settings.config_warnings
+    assert "unsupported_log_level_defaulted_to_info" in settings.config_warnings
+    assert "origin_must_not_include_path_query_or_fragment" in settings.config_warnings
+
+
+def test_readyz_reports_cors_count_without_echoing_origin_values() -> None:
+    configured_app = create_app(
+        BackendSettings(
+            allowed_origins=("https://private-mobile.example.com",),
+            environment="production",
+            version="test",
+        )
+    )
+    client = TestClient(configured_app)
+
+    response = client.get("/readyz")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["checks"]["cors_allowed_origins_count"] == 1
+    assert "https://private-mobile.example.com" not in json.dumps(body)
 
 
 def test_configured_cors_allows_only_exact_origins() -> None:

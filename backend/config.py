@@ -7,6 +7,16 @@ from urllib.parse import urlparse
 
 
 VALID_LOG_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+ENVIRONMENT_ALIASES = {
+    "local": "local",
+    "development": "local",
+    "dev": "local",
+    "staging": "staging",
+    "stage": "staging",
+    "production": "production",
+    "prod": "production",
+    "test": "test",
+}
 
 
 @dataclass(frozen=True)
@@ -22,13 +32,13 @@ class BackendSettings:
     training_enabled: bool = False
 
 
-def _normalize_environment(value: str) -> str:
+def _normalize_environment(value: str) -> tuple[str, tuple[str, ...]]:
     normalized = str(value or "local").strip().lower()
-    if normalized in {"local", "development", "dev"}:
-        return "local"
-    if normalized in {"staging", "stage", "production", "prod", "test"}:
-        return "production" if normalized == "prod" else normalized
-    return "local"
+    if not normalized:
+        return "local", ()
+    if normalized in ENVIRONMENT_ALIASES:
+        return ENVIRONMENT_ALIASES[normalized], ()
+    return "local", ("unsupported_environment_defaulted_to_local",)
 
 
 def _parse_allowed_origins(raw_value: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
@@ -68,10 +78,14 @@ def load_backend_settings(environ: Mapping[str, str] | None = None) -> BackendSe
     if log_level not in VALID_LOG_LEVELS:
         warnings.append("unsupported_log_level_defaulted_to_info")
         log_level = "INFO"
+    environment, environment_warnings = _normalize_environment(
+        source.get("VIBE_BACKEND_ENV", "local")
+    )
+    warnings.extend(environment_warnings)
 
     return BackendSettings(
         allowed_origins=allowed_origins,
-        environment=_normalize_environment(source.get("VIBE_BACKEND_ENV", "local")),
+        environment=environment,
         version=str(source.get("VIBE_BACKEND_VERSION", "0.1.0")).strip() or "0.1.0",
         log_level=log_level,
         config_warnings=tuple(dict.fromkeys(warnings)),

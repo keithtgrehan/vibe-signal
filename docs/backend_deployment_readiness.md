@@ -46,11 +46,15 @@ See [backend/deployment.env.example](../backend/deployment.env.example).
 | `VIBE_BACKEND_ALLOWED_ORIGINS` | Comma-separated exact browser origins for CORS. | unset / no CORS middleware |
 | `VIBE_BACKEND_LOG_LEVEL` | Logging level label for deployment config. | `INFO` |
 
+Unsupported environment labels default to `local` and appear as a `/readyz` config warning. Unsupported log levels default to `INFO`.
+
 Unsafe or unsupported CORS values are rejected from the parsed config:
 
 - wildcard origins such as `*`
 - non-HTTP(S) origins
 - origins that include paths, query strings, or fragments
+
+`/readyz` reports only the count of accepted CORS origins. It does not echo origin values or other environment variable values.
 
 ## Mobile And CORS Notes
 
