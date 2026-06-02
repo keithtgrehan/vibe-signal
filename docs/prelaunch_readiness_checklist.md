@@ -22,6 +22,8 @@ This checklist is an honest split between code-complete work, still-manual confi
 - recent local analysis history is capped and persisted locally
 - privacy and terms link support now exists in config and UI wiring
 - purchase and restore failure states are bounded and non-crashing
+- backend `/readyz` readiness metadata exists
+- backend CORS config is exact-origin and environment-driven
 
 ## Code-complete but unverified on real device
 
@@ -37,6 +39,9 @@ This checklist is an honest split between code-complete work, still-manual confi
 
 - set `EXPO_PUBLIC_API_URL` to the actual live backend host
 - set `EXPO_PUBLIC_ENABLE_LOGGING`
+- set `VIBE_BACKEND_ENV`
+- set `VIBE_BACKEND_VERSION`
+- set exact `VIBE_BACKEND_ALLOWED_ORIGINS` if Expo web, browser-based testing, or web/admin surfaces are used
 - set `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`
 - confirm `EXPO_PUBLIC_IOS_MONTHLY_PRODUCT_ID`
 - confirm `EXPO_PUBLIC_IOS_PREMIUM_ENTITLEMENT_ID`
@@ -45,6 +50,9 @@ This checklist is an honest split between code-complete work, still-manual confi
 - confirm App Store Connect subscription group and price point
 - confirm RevenueCat offering contains `vibesignal_pro_monthly_ios`
 - run `npm run verify:backend -- --api-url https://<your-backend-host> --event state`
+- run `curl https://<your-backend-host>/healthz`
+- run `curl https://<your-backend-host>/readyz`
+- confirm deployed logs do not include raw chat text, request bodies, provider responses, credentials, model artifacts, vectors, or checkpoints
 
 ## Still missing in this workspace
 
@@ -52,6 +60,9 @@ This checklist is an honest split between code-complete work, still-manual confi
 - backend/admin dashboard code
 - a committed Replit deployment host or `.replit`-side deployment definition
 - live server-side confirmation that the mobile event envelope fields are stored and visualized correctly
+- final deployed privacy, terms, deletion, and export URLs
+- legal-reviewed deletion/export support workflow and retention policy
+- production monitoring and incident-response process
 
 ## Remaining live sandbox dependency
 

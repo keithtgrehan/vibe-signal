@@ -9,6 +9,7 @@
 - model card, claims boundaries, and evaluation gates are documented
 - draft privacy, terms, match disclaimer, deletion request, and export request documents exist
 - static draft legal routes exist for privacy, terms, deletion, export, and match disclaimer
+- backend `/healthz` and `/readyz` deployment-readiness checks exist
 
 ## Research-Only
 
@@ -21,6 +22,7 @@
 - embedding experiment is optional and writes a `SKIPPED` report when local cached dependencies are unavailable
 - no external datasets, provider calls, model downloads, vectors, checkpoints, or embeddings are required
 - legal routes are static draft artifacts only and do not implement account, analytics, tracking, deletion, or export storage behavior
+- backend deployment readiness docs/config exist, but they do not prove live hosting or production compliance
 
 ## Blocked
 
@@ -29,6 +31,7 @@
 - No model-quality launch claim is allowed from synthetic-only metrics.
 - Privacy and terms drafts require legal review before public launch.
 - Deletion/export workflow requires reviewed support channel, identity checks, retention policy, and response timelines.
+- Live backend deployment must be verified with the final host and environment values.
 
 ## Future Work
 
