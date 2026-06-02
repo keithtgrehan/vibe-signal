@@ -115,16 +115,16 @@ npm start
 Optional backend contract check:
 
 ```bash
-python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>
+python scripts/smoke_test_deployed_backend.py --base-url https://YOUR_BACKEND_HOST
 cd mobile
-npm run verify:backend -- --api-url https://<your-backend-host> --event state
+npm run verify:backend -- --api-url https://YOUR_BACKEND_HOST --event state
 ```
 
 Closed-beta operator flow:
 
 ```bash
-python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host>
-python scripts/smoke_test_deployed_backend.py --base-url https://<your-backend-host> --include-events
+python scripts/smoke_test_deployed_backend.py --base-url https://YOUR_BACKEND_HOST
+python scripts/smoke_test_deployed_backend.py --base-url https://YOUR_BACKEND_HOST --include-events
 ```
 
 Then follow [docs/closed_beta_readiness_checklist.md](docs/closed_beta_readiness_checklist.md) and [docs/device_qa_script.md](docs/device_qa_script.md) before inviting testers. These checks prove only closed-beta connectivity and basic behavior, not production readiness, legal compliance, GDPR/CCPA readiness, model quality, or commercial data rights.

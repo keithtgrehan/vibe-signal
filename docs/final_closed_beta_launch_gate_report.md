@@ -138,7 +138,7 @@ Go only if:
 - request IDs are present and match the expected safe shape.
 - output prints only method, endpoint, status, request ID, and coarse detail.
 
-Optional synthetic match spot check:
+Optional synthetic match spot check for transient local inspection only:
 
 ```bash
 curl -sS https://YOUR_BACKEND_HOST/api/match \
@@ -153,6 +153,7 @@ curl -sS https://YOUR_BACKEND_HOST/api/match \
 ```
 
 Use only this synthetic payload. Do not paste real tester chats, private messages, provider responses, credentials, secrets, request bodies from real users, or copied dataset rows into commands, screenshots, logs, or notes.
+Do not paste, screenshot, save, or commit the curl response body; use the smoke-test summary and request ID as the metadata-only evidence.
 
 ### 4. Legal URL Check
 
@@ -188,12 +189,16 @@ Go only if the verifier uses a clean base URL and prints only event type, target
 
 ### 6. Real-Device QA
 
-Follow [device_qa_script.md](device_qa_script.md). At minimum, verify on the actual beta distribution target:
+Follow [device_qa_script.md](device_qa_script.md). At minimum, verify on the actual beta distribution target.
+
+For Expo dev-runtime rehearsal:
 
 ```bash
 cd mobile
 EXPO_PUBLIC_API_URL=https://YOUR_BACKEND_HOST npm start -- --clear
 ```
+
+If the beta distribution target is TestFlight or another packaged build, install that build on the target device, confirm the build label and backend host label outside the repo, and rerun the device QA script against the deployed backend. Do not treat `npm start` as final TestFlight or packaged-build proof.
 
 For physical-phone local backend testing only:
 

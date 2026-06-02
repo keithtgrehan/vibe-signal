@@ -46,7 +46,7 @@
 ## Future Work
 
 - No live backend deployment has been verified.
-- Final privacy, terms, deletion, and export URLs are not deployed.
+- Final privacy, terms, deletion, export, and match-disclaimer URLs are not deployed.
 - Production monitoring provider, alerting, incident owner assignment, and incident-response process are not complete.
 - Closed-beta release tracker entry for backend host, git SHA, mobile build, smoke result, log review, and device QA result is not yet recorded.
 - GDPR, CCPA, App Store, and platform-policy review are not complete and are not claimed.
