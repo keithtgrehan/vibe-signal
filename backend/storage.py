@@ -13,6 +13,20 @@ SAFE_EVENT_ID_RE = re.compile(
     r"|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 )
 SAFE_TIMESTAMP_RE = re.compile(r"^[0-9]{10,17}(?:\.[0-9]{1,6})?$")
+ALLOWED_MONITORING_EVENT_TYPES = {
+    "analysis_started",
+    "analysis_succeeded",
+    "analysis_failed",
+    "safety_blocked",
+    "low_signal_fallback",
+    "synthetic_demo_started",
+    "synthetic_demo_completed",
+    "user_feedback_useful",
+    "user_feedback_too_strong",
+    "user_feedback_missed_context",
+    "user_feedback_unsafe_wording",
+    "user_feedback_confusing",
+}
 
 
 def _safe_event_id(value: Any, fallback: str) -> str:
@@ -27,6 +41,13 @@ def _safe_client_timestamp(value: Any) -> str:
     if SAFE_TIMESTAMP_RE.fullmatch(candidate):
         return candidate[:24]
     return ""
+
+
+def _safe_monitoring_event_type(value: Any) -> str:
+    candidate = str(value or "").strip()
+    if candidate in ALLOWED_MONITORING_EVENT_TYPES:
+        return candidate
+    return "unspecified"
 
 
 def store_feedback_metadata(payload: dict[str, Any]) -> dict[str, Any]:
@@ -60,9 +81,11 @@ def store_event_metadata(event_type: str, payload: dict[str, Any]) -> dict[str, 
     row = {
         "event_id": event_id,
         "event_type": event_type,
+        "monitoring_event_type": _safe_monitoring_event_type(payload.get("monitoring_event_type")),
         "client_timestamp": _safe_client_timestamp(payload.get("client_timestamp")),
         "stored_at_unix": round(time(), 3),
         "payload_field_count": len(payload),
+        "synthetic": payload.get("synthetic") is True,
     }
     EVENT_ROWS.append(row)
     return row
