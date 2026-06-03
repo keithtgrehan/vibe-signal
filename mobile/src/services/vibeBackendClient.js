@@ -13,10 +13,17 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
-function buildFeedbackEventId(matchId, rating) {
+function safeFeedbackTag(value, rating) {
+  const fallback = rating === 1 ? "useful" : "not_useful";
+  return normalizeText(value || fallback)
+    .toLowerCase()
+    .replace(/[^a-z0-9_.:-]/g, "_")
+    .slice(0, 32);
+}
+
+function buildFeedbackEventId(matchId, feedbackTag) {
   const safeMatchId = normalizeText(matchId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 48);
-  const safeRating = String(rating === 1 ? 1 : 0);
-  return `evt_feedback_${safeMatchId || "unknown"}_${safeRating}`;
+  return `evt_feedback_${safeMatchId || "unknown"}_${feedbackTag}`;
 }
 
 function buildClientError(status, userMessage, extra = {}) {
@@ -163,7 +170,12 @@ export function createVibeBackendClient({
       });
     },
 
-    async submitFeedbackMetadata({ matchId = "", rating = null, consent = false } = {}) {
+    async submitFeedbackMetadata({
+      matchId = "",
+      rating = null,
+      feedbackTag = "",
+      consent = false,
+    } = {}) {
       if (consent !== true) {
         return buildClientError(
           "feedback_consent_required",
@@ -178,13 +190,16 @@ export function createVibeBackendClient({
           errors: ["missing_match_id"],
         });
       }
+      const safeTag = safeFeedbackTag(feedbackTag, rating);
+      const normalizedRating = safeTag === "useful" ? 1 : 0;
 
       return withApi("/api/feedback", {
         method: "POST",
         body: {
-          feedback_event_id: buildFeedbackEventId(safeMatchId, rating),
+          feedback_event_id: buildFeedbackEventId(safeMatchId, safeTag),
           match_id: safeMatchId,
-          rating,
+          rating: normalizedRating,
+          feedback_tag: safeTag,
           comment: "",
           consent_to_store_feedback: true,
         },

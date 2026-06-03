@@ -17,17 +17,29 @@ function titleCaseBand(value) {
   return `${text.charAt(0).toUpperCase()}${text.slice(1)} fit`;
 }
 
+function titleCase(value) {
+  const text = normalizeText(value || "cue")
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+  return `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+}
+
 const CAN_TELL = [
-  "Observable wording patterns such as direct asks, specificity, pressure, reassurance, and repair openings.",
-  "Whether the visible exchange has enough evidence for a bounded pattern review.",
-  "Lower-pressure next steps such as clarifying, pausing, or naming a boundary.",
+  "Spot vague or overloaded messages",
+  "Identify unclear asks",
+  "Surface pressure or urgency cues",
+  "Show reassurance and repair opportunities",
+  "Suggest clearer, lower-pressure replies",
 ];
 
 const CANNOT_TELL = [
-  "Private feelings, motives, attraction, or future relationship outcomes.",
-  "Deception verdicts or private context not present in the text.",
-  "Clinical, neurodevelopmental, personality, relationship-style, or identity labels.",
-  "Whether you should reply or how to influence another person.",
+  "Whether someone likes you",
+  "Whether someone is cheating",
+  "Whether someone is lying",
+  "What someone secretly means",
+  "Someone’s diagnosis, attachment style, neurotype, or personality",
+  "Whether a relationship will work",
 ];
 
 const DEFAULT_NEXT_STEPS = [
@@ -36,8 +48,20 @@ const DEFAULT_NEXT_STEPS = [
   "Pause before replying if the exchange feels escalated.",
 ];
 
-function collectEvidencePhrases(result) {
-  const rows = [
+const DEFAULT_CANNOT_INFER =
+  "This does not prove intent, attraction, honesty, or emotional state.";
+const LOW_SIGNAL_TRIGGERS = new Set(["hey", "hi", "ok", "okay", "k", "fine", "lol", "lol sure"]);
+
+export const FEEDBACK_OPTIONS = [
+  { id: "useful", label: "Useful", rating: 1, comment: "" },
+  { id: "too_strong", label: "Too strong", rating: 0, comment: "" },
+  { id: "missed_context", label: "Missed context", rating: 0, comment: "" },
+  { id: "unsafe_wording", label: "Unsafe wording", rating: 0, comment: "" },
+  { id: "confusing", label: "Confusing", rating: 0, comment: "" },
+];
+
+function collectEvidenceRows(result) {
+  return [
     ...(Array.isArray(result?.evidence) ? result.evidence : []),
     ...(Array.isArray(result?.inconsistency_cues) ? result.inconsistency_cues : []),
     ...(Array.isArray(result?.unsupported_claim_shift) ? result.unsupported_claim_shift : []),
@@ -47,9 +71,12 @@ function collectEvidencePhrases(result) {
       ? result.contradiction_against_prior_message
       : []),
   ];
+}
+
+function collectEvidencePhrases(result) {
   const seen = new Set();
   const phrases = [];
-  for (const row of rows) {
+  for (const row of collectEvidenceRows(result)) {
     const phrase = normalizeText(row?.safe_phrase);
     if (!phrase || seen.has(phrase)) {
       continue;
@@ -61,18 +88,8 @@ function collectEvidencePhrases(result) {
 }
 
 function collectEvidenceDetails(result) {
-  const rows = [
-    ...(Array.isArray(result?.evidence) ? result.evidence : []),
-    ...(Array.isArray(result?.inconsistency_cues) ? result.inconsistency_cues : []),
-    ...(Array.isArray(result?.unsupported_claim_shift) ? result.unsupported_claim_shift : []),
-    ...(Array.isArray(result?.specificity_drop) ? result.specificity_drop : []),
-    ...(Array.isArray(result?.answer_evasion_pattern) ? result.answer_evasion_pattern : []),
-    ...(Array.isArray(result?.contradiction_against_prior_message)
-      ? result.contradiction_against_prior_message
-      : []),
-  ];
   const seen = new Set();
-  return rows
+  return collectEvidenceRows(result)
     .filter((row) => {
       const evidenceId = normalizeText(row?.evidence_id);
       if (!evidenceId || seen.has(evidenceId)) {
@@ -91,6 +108,58 @@ function collectEvidenceDetails(result) {
     }));
 }
 
+function signalStrengthLabel(value) {
+  const normalized = normalizeText(value || "medium").toLowerCase().replace(/_/g, " ");
+  if (normalized === "high") {
+    return "High — multiple visible cues point to the same pattern.";
+  }
+  if (normalized === "low") {
+    return "Low — one cue is visible, but context could easily change the read.";
+  }
+  if (normalized === "insufficient") {
+    return "Insufficient — there is not enough visible context for a safe read.";
+  }
+  return "Medium — there is evidence, but context could change the read.";
+}
+
+export function isContextLightInput(text) {
+  const normalized = normalizeText(text).toLowerCase().replace(/\s+/g, " ");
+  if (!normalized) {
+    return false;
+  }
+  if (LOW_SIGNAL_TRIGGERS.has(normalized)) {
+    return true;
+  }
+  const words = normalized.split(/\s+/).filter(Boolean);
+  return words.length <= 2 && normalized.length <= 14;
+}
+
+export function buildLowSignalFallback(text = "") {
+  return {
+    inputPreviewLength: normalizeText(text).length,
+    isLowSignal: true,
+    resultState: "low_signal",
+    signalStrength: "insufficient",
+    signalStrengthLabel: signalStrengthLabel("insufficient"),
+    title: "Not enough context to read safely.",
+    body:
+      "This message is too short or context-light. Vibe Signal can help with wording patterns, but this would be over-reading it.",
+    tryItems: ["Add the previous message", "Ask for a clearer version", "Try a synthetic example"],
+    mainRead: "Not enough context to read safely.",
+    evidencePhrases: [],
+    evidenceDetails: [],
+    patternLabels: ["Context-light message"],
+    patternExplanation:
+      "There is not enough observable wording to separate a pattern from ordinary short-message noise.",
+    cannotInferText: DEFAULT_CANNOT_INFER,
+    safeNextStep: "Add the previous message or try a synthetic example.",
+    safeNextSteps: ["Add the previous message or try a synthetic example."],
+    canTell: CAN_TELL,
+    cannotInfer: CANNOT_TELL,
+    feedbackOptions: FEEDBACK_OPTIONS,
+  };
+}
+
 export function buildMatchComposerState({
   conversationText = "",
   loading = false,
@@ -102,44 +171,67 @@ export function buildMatchComposerState({
     empty: !hasText,
     backendConfigured,
     placeholder:
-      "self: Can you confirm Friday at 3pm?\nother: Yes, Friday at 3pm works. No pressure if we need to adjust.",
+      "self: Can you confirm Friday?\nother: maybe later, not sure yet",
     helper:
       "Use one line per message. Prefix lines with self: or other: for stronger evidence.",
+    consentTitle: "Before you paste",
+    consentBullets: [
+      "Only submit messages you have permission to analyze.",
+      "Remove names, phone numbers, addresses, and sensitive details.",
+      "Use synthetic examples if you just want to test the app.",
+    ],
+    consentCheckboxLabel: "I understand and have permission to analyze this text.",
     consentLabel:
       "Only submit messages you have permission to analyze. Matching is communication-support only.",
     privacyNote:
       "Do not include sensitive personal data, secrets, medical data, legal documents, financial data, or third-party private messages without permission. Closed beta privacy and terms drafts require legal review before public launch.",
-    statusLabel: loading ? "Checking communication fit..." : "Check communication fit",
+    statusLabel: loading ? "Checking communication fit..." : "Review communication patterns",
     submitEnabled: hasText && backendConfigured && !loading,
     emptyLabel: backendConfigured
-      ? "Paste a short exchange to check communication fit."
-      : "Set EXPO_PUBLIC_API_URL to use backend matching locally.",
+      ? "Paste a short exchange to review communication patterns."
+      : "Private analysis is not connected in this build. Synthetic demos still work.",
   };
 }
 
 export function buildMatchResultViewModel(result = {}) {
-  const score = Number(result?.score ?? 0);
-  const normalizedScore = Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : 0;
   const resultState = normalizeText(result?.result_state);
   const isLowSignal =
     resultState === "low_signal" ||
     result?.low_signal_fallback === true ||
     result?.signal_strength === "insufficient";
+
+  if (isLowSignal) {
+    return {
+      ...buildLowSignalFallback(""),
+      hasResult: Boolean(result && Object.keys(result).length),
+      bandLabel: "Insufficient signal",
+      confidenceLabel: result?.confidence?.level
+        ? `${normalizeText(result.confidence.level)} evidence confidence`
+        : "Evidence confidence unavailable",
+      confidenceReasons: normalizeList(result?.confidence?.reasons).slice(0, 3),
+      disclosure:
+        "This is a bounded communication-pattern review, not a verdict about another person.",
+    };
+  }
+
   const positiveFactors = normalizeList(
     result?.positive_factors?.length ? result.positive_factors : result?.top_alignment_factors
   );
   const riskFactors = normalizeList(
     result?.risk_factors?.length ? result.risk_factors : result?.top_friction_factors
   );
+  const evidenceDetails = collectEvidenceDetails(result);
+  const safeNextSteps = normalizeList(result?.safe_next_steps).length
+    ? normalizeList(result?.safe_next_steps)
+    : DEFAULT_NEXT_STEPS;
 
   return {
     hasResult: Boolean(result && Object.keys(result).length),
-    compatibilityScoreLabel: `${Math.round(normalizedScore * 100)}% cue-weight score`,
-    rawScore: normalizedScore,
     resultState,
-    isLowSignal,
-    signalStrength: normalizeText(result?.signal_strength || (isLowSignal ? "insufficient" : "medium")),
-    bandLabel: isLowSignal ? "Insufficient signal" : titleCaseBand(result?.compatibility_band),
+    isLowSignal: false,
+    signalStrength: normalizeText(result?.signal_strength || "medium"),
+    signalStrengthLabel: signalStrengthLabel(result?.signal_strength || "medium"),
+    bandLabel: titleCaseBand(result?.compatibility_band),
     confidenceLabel: result?.confidence?.level
       ? `${normalizeText(result.confidence.level)} evidence confidence`
       : "Evidence confidence unavailable",
@@ -147,7 +239,18 @@ export function buildMatchResultViewModel(result = {}) {
     positiveFactors,
     riskFactors,
     evidencePhrases: collectEvidencePhrases(result),
-    evidenceDetails: collectEvidenceDetails(result),
+    evidenceDetails,
+    patternLabels: evidenceDetails.length
+      ? evidenceDetails.map((row) => titleCase(row.family || "cue"))
+      : ["Observable wording"],
+    patternExplanation:
+      evidenceDetails.map((row) => normalizeText(row.explanation)).find(Boolean) ||
+      "This pattern is based on the quoted wording above.",
+    mainRead:
+      normalizeText(result?.main_read) ||
+      normalizeText(result?.safe_explanation) ||
+      normalizeText(result?.safe_summary) ||
+      "This result is based on explicit observable communication cues.",
     explanation:
       normalizeText(result?.safe_explanation) ||
       normalizeText(result?.safe_summary) ||
@@ -159,9 +262,10 @@ export function buildMatchResultViewModel(result = {}) {
     cannotInfer: normalizeList(result?.cannot_infer).length
       ? normalizeList(result?.cannot_infer)
       : CANNOT_TELL,
-    safeNextSteps: normalizeList(result?.safe_next_steps).length
-      ? normalizeList(result?.safe_next_steps)
-      : DEFAULT_NEXT_STEPS,
+    cannotInferText: DEFAULT_CANNOT_INFER,
+    safeNextSteps,
+    safeNextStep: safeNextSteps[0],
+    feedbackOptions: FEEDBACK_OPTIONS,
     disclosure:
       "This is a bounded communication-pattern review, not a verdict about another person.",
   };

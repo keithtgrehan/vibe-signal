@@ -12,16 +12,25 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { fetchLegalPage, submitAnalyze, submitFeedback, submitMatch } from "./api.js";
 import {
-  API_CONFIG,
-  fetchLegalPage,
-  submitAnalyze,
-  submitFeedback,
-  submitMatch,
-} from "./api.js";
+  CAN_HELP_WITH,
+  CANNOT_TELL,
+  FAQ_ITEMS,
+  HERO_COPY,
+  HOW_IT_WORKS_STEPS,
+  SYNTHETIC_DEMOS,
+  TRUST_STRIP_ITEMS,
+} from "./trustContent.js";
+import {
+  buildLowSignalFallback,
+  buildSyntheticResult,
+  buildTrustFirstResultView,
+  FEEDBACK_OPTIONS,
+  isContextLightInput,
+} from "./resultViewModel.js";
 
-const SAMPLE_TEXT =
-  "self: Can you confirm Friday at 3pm?\nother: Yes, Friday at 3pm works. No pressure if we need to adjust.";
+const SAMPLE_TEXT = SYNTHETIC_DEMOS[0].exchange;
 
 const LEGAL_SLUGS = [
   ["match-disclaimer", "Match Disclaimer"],
@@ -43,148 +52,19 @@ const FALLBACK_LEGAL = {
   ],
 };
 
-const CAN_TELL = [
-  "Observable wording patterns such as direct asks, specificity, pressure, reassurance, and repair openings.",
-  "Whether the visible exchange has enough evidence for a bounded pattern review.",
-  "Lower-pressure next steps such as clarifying, pausing, or naming a boundary.",
-];
-
-const CANNOT_TELL = [
-  "Private feelings, motives, attraction, or future relationship outcomes.",
-  "Deception verdicts or private context not present in the text.",
-  "Clinical, neurodevelopmental, personality, relationship-style, or identity labels.",
-  "Whether you should reply or how to influence another person.",
-];
-
-const DEFAULT_NEXT_STEPS = [
-  "Clarify one ask in plain language.",
-  "Lower pressure by making no or later acceptable.",
-  "Pause before replying if the exchange feels escalated.",
-];
-
 function normalizeText(value) {
   return String(value || "").trim();
 }
 
-function normalizeList(value) {
-  return Array.isArray(value) ? value.map(normalizeText).filter(Boolean) : [];
-}
-
-function titleCase(value) {
-  const text = normalizeText(value || "mixed").toLowerCase();
-  return `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
-}
-
-function collectEvidencePhrases(result) {
-  const rows = [
-    ...(Array.isArray(result?.evidence) ? result.evidence : []),
-    ...(Array.isArray(result?.inconsistency_cues) ? result.inconsistency_cues : []),
-    ...(Array.isArray(result?.unsupported_claim_shift) ? result.unsupported_claim_shift : []),
-    ...(Array.isArray(result?.specificity_drop) ? result.specificity_drop : []),
-    ...(Array.isArray(result?.answer_evasion_pattern) ? result.answer_evasion_pattern : []),
-    ...(Array.isArray(result?.contradiction_against_prior_message)
-      ? result.contradiction_against_prior_message
-      : []),
-  ];
-  const seen = new Set();
-  const phrases = [];
-  for (const row of rows) {
-    const phrase = normalizeText(row?.safe_phrase);
-    if (!phrase || seen.has(phrase)) {
-      continue;
-    }
-    seen.add(phrase);
-    phrases.push(phrase);
-  }
-  return phrases.slice(0, 8);
-}
-
-function collectEvidenceDetails(result) {
-  const rows = [
-    ...(Array.isArray(result?.evidence) ? result.evidence : []),
-    ...(Array.isArray(result?.inconsistency_cues) ? result.inconsistency_cues : []),
-    ...(Array.isArray(result?.unsupported_claim_shift) ? result.unsupported_claim_shift : []),
-    ...(Array.isArray(result?.specificity_drop) ? result.specificity_drop : []),
-    ...(Array.isArray(result?.answer_evasion_pattern) ? result.answer_evasion_pattern : []),
-    ...(Array.isArray(result?.contradiction_against_prior_message)
-      ? result.contradiction_against_prior_message
-      : []),
-  ];
-  const seen = new Set();
-  return rows
-    .filter((row) => {
-      const evidenceId = normalizeText(row?.evidence_id);
-      if (!evidenceId || seen.has(evidenceId)) {
-        return false;
-      }
-      seen.add(evidenceId);
-      return normalizeText(row?.safe_phrase || row?.evidence_text);
-    })
-    .slice(0, 6)
-    .map((row) => ({
-      id: normalizeText(row.evidence_id),
-      family: normalizeText(row.cue_family || row.cue_id || "cue").replace(/_/g, " "),
-      phrase: normalizeText(row.safe_phrase || row.evidence_text),
-      explanation: normalizeText(row.explanation),
-      repair: normalizeText(row.repair_suggestion),
-    }));
-}
-
-function buildMatchView(result) {
-  const score = Number(result?.score ?? 0);
-  const normalizedScore = Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : 0;
-  const resultState = normalizeText(result?.result_state);
-  const isLowSignal =
-    resultState === "low_signal" ||
-    result?.low_signal_fallback === true ||
-    result?.signal_strength === "insufficient";
-  return {
-    matchId: normalizeText(result?.match_id),
-    score: normalizedScore,
-    scoreLabel: `${Math.round(normalizedScore * 100)}% cue-weight score`,
-    resultState,
-    isLowSignal,
-    signalStrength: normalizeText(result?.signal_strength || (isLowSignal ? "insufficient" : "medium")),
-    bandLabel: isLowSignal
-      ? "Insufficient signal"
-      : `${titleCase(result?.compatibility_band)} communication pattern band`,
-    confidenceLabel: result?.confidence?.level
-      ? `${titleCase(result.confidence.level)} evidence confidence`
-      : "Evidence confidence unavailable",
-    confidenceReasons: normalizeList(result?.confidence?.reasons).slice(0, 3),
-    positiveFactors: normalizeList(
-      result?.positive_factors?.length ? result.positive_factors : result?.top_alignment_factors
-    ),
-    riskFactors: normalizeList(
-      result?.risk_factors?.length ? result.risk_factors : result?.top_friction_factors
-    ),
-    evidencePhrases: collectEvidencePhrases(result),
-    evidenceDetails: collectEvidenceDetails(result),
-    explanation:
-      normalizeText(result?.safe_explanation) ||
-      normalizeText(result?.safe_summary) ||
-      "This result is based on explicit observable communication cues.",
-    cannotInfer: normalizeList(result?.cannot_infer).length
-      ? normalizeList(result?.cannot_infer)
-      : CANNOT_TELL,
-    canTell: CAN_TELL,
-    safeNextSteps: normalizeList(result?.safe_next_steps).length
-      ? normalizeList(result?.safe_next_steps)
-      : DEFAULT_NEXT_STEPS,
-    disclosure:
-      "This is a bounded communication-pattern review, not a verdict about another person.",
-  };
-}
-
-function Button({ children, tone = "primary", ...props }) {
+function Button({ children, tone = "primary", className = "", ...props }) {
   return (
-    <button className={`button button-${tone}`} type="button" {...props}>
+    <button className={`button button-${tone} ${className}`.trim()} type="button" {...props}>
       {children}
     </button>
   );
 }
 
-function TopNav({ setView }) {
+function TopNav({ goToHowItWorks, runSyntheticDemo, setView }) {
   return (
     <header className="top-nav">
       <button className="brand-lockup" type="button" onClick={() => setView("home")}>
@@ -194,139 +74,239 @@ function TopNav({ setView }) {
         <span>Vibe Signal</span>
       </button>
       <nav className="nav-links" aria-label="Primary">
-        <button type="button" onClick={() => setView("analyze")}>
-          Analyze
+        <button type="button" onClick={() => runSyntheticDemo(SYNTHETIC_DEMOS[0].id)}>
+          Demo
         </button>
-        <button type="button" onClick={() => setView("legal")}>
-          Legal
+        <button type="button" onClick={goToHowItWorks}>
+          How it works
+        </button>
+        <button type="button" onClick={() => setView("beta")}>
+          Beta
         </button>
       </nav>
     </header>
   );
 }
 
-function Home({ setView, setMode }) {
-  const backendLabel = API_CONFIG.ok ? API_CONFIG.host : "backend misconfigured";
-
-  const start = (nextMode) => {
-    setMode(nextMode);
-    setView("analyze");
-  };
+function Home({ goToHowItWorks, runSyntheticDemo, setView }) {
+  const preview = buildTrustFirstResultView(buildSyntheticResult(SYNTHETIC_DEMOS[0].id));
 
   return (
     <main className="page home-page">
       <section className="hero-grid" aria-labelledby="hero-title">
         <div className="hero-copy">
           <p className="eyebrow">Communication support</p>
-          <h1 id="hero-title">Understand message patterns without guessing motives.</h1>
-          <p className="hero-subtitle">
-            Paste a synthetic or permissioned exchange to review observable fit and friction cues.
-            Vibe Signal does not infer truth, motive, attraction, identity, health, or outcomes.
-          </p>
+          <h1 id="hero-title">{HERO_COPY.title}</h1>
+          <p className="hero-subtitle">{HERO_COPY.subtitle}</p>
           <div className="hero-actions">
-            <Button onClick={() => start("match")}>
-              Try a synthetic example <ArrowRight size={17} />
+            <Button onClick={() => runSyntheticDemo(SYNTHETIC_DEMOS[0].id)}>
+              {HERO_COPY.primaryCta} <ArrowRight size={17} />
             </Button>
-            <Button tone="secondary" onClick={() => setView("beta")}>
-              Request beta access <SlidersHorizontal size={17} />
+            <Button tone="secondary" onClick={goToHowItWorks}>
+              {HERO_COPY.secondaryCta} <SlidersHorizontal size={17} />
             </Button>
           </div>
-          <p className="quiet-copy">
-            Synthetic demo first. Use only permissioned text and avoid sensitive personal details.
-          </p>
+          <p className="quiet-copy">{HERO_COPY.trustNote}</p>
         </div>
-        <div className="hero-visual demo-visual" aria-label="Synthetic Vibe Signal demo">
+        <div className="hero-visual demo-visual" aria-label="Synthetic Vibe Signal result preview">
           <div className="demo-phone">
-            <p className="metric-label">Synthetic demo</p>
-            <div className="message-bubble self">Can you confirm Friday at 3pm?</div>
-            <div className="message-bubble other">Yes, Friday at 3pm works. No pressure if we need to adjust.</div>
+            <p className="metric-label">Synthetic example</p>
+            <div className="message-bubble self">Are we still on for Friday?</div>
+            <div className="message-bubble other">maybe later, not sure yet</div>
             <div className="demo-result">
-              <strong>Medium signal strength</strong>
-              <span>Specific timing</span>
-              <span>Low-pressure wording</span>
-              <span>Direct ask</span>
+              <strong>{preview.signalStrengthLabel}</strong>
+              {preview.patternLabels.map((label) => (
+                <span key={label}>{label}</span>
+              ))}
             </div>
           </div>
           <div className="preview-panel">
             <div>
-              <span className="metric-label">Current backend</span>
-              <strong>{backendLabel}</strong>
+              <span className="metric-label">Evidence first</span>
+              <strong>{preview.evidencePhrases.map((phrase) => `“${phrase}”`).join("  ")}</strong>
             </div>
-            <span className="status-pill">{API_CONFIG.ok ? "ready" : "check env"}</span>
+            <span className="status-pill">bounded read</span>
           </div>
         </div>
       </section>
 
       <section className="trust-strip" aria-label="Trust boundaries">
-        <span>Synthetic demo available</span>
-        <span>Permissioned text only</span>
-        <span>No hidden-state claims</span>
-        <span>Raw messages not persisted by default</span>
-        <span>Legal review pending</span>
+        {TRUST_STRIP_ITEMS.map((item) => (
+          <span key={item}>{item}</span>
+        ))}
       </section>
 
-      <section className="mode-grid" aria-label="Vibe Signal tools">
-        <button className="mode-tile" type="button" onClick={() => start("match")}>
-          <MessageSquare size={22} />
-          <span>Synthetic demo</span>
-          <small>Start with authored sample text before using permissioned text.</small>
-        </button>
-        <button className="mode-tile" type="button" onClick={() => start("evidence")}>
-          <Gauge size={22} />
-          <span>Observable cues</span>
-          <small>Review directness, ambiguity, pressure, repair, and cognitive load.</small>
-        </button>
-        <button className="mode-tile" type="button" onClick={() => setView("legal")}>
-          <ShieldCheck size={22} />
-          <span>Legal and privacy</span>
-          <small>Draft closed-beta boundaries, deletion, and export references.</small>
-        </button>
+      <section className="section-stack" aria-labelledby="demo-title">
+        <div className="section-heading split-heading">
+          <div>
+            <p className="eyebrow">Synthetic demo cards</p>
+            <h2 id="demo-title">Try the product before using private text.</h2>
+          </div>
+          <p>
+            Each example is authored for demo use, so the first success state is safe and
+            repeatable.
+          </p>
+        </div>
+        <SyntheticDemoCards runSyntheticDemo={runSyntheticDemo} />
       </section>
 
-      <section className="info-grid" aria-label="How Vibe Signal works">
-        <div>
-          <h3>How it works</h3>
-          <p>Review synthetic or permissioned text, inspect evidence-backed cues, then choose a calm next step or stop.</p>
+      <section className="result-preview-section" aria-labelledby="preview-title">
+        <div className="section-heading">
+          <p className="eyebrow">Example result preview</p>
+          <h2 id="preview-title">Evidence stays above interpretation.</h2>
+          <p>
+            Vibe Signal shows the visible phrase, the pattern label, what cannot be inferred, and
+            one low-pressure next step.
+          </p>
         </div>
-        <div>
-          <h3>Can help with</h3>
-          <p>Clarifying asks, lowering pressure, noticing overloaded messages, and finding repair openings.</p>
+        <ResultPreview view={preview} />
+      </section>
+
+      <section className="section-stack" id="how-it-works" aria-labelledby="how-title">
+        <div className="section-heading">
+          <p className="eyebrow">How it works</p>
+          <h2 id="how-title">A simple read, then details when you want them.</h2>
         </div>
-        <div>
-          <h3>Cannot tell you</h3>
-          <p>It does not read minds, identify deception, assign clinical labels, or optimize persuasion.</p>
+        <div className="info-grid">
+          {HOW_IT_WORKS_STEPS.map((step) => (
+            <div key={step.title}>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </div>
+          ))}
         </div>
+      </section>
+
+      <section className="limits-grid landing-limits" aria-label="Can and cannot">
+        <ListBlock title="What this can help with" items={CAN_HELP_WITH} empty="" />
+        <ListBlock title="What this cannot tell you" items={CANNOT_TELL} empty="" />
+      </section>
+
+      <section className="safety-band" aria-labelledby="safety-title">
+        <ShieldCheck size={22} />
+        <div>
+          <p className="eyebrow">Safety and privacy note</p>
+          <h2 id="safety-title">Use permissioned, minimized text.</h2>
+          <p>
+            Start with synthetic examples. If you paste private text, remove names, phone numbers,
+            addresses, and sensitive details first.
+          </p>
+        </div>
+      </section>
+
+      <section className="closed-beta-cta" aria-labelledby="beta-title">
+        <div>
+          <p className="eyebrow">Closed beta feedback</p>
+          <h2 id="beta-title">Recruiter-ready demo flow, feedback still bounded.</h2>
+          <p>
+            Demo with synthetic examples, then use the beta form only when you are ready to share
+            permissioned feedback about the product experience.
+          </p>
+        </div>
+        <Button tone="secondary" onClick={() => setView("beta")}>
+          Request beta access <ArrowRight size={17} />
+        </Button>
+      </section>
+
+      <section className="faq-grid" aria-label="FAQ">
+        {FAQ_ITEMS.map((item) => (
+          <article className="faq-item" key={item.question}>
+            <h3>{item.question}</h3>
+            <p>{item.answer}</p>
+          </article>
+        ))}
       </section>
     </main>
   );
 }
 
-function Analyze({ mode, setMode, setView, setResult }) {
+function SyntheticDemoCards({ runSyntheticDemo }) {
+  return (
+    <div className="synthetic-demo-grid">
+      {SYNTHETIC_DEMOS.map((demo) => (
+        <article className="synthetic-demo-card" key={demo.id}>
+          <div>
+            <h3>{demo.title}</h3>
+            <p className="synthetic-exchange">{demo.exchange}</p>
+            <p>{demo.highlight}</p>
+          </div>
+          <Button tone="secondary" onClick={() => runSyntheticDemo(demo.id)}>
+            {demo.actionLabel} <ArrowRight size={16} />
+          </Button>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ResultPreview({ view }) {
+  return (
+    <article className="result-preview-card">
+      <div className="result-preview-main">
+        <span className="signal-pill">{view.signalStrengthLabel}</span>
+        <h3>{view.mainRead}</h3>
+      </div>
+      <div className="evidence-detail-grid compact-grid">
+        {view.evidenceDetails.map((row) => (
+          <div className="evidence-detail" key={row.id}>
+            <span>{row.family}</span>
+            <strong>“{row.phrase}”</strong>
+          </div>
+        ))}
+      </div>
+      <div className="cannot-infer-block">{view.cannotInferText}</div>
+      <div className="safe-next-card">
+        <strong>Safe next step</strong>
+        <p>{view.safeNextStep}</p>
+      </div>
+    </article>
+  );
+}
+
+function Analyze({ mode, runSyntheticDemo, setMode, setView, setResult }) {
   const [text, setText] = useState(SAMPLE_TEXT);
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const canSubmit = normalizeText(text).length > 0 && consent && !loading;
+  const hasText = normalizeText(text).length > 0;
+  const canSubmit = hasText && consent && !loading;
 
   async function handleSubmit() {
-    if (!canSubmit) {
+    if (!hasText) {
+      setError("Add a short exchange, or run a synthetic example first.");
       return;
     }
+    if (!consent) {
+      setError("Confirm permission before private text analysis.");
+      return;
+    }
+    if (isContextLightInput(text)) {
+      setResult({
+        kind: "match",
+        payload: {
+          ...buildLowSignalFallback(text),
+          match_id: "local_low_signal",
+          low_signal_fallback: true,
+        },
+      });
+      setView("results");
+      return;
+    }
+
     setError("");
     setLoading(true);
     try {
       const payload = mode === "match" ? await submitMatch(text) : await submitAnalyze(text);
       setResult({
         kind: mode,
-        sourceTextPreview: normalizeText(text).slice(0, 120),
         payload,
       });
       setView("results");
     } catch (requestError) {
       setError(
         requestError?.message ||
-          "The backend could not complete this request with the current payload."
+          "The request could not be completed. Try a synthetic example or use a shorter permissioned exchange."
       );
     } finally {
       setLoading(false);
@@ -344,9 +324,18 @@ function Analyze({ mode, setMode, setView, setResult }) {
           <p className="eyebrow">Pattern review</p>
           <h2>Review observable wording cues</h2>
           <p>
-            Start with the synthetic example or use text you have permission to review. Results
-            stay bounded to visible wording patterns.
+            Run a synthetic card without consent, or paste permissioned text after the lightweight
+            consent check.
           </p>
+        </div>
+
+        <div className="inline-demo-row" aria-label="Synthetic examples">
+          {SYNTHETIC_DEMOS.map((demo) => (
+            <button key={demo.id} type="button" onClick={() => runSyntheticDemo(demo.id)}>
+              <span>{demo.title}</span>
+              <small>{demo.actionLabel}</small>
+            </button>
+          ))}
         </div>
 
         <div className="segmented-control" role="tablist" aria-label="Analysis mode">
@@ -355,7 +344,7 @@ function Analyze({ mode, setMode, setView, setResult }) {
             type="button"
             onClick={() => setMode("match")}
           >
-            <MessageSquare size={16} /> Match
+            <MessageSquare size={16} /> Pattern
           </button>
           <button
             className={mode === "evidence" ? "active" : ""}
@@ -367,11 +356,11 @@ function Analyze({ mode, setMode, setView, setResult }) {
         </div>
 
         <label className="field-label" htmlFor="conversation">
-          Conversation text
+          Permissioned conversation text
         </label>
         <div className="input-tools">
           <Button tone="secondary" onClick={() => setText(SAMPLE_TEXT)}>
-            Use synthetic example
+            Load synthetic text
           </Button>
           <Button tone="secondary" onClick={() => setText("")}>
             Clear input
@@ -380,27 +369,24 @@ function Analyze({ mode, setMode, setView, setResult }) {
         <textarea
           id="conversation"
           value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder="self: Can you confirm Friday at 3pm?&#10;other: Yes, Friday at 3pm works. No pressure if we need to adjust."
+          onChange={(event) => {
+            setText(event.target.value);
+            setError("");
+          }}
+          placeholder="self: Can you confirm Friday?&#10;other: maybe later"
         />
 
-        <div className="disclosure-box">
+        <div className="disclosure-box consent-card">
           <ShieldCheck size={18} />
           <div>
-            <strong>Before you analyze</strong>
-            <p>
-              Vibe Signal is communication-support only. Outputs are pattern-based suggestions,
-              not decisions about another person. Only submit messages you have permission to
-              analyze. Do not include names, phone numbers, addresses, minors, medical/legal/
-              financial/workplace-sensitive content, or highly sensitive third-party content.
-            </p>
+            <strong>Before you paste</strong>
+            <ul>
+              <li>Only submit messages you have permission to analyze.</li>
+              <li>Remove names, phone numbers, addresses, and sensitive details.</li>
+              <li>Use synthetic examples if you just want to test the app.</li>
+            </ul>
           </div>
         </div>
-
-        <section className="limits-grid" aria-label="Analysis boundaries">
-          <ListBlock title="Can tell you" items={CAN_TELL} empty="" />
-          <ListBlock title="Cannot tell you" items={CANNOT_TELL} empty="" />
-        </section>
 
         <label className="checkbox-row">
           <input
@@ -408,7 +394,7 @@ function Analyze({ mode, setMode, setView, setResult }) {
             onChange={(event) => setConsent(event.target.checked)}
             type="checkbox"
           />
-          <span>I have permission to process this text and understand the draft legal boundaries.</span>
+          <span>I understand and have permission to analyze this text.</span>
         </label>
 
         {error ? (
@@ -419,9 +405,9 @@ function Analyze({ mode, setMode, setView, setResult }) {
         ) : null}
 
         <div className="form-footer">
-          <span>{loading ? "Waiting for backend..." : "Backend only. No local model changes."}</span>
+          <span>Private text requires permission. Synthetic demos do not.</span>
           <Button disabled={!canSubmit} onClick={handleSubmit}>
-            {loading ? "Checking..." : mode === "match" ? "Review pattern band" : "Surface cues"}
+            {loading ? "Checking..." : mode === "match" ? "Review patterns" : "Surface evidence"}
           </Button>
         </div>
       </section>
@@ -443,15 +429,25 @@ function ListBlock({ title, items, empty }) {
   );
 }
 
-function MatchResults({ result, setView }) {
-  const view = useMemo(() => buildMatchView(result), [result]);
+function PatternChips({ labels }) {
+  return (
+    <div className="pattern-chip-row">
+      {labels.map((label) => (
+        <span key={label}>{label}</span>
+      ))}
+    </div>
+  );
+}
+
+function MatchResults({ result, runSyntheticDemo, setView }) {
+  const view = useMemo(() => buildTrustFirstResultView(result), [result]);
   const [feedbackConsent, setFeedbackConsent] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
-  const [submittedFeedbackRatings, setSubmittedFeedbackRatings] = useState([]);
+  const [submittedFeedback, setSubmittedFeedback] = useState([]);
 
-  async function sendFeedback(rating) {
-    if (submittedFeedbackRatings.includes(rating)) {
+  async function sendFeedback(option) {
+    if (submittedFeedback.includes(option.id)) {
       setFeedbackStatus("Feedback metadata already accepted for this result.");
       setFeedbackError("");
       return;
@@ -461,13 +457,14 @@ function MatchResults({ result, setView }) {
     try {
       await submitFeedback({
         matchId: view.matchId,
-        rating,
+        feedbackTag: option.id,
+        rating: option.rating,
         consent: feedbackConsent,
       });
-      setSubmittedFeedbackRatings((current) =>
-        current.includes(rating) ? current : [...current, rating]
+      setSubmittedFeedback((current) =>
+        current.includes(option.id) ? current : [...current, option.id]
       );
-      setFeedbackStatus("Feedback metadata accepted. No raw comment was sent.");
+      setFeedbackStatus("Feedback metadata accepted. No raw message text was sent.");
     } catch (error) {
       setFeedbackError(
         feedbackConsent
@@ -477,21 +474,83 @@ function MatchResults({ result, setView }) {
     }
   }
 
+  if (view.isLowSignal) {
+    return (
+      <>
+        <section className="result-hero low-signal-result">
+          <div>
+            <p className="eyebrow">Low-signal fallback</p>
+            <h2>{view.title}</h2>
+            <p>{view.body}</p>
+          </div>
+        </section>
+        <section className="result-block wide-block">
+          <h3>Try</h3>
+          <ul>
+            {view.tryItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+        <div className="result-action-row">
+          <Button tone="secondary" onClick={() => setView("analyze")}>
+            Add more context
+          </Button>
+          <Button onClick={() => runSyntheticDemo(SYNTHETIC_DEMOS[0].id)}>
+            Try a synthetic example <ArrowRight size={17} />
+          </Button>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      <section className="result-hero">
+      <section className="result-hero evidence-first-hero">
         <div>
-          <p className="eyebrow">Evidence-backed communication review</p>
-          <h2>{view.bandLabel}</h2>
-          <p>{view.explanation}</p>
-          <p className="result-meta">
-            Signal strength: {titleCase(view.signalStrength.replace(/_/g, " "))}. {view.confidenceLabel}.
-          </p>
+          <p className="eyebrow">Main read</p>
+          <h2>{view.mainRead}</h2>
+          <span className="signal-pill">{view.signalStrengthLabel}</span>
         </div>
-        <div className="score-detail">
-          <span>API detail</span>
-          <strong>{view.isLowSignal ? "Not shown" : view.scoreLabel}</strong>
+      </section>
+
+      <section className="result-block wide-block">
+        <div className="section-heading">
+          <p className="eyebrow">Evidence phrases</p>
+          <h3>Quoted wording behind the read</h3>
         </div>
+        <div className="evidence-detail-grid">
+          {view.evidenceDetails.map((row) => (
+            <article className="evidence-detail" key={row.id}>
+              <span>{row.family}</span>
+              <strong>“{row.phrase}”</strong>
+              {row.repair ? <p>{row.repair}</p> : null}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="result-block wide-block">
+        <div className="section-heading">
+          <p className="eyebrow">Pattern explanation</p>
+          <h3>{view.patternExplanation}</h3>
+        </div>
+        <PatternChips labels={view.patternLabels} />
+      </section>
+
+      <section className="cannot-infer-block wide-block">
+        <h3>What this cannot tell you</h3>
+        <p>{view.cannotInferText}</p>
+      </section>
+
+      <section className="safe-next-card wide-block">
+        <h3>Safe next step</h3>
+        <p>{view.safeNextStep}</p>
+      </section>
+
+      <section className="limits-grid" aria-label="Result boundaries">
+        <ListBlock title="Can help with" items={view.canTell} empty="" />
+        <ListBlock title="Cannot tell you" items={view.cannotTell} empty="" />
       </section>
 
       <section className="disclaimer-strip">
@@ -499,78 +558,10 @@ function MatchResults({ result, setView }) {
         <span>{view.disclosure}</span>
       </section>
 
-      <section className="limits-grid" aria-label="Result boundaries">
-        <ListBlock title="What this can tell you" items={view.canTell} empty="" />
-        <ListBlock title="What this cannot tell you" items={view.cannotInfer} empty="" />
-      </section>
-
-      {view.isLowSignal ? (
-        <section className="low-signal-panel">
-          <h3>Low signal</h3>
-          <p>
-            Not enough visible evidence was returned for a normal pattern review. No action is
-            required; add more permissioned context only if you want a broader review.
-          </p>
-          {view.confidenceReasons.length ? (
-            <ul>
-              {view.confidenceReasons.map((reason) => (
-                <li key={reason}>{reason}</li>
-              ))}
-            </ul>
-          ) : null}
-        </section>
-      ) : null}
-
-      <section className="result-block wide-block">
-        <h3>Observed cue phrases</h3>
-        <div className="evidence-detail-grid">
-          {(view.evidenceDetails.length
-            ? view.evidenceDetails
-            : [
-                {
-                  id: "empty",
-                  family: "low signal",
-                  phrase: "No evidence phrases returned yet.",
-                  explanation: "",
-                  repair: "",
-                },
-              ]
-          ).map((row) => (
-            <article className="evidence-detail" key={row.id}>
-              <span>{row.family}</span>
-              <strong>{row.phrase}</strong>
-              {row.repair ? <p>{row.repair}</p> : null}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <div className="result-grid">
-        <ListBlock
-          title="Helpful cues"
-          items={view.positiveFactors}
-          empty="No strong alignment factor is visible from the current text."
-        />
-        <ListBlock
-          title="Friction cues"
-          items={view.riskFactors}
-          empty="No major deterministic friction cue is visible from the current text."
-        />
-      </div>
-
-      <section className="result-block wide-block">
-        <h3>Possible next steps</h3>
-        <ul>
-          {view.safeNextSteps.map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ul>
-      </section>
-
       <section className="feedback-panel">
         <div>
-          <h3>Feedback</h3>
-          <p>Optional one-time metadata feedback for this match result.</p>
+          <h3>Was this result useful?</h3>
+          <p>Optional metadata-only feedback. No free-text comment or message text is sent.</p>
         </div>
         <label className="checkbox-row compact">
           <input
@@ -581,20 +572,16 @@ function MatchResults({ result, setView }) {
           <span>Consent to store bounded feedback metadata.</span>
         </label>
         <div className="feedback-actions">
-          <Button
-            tone="secondary"
-            disabled={!view.matchId || submittedFeedbackRatings.includes(1)}
-            onClick={() => sendFeedback(1)}
-          >
-            Useful for review
-          </Button>
-          <Button
-            tone="secondary"
-            disabled={!view.matchId || submittedFeedbackRatings.includes(0)}
-            onClick={() => sendFeedback(0)}
-          >
-            Not useful for review
-          </Button>
+          {FEEDBACK_OPTIONS.map((option) => (
+            <Button
+              key={option.id}
+              tone="secondary"
+              disabled={!feedbackConsent || !view.matchId || submittedFeedback.includes(option.id)}
+              onClick={() => sendFeedback(option)}
+            >
+              {option.label}
+            </Button>
+          ))}
         </div>
         {feedbackStatus ? <p className="success-text">{feedbackStatus}</p> : null}
         {feedbackError ? <p className="error-text">{feedbackError}</p> : null}
@@ -614,23 +601,33 @@ function AnalyzeResults({ result, setView }) {
       <section className="result-hero">
         <div>
           <p className="eyebrow">Cue evidence</p>
-          <h2>{evidence.length ? `${evidence.length} deterministic cues` : "No cue rows returned"}</h2>
+          <h2>{evidence.length ? `${evidence.length} observable cues` : "No cue rows returned"}</h2>
           <p>
-            Evidence objects came from the deterministic cue taxonomy. Display text uses safe
-            phrases and cautious explanations from the backend.
+            Evidence objects display safe phrases and cautious explanations from the current cue
+            taxonomy.
           </p>
         </div>
-        <div className="status-pill large">raw not stored</div>
+        <div className="status-pill large">bounded display</div>
       </section>
 
       <section className="evidence-list">
-        {(evidence.length ? evidence : [{ cue_id: "no_cue", safe_phrase: "No deterministic cue returned for this text.", explanation: "No action is required; add permissioned context only if a broader pattern review would help." }]).map((row, index) => (
+        {(evidence.length
+          ? evidence
+          : [
+              {
+                cue_id: "no_cue",
+                safe_phrase: "No observable cue returned for this text.",
+                explanation:
+                  "No action is required; add permissioned context only if a broader pattern review would help.",
+              },
+            ]
+        ).map((row, index) => (
           <article className="evidence-row" key={`${row.evidence_id || row.cue_id}:${index}`}>
             <div>
               <span>{normalizeText(row.cue_family || row.cue_id || "cue").replace(/_/g, " ")}</span>
               <strong>{normalizeText(row.safe_phrase || "Safe phrase unavailable.")}</strong>
             </div>
-            <p>{normalizeText(row.explanation || "Deterministic cue explanation unavailable.")}</p>
+            <p>{normalizeText(row.explanation || "Cue explanation unavailable.")}</p>
           </article>
         ))}
       </section>
@@ -650,13 +647,13 @@ function AnalyzeResults({ result, setView }) {
   );
 }
 
-function Results({ result, setView }) {
+function Results({ result, runSyntheticDemo, setView }) {
   if (!result) {
     return (
       <main className="page narrow-page">
         <section className="surface">
           <h2>No result yet</h2>
-          <Button onClick={() => setView("analyze")}>Start analysis</Button>
+          <Button onClick={() => runSyntheticDemo(SYNTHETIC_DEMOS[0].id)}>Start with a demo</Button>
         </section>
       </main>
     );
@@ -668,7 +665,7 @@ function Results({ result, setView }) {
         <ArrowLeft size={16} /> Back to input
       </button>
       {result.kind === "match" ? (
-        <MatchResults result={result.payload} setView={setView} />
+        <MatchResults result={result.payload} runSyntheticDemo={runSyntheticDemo} setView={setView} />
       ) : (
         <AnalyzeResults result={result.payload} setView={setView} />
       )}
@@ -695,7 +692,7 @@ function Legal({ setView }) {
       } catch (requestError) {
         if (!cancelled) {
           setPage(FALLBACK_LEGAL);
-          setError(requestError?.message || "Legal route could not be fetched.");
+          setError(requestError?.message || "The legal draft could not be fetched.");
         }
       } finally {
         if (!cancelled) {
@@ -735,7 +732,7 @@ function Legal({ setView }) {
         {error ? (
           <div className="error-banner" role="alert">
             <AlertCircle size={18} />
-            <span>Using fallback copy because the legal route did not load.</span>
+            <span>Using fallback copy because the legal draft did not load.</span>
           </div>
         ) : null}
         {loading ? <p className="quiet-copy">Loading legal draft...</p> : null}
@@ -775,14 +772,18 @@ function Beta({ setView }) {
             remain blocked until real-device QA and legal review pass.
           </p>
         </div>
-        <label className="field-label" htmlFor="beta-email">Email</label>
+        <label className="field-label" htmlFor="beta-email">
+          Email
+        </label>
         <input
           id="beta-email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@example.com"
         />
-        <label className="field-label" htmlFor="beta-platform">Platform</label>
+        <label className="field-label" htmlFor="beta-platform">
+          Platform
+        </label>
         <select
           id="beta-platform"
           value={platform}
@@ -792,7 +793,9 @@ function Beta({ setView }) {
           <option>Web</option>
           <option>Both</option>
         </select>
-        <label className="field-label" htmlFor="beta-intent">Tester intent</label>
+        <label className="field-label" htmlFor="beta-intent">
+          Tester intent
+        </label>
         <textarea
           className="short-textarea"
           id="beta-intent"
@@ -828,14 +831,48 @@ export default function App() {
   const [mode, setMode] = useState("match");
   const [result, setResult] = useState(null);
 
+  function runSyntheticDemo(demoId) {
+    setResult({
+      kind: "match",
+      payload: buildSyntheticResult(demoId),
+    });
+    setMode("match");
+    setView("results");
+  }
+
+  function goToHowItWorks() {
+    setView("home");
+    window.setTimeout(() => {
+      document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
+
   return (
     <div className="app-shell">
-      <TopNav setView={setView} />
-      {view === "home" ? <Home setView={setView} setMode={setMode} /> : null}
-      {view === "analyze" ? (
-        <Analyze mode={mode} setMode={setMode} setView={setView} setResult={setResult} />
+      <TopNav
+        goToHowItWorks={goToHowItWorks}
+        runSyntheticDemo={runSyntheticDemo}
+        setView={setView}
+      />
+      {view === "home" ? (
+        <Home
+          goToHowItWorks={goToHowItWorks}
+          runSyntheticDemo={runSyntheticDemo}
+          setView={setView}
+        />
       ) : null}
-      {view === "results" ? <Results result={result} setView={setView} /> : null}
+      {view === "analyze" ? (
+        <Analyze
+          mode={mode}
+          runSyntheticDemo={runSyntheticDemo}
+          setMode={setMode}
+          setView={setView}
+          setResult={setResult}
+        />
+      ) : null}
+      {view === "results" ? (
+        <Results result={result} runSyntheticDemo={runSyntheticDemo} setView={setView} />
+      ) : null}
       {view === "legal" ? <Legal setView={setView} /> : null}
       {view === "beta" ? <Beta setView={setView} /> : null}
     </div>

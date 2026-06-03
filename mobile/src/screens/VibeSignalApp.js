@@ -13,8 +13,13 @@ import {
   View,
 } from "react-native";
 
-import { buildMatchResultViewModel } from "./matchScreenModel.js";
-import { formatBackendUrlStatus, parseBackendBaseUrl } from "../services/backendUrl.js";
+import {
+  buildLowSignalFallback,
+  buildMatchResultViewModel,
+  FEEDBACK_OPTIONS,
+  isContextLightInput,
+} from "./matchScreenModel.js";
+import { parseBackendBaseUrl } from "../services/backendUrl.js";
 import { createMatchClient } from "../services/matchClient.js";
 import { createVibeBackendClient } from "../services/vibeBackendClient.js";
 
@@ -35,7 +40,136 @@ const COLORS = {
 };
 
 const SAMPLE_TEXT =
-  "self: Can you confirm Friday at 3pm?\nother: Yes, Friday at 3pm works. No pressure if we need to adjust.";
+  "self: Are we still on for Friday?\nother: maybe later, not sure yet";
+
+const HERO_COPY = {
+  title: "Understand message patterns without guessing motives.",
+  subtitle:
+    "Vibe Signal highlights observable cues like clarity, ambiguity, pressure, reassurance, and repair opportunities — with evidence, limits, and safe next steps.",
+  primaryCta: "Try a synthetic example",
+  secondaryCta: "See how it works",
+  trustNote: "Use synthetic text first, or only messages you have permission to analyze.",
+};
+
+const TRUST_STRIP_ITEMS = [
+  "Evidence-first outputs",
+  "No hidden-intent claims",
+  "Synthetic demo available",
+  "Privacy-conscious beta design",
+  "Built for clarity, not manipulation",
+];
+
+const CAN_HELP_WITH = [
+  "Spot vague or overloaded messages",
+  "Identify unclear asks",
+  "Surface pressure or urgency cues",
+  "Show reassurance and repair opportunities",
+  "Suggest clearer, lower-pressure replies",
+];
+
+const CANNOT_TELL = [
+  "Whether someone likes you",
+  "Whether someone is cheating",
+  "Whether someone is lying",
+  "What someone secretly means",
+  "Someone’s diagnosis, attachment style, neurotype, or personality",
+  "Whether a relationship will work",
+];
+
+const SYNTHETIC_DEMOS = [
+  {
+    id: "unclear_ask",
+    title: "Unclear ask",
+    exchange: SAMPLE_TEXT,
+    highlight: "Highlights vague timing after a direct question.",
+    result: {
+      match_id: "synthetic_unclear_ask",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      signal_strength: "medium",
+      compatibility_band: "mixed",
+      safe_explanation: "This message gives a vague timing answer after a direct question.",
+      evidence: [
+        {
+          evidence_id: "unclear_1",
+          safe_phrase: "maybe later",
+          cue_family: "vague_timing",
+          explanation: "The reply gives an open-ended timing answer after a direct question.",
+          repair_suggestion: "Ask for a specific time or decision point.",
+        },
+        {
+          evidence_id: "unclear_2",
+          safe_phrase: "not sure yet",
+          cue_family: "vague_timing",
+          explanation: "The reply does not give a clear decision point.",
+        },
+      ],
+      safe_next_steps: ["Ask for a specific time or decision point."],
+    },
+  },
+  {
+    id: "pressure_urgency",
+    title: "Pressure / urgency",
+    exchange:
+      "self: I need a little time to think.\nother: I need an answer tonight or this will not work.",
+    highlight: "Highlights urgency and consequence pressure in the wording.",
+    result: {
+      match_id: "synthetic_pressure_urgency",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      signal_strength: "medium",
+      compatibility_band: "mixed",
+      safe_explanation: "This reply adds urgency and a consequence after a request for time.",
+      evidence: [
+        {
+          evidence_id: "pressure_1",
+          safe_phrase: "answer tonight",
+          cue_family: "urgency_pressure",
+          explanation: "The wording compresses the decision window.",
+          repair_suggestion: "Name when you can respond without adding pressure back.",
+        },
+        {
+          evidence_id: "pressure_2",
+          safe_phrase: "this will not work",
+          cue_family: "boundary_pressure",
+          explanation: "The reply links the timing to a consequence.",
+        },
+      ],
+      safe_next_steps: ["Name when you can respond without adding pressure back."],
+    },
+  },
+  {
+    id: "repair_opportunity",
+    title: "Repair opportunity",
+    exchange:
+      "self: That landed harder than I meant.\nother: I appreciate you saying that. Can we reset and choose a time tomorrow?",
+    highlight: "Highlights reassurance, repair wording, and a clear next step.",
+    result: {
+      match_id: "synthetic_repair_opportunity",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      signal_strength: "high",
+      compatibility_band: "supportive",
+      safe_explanation: "This exchange includes repair wording and a clear low-pressure next step.",
+      evidence: [
+        {
+          evidence_id: "repair_1",
+          safe_phrase: "I appreciate you saying that",
+          cue_family: "reassurance",
+          explanation: "The reply acknowledges the repair attempt.",
+          repair_suggestion: "Keep the next reply specific and low pressure.",
+        },
+        {
+          evidence_id: "repair_2",
+          safe_phrase: "reset and choose a time tomorrow",
+          cue_family: "repair_opportunity",
+          explanation: "The wording offers a concrete next step after repair.",
+        },
+      ],
+      safe_next_steps: ["Keep the next reply specific and low pressure."],
+    },
+  },
+];
 
 const LEGAL_PAGES = [
   ["match-disclaimer", "Match"],
@@ -60,6 +194,16 @@ const FALLBACK_LEGAL = {
 
 function normalizeText(value) {
   return String(value || "").trim();
+}
+
+function buildSyntheticResult(demoId) {
+  const demo = SYNTHETIC_DEMOS.find((item) => item.id === demoId) || SYNTHETIC_DEMOS[0];
+  return {
+    ...demo.result,
+    synthetic: true,
+    demoTitle: demo.title,
+    requiresPrivateConsent: false,
+  };
 }
 
 function useBackendClients() {
@@ -127,62 +271,68 @@ function Header({ onHome, onLegal }) {
   );
 }
 
-function HomeScreen({ setScreen, setMode }) {
-  function start(nextMode) {
-    setMode(nextMode);
-    setScreen("analyze");
-  }
-
+function HomeScreen({ runSyntheticDemo, setScreen, setMode }) {
   return (
     <Shell>
       <Header onHome={() => setScreen("home")} onLegal={() => setScreen("legal")} />
       <View style={styles.hero}>
-        <Text style={styles.eyebrow}>Pattern-based review</Text>
-        <Text style={styles.heroTitle}>Understand message patterns without guessing motives.</Text>
-        <Text style={styles.heroSubtitle}>
-          Review observable cues, evidence phrases, limits, and safer next steps with synthetic
-          or permissioned text.
-        </Text>
+        <Text style={styles.eyebrow}>Communication support</Text>
+        <Text style={styles.heroTitle}>{HERO_COPY.title}</Text>
+        <Text style={styles.heroSubtitle}>{HERO_COPY.subtitle}</Text>
         <View style={styles.heroActions}>
           <PressableText
             style={styles.primaryButton}
             textStyle={styles.primaryButtonText}
-            onPress={() => start("match")}
+            onPress={() => runSyntheticDemo(SYNTHETIC_DEMOS[0].id)}
           >
-            Try a synthetic example
+            {HERO_COPY.primaryCta}
           </PressableText>
           <PressableText
             style={styles.secondaryButton}
             textStyle={styles.secondaryButtonText}
-            onPress={() => start("evidence")}
+            onPress={() => setScreen("analyze")}
           >
-            Surface cue evidence
+            {HERO_COPY.secondaryCta}
           </PressableText>
         </View>
-        <Text style={styles.quietText}>
-          Use synthetic or permissioned text only. Raw messages are not persisted by default.
+        <Text style={styles.quietText}>{HERO_COPY.trustNote}</Text>
+      </View>
+
+      <View style={styles.trustStrip}>
+        {TRUST_STRIP_ITEMS.map((item) => (
+          <Text key={item} style={styles.trustItem}>{item}</Text>
+        ))}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.eyebrow}>Synthetic demo cards</Text>
+        <Text style={styles.screenTitle}>Try the product before using private text.</Text>
+        {SYNTHETIC_DEMOS.map((demo) => (
+          <Pressable
+            key={demo.id}
+            style={({ pressed }) => [styles.demoCard, pressed && styles.pressed]}
+            onPress={() => runSyntheticDemo(demo.id)}
+          >
+            <Text style={styles.modeLabel}>{demo.title}</Text>
+            <Text style={styles.syntheticExchange}>{demo.exchange}</Text>
+            <Text style={styles.modeBody}>{demo.highlight}</Text>
+            <Text style={styles.modeAction}>Run demo</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.eyebrow}>How it works</Text>
+        <Text style={styles.sectionTitle}>Evidence first, interpretation second.</Text>
+        <Text style={styles.helperText}>
+          Start with a synthetic example, read the quoted phrase, check the limits, then choose a
+          lower-pressure next step.
         </Text>
       </View>
 
-      <View style={styles.modeGrid}>
-        <ModeCard
-          label="Communication Fit"
-          marker="M"
-          body="Pattern band, helpful cues, friction cues, evidence phrases, limits, and next steps."
-          onPress={() => start("match")}
-        />
-        <ModeCard
-          label="Cue Evidence"
-          marker="E"
-          body="Current cue taxonomy rows with safe phrases and cautious explanations."
-          onPress={() => start("evidence")}
-        />
-        <ModeCard
-          label="Legal Boundaries"
-          marker="L"
-          body="Draft closed-beta legal copy fetched from the current backend legal routes."
-          onPress={() => setScreen("legal")}
-        />
+      <View style={styles.resultGrid}>
+        <FactorList title="Can help with" items={CAN_HELP_WITH} empty="" />
+        <FactorList title="Cannot tell you" items={CANNOT_TELL} empty="" />
       </View>
     </Shell>
   );
@@ -201,7 +351,7 @@ function ModeCard({ label, marker, body, onPress }) {
   );
 }
 
-function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
+function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }) {
   const { apiUrl, matchClient, backendClient } = useBackendClients();
   const [text, setText] = useState(SAMPLE_TEXT);
   const [consent, setConsent] = useState(false);
@@ -211,22 +361,42 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
 
   const apiUrlState = parseBackendBaseUrl(apiUrl);
   const apiConfigured = apiUrlState.ok;
-  const canSubmit = Boolean(normalizeText(text)) && consent && apiConfigured && !loading;
+  const hasText = Boolean(normalizeText(text));
+  const canSubmit = hasText && consent && apiConfigured && !loading;
 
   async function handleSubmit() {
-    if (!canSubmit) {
+    if (!hasText) {
+      setStatus("Add a short exchange, or run a synthetic example first.");
+      return;
+    }
+    if (!consent) {
+      setStatus("Confirm permission before private text analysis.");
+      return;
+    }
+    if (!apiConfigured) {
       setStatus(
-        apiConfigured
-          ? "Confirm permission before sending."
-          : apiUrlState.status === "missing_api_url"
-            ? "Set EXPO_PUBLIC_API_URL first."
-            : "EXPO_PUBLIC_API_URL must be a clean http(s) backend base URL."
+        apiUrlState.status === "missing_api_url"
+          ? "Private analysis is not connected in this build. Synthetic demos still work."
+          : "Private analysis needs a clean beta service connection."
       );
+      return;
+    }
+    if (isContextLightInput(text)) {
+      setResult({
+        kind: "match",
+        payload: {
+          ...buildLowSignalFallback(text),
+          match_id: "local_low_signal",
+          low_signal_fallback: true,
+        },
+      });
+      setStatus("");
+      setScreen("results");
       return;
     }
 
     setLoading(true);
-    setStatus(mode === "match" ? "Checking communication fit..." : "Surfacing cue evidence...");
+    setStatus(mode === "match" ? "Checking communication patterns..." : "Surfacing cue evidence...");
     setError("");
     try {
       const response =
@@ -241,7 +411,7 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
             });
 
       if (!response.ok) {
-        setError(response.userMessage || "The backend could not complete this request.");
+        setError(response.userMessage || "The request could not be completed.");
         setStatus("");
         return;
       }
@@ -271,7 +441,23 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
       <View style={styles.card}>
         <Text style={styles.eyebrow}>Pattern review</Text>
         <Text style={styles.screenTitle}>Review observable wording cues</Text>
-        <Text style={styles.helperText}>{formatBackendUrlStatus(apiUrl)}</Text>
+        <Text style={styles.helperText}>
+          Run a synthetic card without consent, or paste permissioned text after the lightweight
+          consent check.
+        </Text>
+
+        <View style={styles.inlineDemoRow}>
+          {SYNTHETIC_DEMOS.map((demo) => (
+            <Pressable
+              key={demo.id}
+              style={({ pressed }) => [styles.inlineDemoButton, pressed && styles.pressed]}
+              onPress={() => runSyntheticDemo(demo.id)}
+            >
+              <Text style={styles.inlineDemoTitle}>{demo.title}</Text>
+              <Text style={styles.inlineDemoAction}>Run demo</Text>
+            </Pressable>
+          ))}
+        </View>
 
         <View style={styles.segmented}>
           <PressableText
@@ -279,7 +465,7 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
             textStyle={[styles.segmentText, mode === "match" && styles.segmentTextActive]}
             onPress={() => setMode("match")}
           >
-            Match
+            Pattern
           </PressableText>
           <PressableText
             style={[styles.segmentButton, mode === "evidence" && styles.segmentButtonActive]}
@@ -290,7 +476,7 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
           </PressableText>
         </View>
 
-        <Text style={styles.fieldLabel}>Conversation text</Text>
+        <Text style={styles.fieldLabel}>Permissioned conversation text</Text>
         <TextInput
           value={text}
           onChangeText={(value) => {
@@ -308,26 +494,19 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
         />
 
         <View style={styles.disclosureBox}>
-          <Text style={styles.disclosureTitle}>Before you analyze</Text>
+          <Text style={styles.disclosureTitle}>Before you paste</Text>
+          <Text style={styles.disclosureText}>Only submit messages you have permission to analyze.</Text>
           <Text style={styles.disclosureText}>
-            Vibe Signal is communication-support only. Outputs are pattern-based suggestions, not
-            decisions about another person. Only submit messages you have permission to analyze.
-            Do not include names, phone numbers, addresses, minors, medical/legal/financial/
-            workplace-sensitive content, or highly sensitive third-party content.
+            Remove names, phone numbers, addresses, and sensitive details.
+          </Text>
+          <Text style={styles.disclosureText}>
+            Use synthetic examples if you just want to test the app.
           </Text>
         </View>
 
         <View style={styles.resultGrid}>
-          <FactorList title="Can tell you" items={[
-            "Observable wording patterns.",
-            "Whether enough visible evidence is present.",
-            "Lower-pressure next-step options.",
-          ]} empty="" />
-          <FactorList title="Cannot tell you" items={[
-            "Private feelings or motives.",
-            "Deception verdicts or private context.",
-            "Clinical, identity, or relationship-style labels.",
-          ]} empty="" />
+          <FactorList title="Can help with" items={CAN_HELP_WITH} empty="" />
+          <FactorList title="Cannot tell you" items={CANNOT_TELL} empty="" />
         </View>
 
         <Pressable
@@ -338,7 +517,7 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
             <Text style={styles.checkboxMark}>{consent ? "OK" : ""}</Text>
           </View>
           <Text style={styles.checkboxLabel}>
-            I have permission to process this text and understand the draft legal boundaries.
+            I understand and have permission to analyze this text.
           </Text>
         </Pressable>
 
@@ -351,7 +530,7 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
           textStyle={styles.primaryButtonText}
           onPress={handleSubmit}
         >
-          {loading ? "Checking..." : mode === "match" ? "Review pattern band" : "Surface cues"}
+          {loading ? "Checking..." : mode === "match" ? "Review patterns" : "Surface evidence"}
         </PressableText>
 
         {loading ? <ActivityIndicator color={COLORS.primary} /> : null}
@@ -360,7 +539,7 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
   );
 }
 
-function ResultsScreen({ result, setScreen, setMode }) {
+function ResultsScreen({ result, runSyntheticDemo, setScreen, setMode }) {
   if (!result) {
     return (
       <Shell>
@@ -391,7 +570,12 @@ function ResultsScreen({ result, setScreen, setMode }) {
       </PressableText>
 
       {result.kind === "match" ? (
-        <MatchResult result={result.payload} setScreen={setScreen} setMode={setMode} />
+        <MatchResult
+          result={result.payload}
+          runSyntheticDemo={runSyntheticDemo}
+          setScreen={setScreen}
+          setMode={setMode}
+        />
       ) : (
         <EvidenceResult result={result.payload} setScreen={setScreen} setMode={setMode} />
       )}
@@ -399,20 +583,20 @@ function ResultsScreen({ result, setScreen, setMode }) {
   );
 }
 
-function MatchResult({ result, setScreen, setMode }) {
+function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
   const { backendClient } = useBackendClients();
   const viewModel = buildMatchResultViewModel(result || {});
   const [feedbackConsent, setFeedbackConsent] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
-  const [submittedFeedbackRatings, setSubmittedFeedbackRatings] = useState([]);
+  const [submittedFeedbackTags, setSubmittedFeedbackTags] = useState([]);
 
-  async function sendFeedback(rating) {
+  async function sendFeedback(option) {
     if (feedbackLoading) {
       return;
     }
-    if (submittedFeedbackRatings.includes(rating)) {
+    if (submittedFeedbackTags.includes(option.id)) {
       setFeedbackStatus("Feedback metadata already accepted for this result.");
       setFeedbackError("");
       return;
@@ -423,14 +607,15 @@ function MatchResult({ result, setScreen, setMode }) {
     try {
       const response = await backendClient.submitFeedbackMetadata({
         matchId: result?.match_id || "",
-        rating,
+        rating: option.rating,
+        feedbackTag: option.id,
         consent: feedbackConsent,
       });
       if (response.ok) {
-        setSubmittedFeedbackRatings((current) =>
-          current.includes(rating) ? current : [...current, rating]
+        setSubmittedFeedbackTags((current) =>
+          current.includes(option.id) ? current : [...current, option.id]
         );
-        setFeedbackStatus("Feedback metadata accepted. No raw comment was sent.");
+        setFeedbackStatus("Feedback metadata accepted. No raw message text was sent.");
         return;
       }
       setFeedbackError(response.userMessage || "Feedback could not be sent.");
@@ -439,81 +624,92 @@ function MatchResult({ result, setScreen, setMode }) {
     }
   }
 
+  if (viewModel.isLowSignal) {
+    return (
+      <>
+        <View style={[styles.resultHero, styles.lowSignalCard]}>
+          <Text style={styles.eyebrow}>Low-signal fallback</Text>
+          <Text style={styles.screenTitle}>{viewModel.title}</Text>
+          <Text style={styles.helperText}>{viewModel.body}</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Try</Text>
+          {viewModel.tryItems.map((item) => (
+            <Text key={item} style={styles.factorText}>• {item}</Text>
+          ))}
+        </View>
+
+        <View style={styles.buttonRow}>
+          <PressableText
+            style={[styles.secondaryButton, styles.flexButton]}
+            textStyle={styles.secondaryButtonText}
+            onPress={() => setScreen("analyze")}
+          >
+            Add more context
+          </PressableText>
+          <PressableText
+            style={[styles.primaryButton, styles.flexButton]}
+            textStyle={styles.primaryButtonText}
+            onPress={() => runSyntheticDemo(SYNTHETIC_DEMOS[0].id)}
+          >
+            Try a synthetic example
+          </PressableText>
+        </View>
+      </>
+    );
+  }
+
   return (
     <>
       <View style={styles.resultHero}>
-        <View style={styles.scorePanel}>
-          <Text style={styles.scoreLabel}>Communication pattern band</Text>
-          <Text style={styles.scoreValue}>{viewModel.bandLabel}</Text>
-          <Text style={styles.helperText}>
-            Signal strength: {viewModel.signalStrength}. {viewModel.confidenceLabel}.
-          </Text>
-          <Text style={styles.helperText}>
-            API detail: {viewModel.isLowSignal ? "not shown for low signal" : viewModel.compatibilityScoreLabel}
-          </Text>
-          <Text style={styles.bandPill}>{viewModel.bandLabel}</Text>
-        </View>
-        <Text style={styles.resultExplanation}>{viewModel.explanation}</Text>
-        <Text style={styles.disclosureText}>{viewModel.disclosure}</Text>
-      </View>
-
-      {viewModel.isLowSignal ? (
-        <View style={styles.lowSignalCard}>
-          <Text style={styles.sectionTitle}>Low signal</Text>
-          <Text style={styles.helperText}>
-            Not enough visible evidence was returned for a normal pattern review. No action is
-            required; add more permissioned context only if that would help.
-          </Text>
-          {viewModel.confidenceReasons.map((reason) => (
-            <Text key={reason} style={styles.factorText}>• {reason}</Text>
-          ))}
-        </View>
-      ) : null}
-
-      <View style={styles.resultGrid}>
-        <FactorList title="What this can tell you" items={viewModel.canTell} empty="" />
-        <FactorList title="What this cannot tell you" items={viewModel.cannotInfer} empty="" />
+        <Text style={styles.eyebrow}>Main read</Text>
+        <Text style={styles.screenTitle}>{viewModel.mainRead}</Text>
+        <Text style={styles.signalPill}>{viewModel.signalStrengthLabel}</Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Observed cue phrases</Text>
-        {(viewModel.evidenceDetails.length
-          ? viewModel.evidenceDetails
-          : [{ id: "empty", family: "low signal", phrase: viewModel.emptyEvidenceLabel, repair: "" }]
-        ).map((row) => (
+        <Text style={styles.eyebrow}>Evidence phrases</Text>
+        <Text style={styles.sectionTitle}>Quoted wording behind the read</Text>
+        {viewModel.evidenceDetails.map((row) => (
           <View key={row.id} style={styles.evidenceDetail}>
             <Text style={styles.evidenceFamily}>{row.family}</Text>
-            <Text style={styles.evidencePhrase}>{row.phrase}</Text>
+            <Text style={styles.evidencePhrase}>“{row.phrase}”</Text>
             {!!row.repair ? <Text style={styles.helperText}>{row.repair}</Text> : null}
           </View>
         ))}
       </View>
 
+      <View style={styles.card}>
+        <Text style={styles.eyebrow}>Pattern explanation</Text>
+        <Text style={styles.sectionTitle}>{viewModel.patternExplanation}</Text>
+        <View style={styles.chipRow}>
+          {viewModel.patternLabels.map((label, index) => (
+            <Text key={`${label}:${index}`} style={styles.patternChip}>{label}</Text>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.cannotInferCard}>
+        <Text style={styles.sectionTitle}>What this cannot tell you</Text>
+        <Text style={styles.helperText}>{viewModel.cannotInferText}</Text>
+      </View>
+
+      <View style={styles.safeNextCard}>
+        <Text style={styles.sectionTitle}>Safe next step</Text>
+        <Text style={styles.helperText}>{viewModel.safeNextStep}</Text>
+      </View>
+
       <View style={styles.resultGrid}>
-        <FactorList
-          title="Helpful cues"
-          items={viewModel.positiveFactors}
-          empty={viewModel.emptyPositiveLabel}
-        />
-        <FactorList
-          title="Friction cues"
-          items={viewModel.riskFactors}
-          empty={viewModel.emptyRiskLabel}
-        />
+        <FactorList title="Can help with" items={viewModel.canTell} empty="" />
+        <FactorList title="Cannot tell you" items={viewModel.cannotInfer} empty="" />
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Possible next steps</Text>
-        {viewModel.safeNextSteps.map((step) => (
-          <Text key={step} style={styles.factorText}>
-            • {step}
-          </Text>
-        ))}
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Feedback</Text>
-        <Text style={styles.helperText}>Optional one-time metadata feedback for this result.</Text>
+        <Text style={styles.sectionTitle}>Was this result useful?</Text>
+        <Text style={styles.helperText}>
+          Optional metadata-only feedback. No free-text comment or message text is sent.
+        </Text>
         <Pressable
           style={({ pressed }) => [styles.checkboxRow, pressed && styles.pressed]}
           onPress={() => setFeedbackConsent((current) => !current)}
@@ -524,22 +720,19 @@ function MatchResult({ result, setScreen, setMode }) {
           <Text style={styles.checkboxLabel}>Consent to store bounded feedback metadata.</Text>
         </Pressable>
         <View style={styles.buttonRow}>
-          <PressableText
-            disabled={feedbackLoading || submittedFeedbackRatings.includes(1)}
-            style={[styles.secondaryButton, styles.flexButton]}
-            textStyle={styles.secondaryButtonText}
-            onPress={() => sendFeedback(1)}
-          >
-            {feedbackLoading ? "Sending..." : "Useful for review"}
-          </PressableText>
-          <PressableText
-            disabled={feedbackLoading || submittedFeedbackRatings.includes(0)}
-            style={[styles.secondaryButton, styles.flexButton]}
-            textStyle={styles.secondaryButtonText}
-            onPress={() => sendFeedback(0)}
-          >
-            {feedbackLoading ? "Sending..." : "Not useful for review"}
-          </PressableText>
+          {FEEDBACK_OPTIONS.map((option) => (
+            <PressableText
+              key={option.id}
+              disabled={
+                !feedbackConsent || feedbackLoading || submittedFeedbackTags.includes(option.id)
+              }
+              style={[styles.secondaryButton, styles.feedbackButton]}
+              textStyle={styles.secondaryButtonText}
+              onPress={() => sendFeedback(option)}
+            >
+              {feedbackLoading ? "Sending..." : option.label}
+            </PressableText>
+          ))}
         </View>
         {feedbackStatus ? <Text style={styles.statusText}>{feedbackStatus}</Text> : null}
         {feedbackError ? <Text style={styles.errorText}>{feedbackError}</Text> : null}
@@ -582,7 +775,7 @@ function EvidenceResult({ result, setScreen, setMode }) {
         {
           cue_id: "no_cue",
           cue_family: "cue",
-          safe_phrase: "No deterministic cue returned for this text.",
+          safe_phrase: "No observable cue returned for this text.",
           explanation: "No action is required; add permissioned context only if a broader pattern review would help.",
         },
       ];
@@ -592,7 +785,7 @@ function EvidenceResult({ result, setScreen, setMode }) {
       <View style={styles.resultHero}>
         <Text style={styles.eyebrow}>Cue evidence</Text>
         <Text style={styles.screenTitle}>
-          {evidence.length ? `${evidence.length} deterministic cues` : "No cue rows returned"}
+          {evidence.length ? `${evidence.length} observable cues` : "No cue rows returned"}
         </Text>
         <Text style={styles.disclosureText}>
           Evidence rows come from the current cue taxonomy and include safe phrases, explanations,
@@ -609,7 +802,7 @@ function EvidenceResult({ result, setScreen, setMode }) {
             {normalizeText(row.safe_phrase || "Safe phrase unavailable.")}
           </Text>
           <Text style={styles.helperText}>
-            {normalizeText(row.explanation || "Deterministic cue explanation unavailable.")}
+            {normalizeText(row.explanation || "Cue explanation unavailable.")}
           </Text>
         </View>
       ))}
@@ -646,7 +839,7 @@ function LegalScreen({ setScreen }) {
     async function load() {
       if (!normalizeText(apiUrl)) {
         setPage(FALLBACK_LEGAL);
-        setStatus("Set EXPO_PUBLIC_API_URL to fetch the backend legal routes.");
+        setStatus("Using fallback copy because the legal draft is not connected in this build.");
         return;
       }
 
@@ -661,7 +854,7 @@ function LegalScreen({ setScreen }) {
         return;
       }
       setPage(FALLBACK_LEGAL);
-      setStatus("Using fallback copy because the legal route did not load.");
+      setStatus("Using fallback copy because the legal draft did not load.");
     }
     void load();
     return () => {
@@ -681,7 +874,7 @@ function LegalScreen({ setScreen }) {
       </PressableText>
 
       <View style={styles.card}>
-        <Text style={styles.eyebrow}>Legal route</Text>
+        <Text style={styles.eyebrow}>Legal and privacy</Text>
         <Text style={styles.screenTitle}>{page.title}</Text>
         <Text style={styles.helperText}>Status: {page.status || "draft_requires_legal_review"}</Text>
 
@@ -717,10 +910,20 @@ export default function VibeSignalApp() {
   const [mode, setMode] = useState("match");
   const [result, setResult] = useState(null);
 
+  function runSyntheticDemo(demoId) {
+    setResult({
+      kind: "match",
+      payload: buildSyntheticResult(demoId),
+    });
+    setMode("match");
+    setScreen("results");
+  }
+
   if (screen === "analyze") {
     return (
       <AnalyzeScreen
         mode={mode}
+        runSyntheticDemo={runSyntheticDemo}
         setMode={setMode}
         setResult={setResult}
         setScreen={setScreen}
@@ -729,14 +932,27 @@ export default function VibeSignalApp() {
   }
 
   if (screen === "results") {
-    return <ResultsScreen result={result} setMode={setMode} setScreen={setScreen} />;
+    return (
+      <ResultsScreen
+        result={result}
+        runSyntheticDemo={runSyntheticDemo}
+        setMode={setMode}
+        setScreen={setScreen}
+      />
+    );
   }
 
   if (screen === "legal") {
     return <LegalScreen setScreen={setScreen} />;
   }
 
-  return <HomeScreen setMode={setMode} setScreen={setScreen} />;
+  return (
+    <HomeScreen
+      runSyntheticDemo={runSyntheticDemo}
+      setMode={setMode}
+      setScreen={setScreen}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -873,8 +1089,42 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
   },
+  trustStrip: {
+    gap: 8,
+  },
+  trustItem: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    borderRadius: 8,
+    color: COLORS.muted,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: "700",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   modeGrid: {
     gap: 10,
+  },
+  demoCard: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surfaceSoft,
+    borderRadius: 8,
+    padding: 13,
+    gap: 8,
+  },
+  syntheticExchange: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: "#060A12",
+    borderRadius: 8,
+    color: COLORS.foreground,
+    fontSize: 12,
+    lineHeight: 18,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
   },
   modeCard: {
     borderWidth: 1,
@@ -947,6 +1197,32 @@ const styles = StyleSheet.create({
     color: COLORS.muted,
     fontSize: 13,
     lineHeight: 20,
+  },
+  inlineDemoRow: {
+    gap: 8,
+  },
+  inlineDemoButton: {
+    minHeight: 58,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surfaceSoft,
+    borderRadius: 8,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 2,
+  },
+  inlineDemoTitle: {
+    color: COLORS.foreground,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "800",
+  },
+  inlineDemoAction: {
+    color: COLORS.primary,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "800",
   },
   segmented: {
     flexDirection: "row",
@@ -1114,6 +1390,20 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     fontWeight: "700",
   },
+  signalPill: {
+    alignSelf: "flex-start",
+    color: COLORS.primary,
+    borderWidth: 1,
+    borderColor: "rgba(255, 184, 77, 0.28)",
+    backgroundColor: "rgba(255, 184, 77, 0.1)",
+    borderRadius: 8,
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "900",
+  },
   resultGrid: {
     gap: 10,
   },
@@ -1156,6 +1446,40 @@ const styles = StyleSheet.create({
   evidenceDetail: {
     gap: 8,
   },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  patternChip: {
+    color: COLORS.primary,
+    borderWidth: 1,
+    borderColor: "rgba(255, 184, 77, 0.28)",
+    backgroundColor: "rgba(255, 184, 77, 0.1)",
+    borderRadius: 8,
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "900",
+  },
+  cannotInferCard: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: "rgba(142, 160, 190, 0.08)",
+    borderRadius: 8,
+    padding: 15,
+    gap: 8,
+  },
+  safeNextCard: {
+    borderWidth: 1,
+    borderColor: "rgba(125, 211, 168, 0.24)",
+    backgroundColor: "rgba(125, 211, 168, 0.08)",
+    borderRadius: 8,
+    padding: 15,
+    gap: 8,
+  },
   lowSignalCard: {
     borderWidth: 1,
     borderColor: "rgba(255, 184, 77, 0.34)",
@@ -1166,10 +1490,15 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   flexButton: {
     flex: 1,
+  },
+  feedbackButton: {
+    flexGrow: 1,
+    flexBasis: "46%",
   },
   evidenceCard: {
     borderWidth: 1,

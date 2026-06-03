@@ -107,10 +107,17 @@ function buildConversationId(prefix) {
   return `${prefix}_${Date.now().toString(16)}`;
 }
 
-function buildFeedbackEventId(matchId, rating) {
+function safeFeedbackTag(value, rating) {
+  const fallback = rating === 1 ? "useful" : "not_useful";
+  return normalizeText(value || fallback)
+    .toLowerCase()
+    .replace(/[^a-z0-9_.:-]/g, "_")
+    .slice(0, 32);
+}
+
+function buildFeedbackEventId(matchId, feedbackTag) {
   const safeMatchId = normalizeText(matchId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 48);
-  const safeRating = String(rating === 1 ? 1 : 0);
-  return `evt_feedback_${safeMatchId || "unknown"}_${safeRating}`;
+  return `evt_feedback_${safeMatchId || "unknown"}_${feedbackTag}`;
 }
 
 function buildSafeRequestError(path, status) {
@@ -201,14 +208,17 @@ export async function submitAnalyze(conversationText) {
   });
 }
 
-export async function submitFeedback({ matchId, rating, consent }) {
+export async function submitFeedback({ matchId, rating, feedbackTag, consent }) {
   const safeMatchId = normalizeText(matchId);
+  const safeTag = safeFeedbackTag(feedbackTag, rating);
+  const normalizedRating = safeTag === "useful" ? 1 : 0;
   return requestJson("/api/feedback", {
     method: "POST",
     body: JSON.stringify({
-      feedback_event_id: buildFeedbackEventId(safeMatchId, rating),
+      feedback_event_id: buildFeedbackEventId(safeMatchId, safeTag),
       match_id: safeMatchId,
-      rating,
+      rating: normalizedRating,
+      feedback_tag: safeTag,
       comment: "",
       consent_to_store_feedback: consent === true,
     }),

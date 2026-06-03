@@ -7,8 +7,17 @@ const ROOT = resolve(import.meta.dirname, "..");
 const USER_FACING_FILES = [
   "src/App.jsx",
   "src/api.js",
+  "src/resultViewModel.js",
   "src/styles.css",
+  "src/trustContent.js",
   "index.html",
+];
+
+const ALLOWED_BOUNDARY_PHRASES = [
+  "Whether someone is cheating",
+  "Whether someone is lying",
+  "What someone secretly means",
+  "Someone’s diagnosis, attachment style, neurotype, or personality",
 ];
 
 const BLOCKED_PATTERNS = [
@@ -34,7 +43,10 @@ const BLOCKED_PATTERNS = [
 
 test("web user-facing copy avoids unsafe claim and dark-pattern phrases", () => {
   for (const file of USER_FACING_FILES) {
-    const text = readFileSync(resolve(ROOT, file), "utf8");
+    let text = readFileSync(resolve(ROOT, file), "utf8");
+    for (const phrase of ALLOWED_BOUNDARY_PHRASES) {
+      text = text.replaceAll(phrase, "");
+    }
     for (const pattern of BLOCKED_PATTERNS) {
       assert.equal(pattern.test(text), false, `${file} matched ${pattern}`);
     }

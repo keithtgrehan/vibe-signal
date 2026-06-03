@@ -19,6 +19,8 @@ DEFAULT_SCAN_PATHS = (
     "README.md",
     "web/src/App.jsx",
     "web/src/api.js",
+    "web/src/resultViewModel.js",
+    "web/src/trustContent.js",
     "web/index.html",
     "web/public/opengraph.svg",
     "mobile/src/screens/VibeSignalApp.js",
@@ -60,6 +62,13 @@ BLOCKED_PATTERNS: dict[str, str] = {
     "rizz": r"\brizz\b",
     "dating_wingman": r"\bdating\s+wingman\b",
 }
+ALLOWED_NEGATED_PUBLIC_COPY_PHRASES = (
+    "Built for clarity, not manipulation",
+    "Whether someone is cheating",
+    "Whether someone is lying",
+    "What someone secretly means",
+    "Someone’s diagnosis, attachment style, neurotype, or personality",
+)
 
 
 @dataclass(frozen=True)
@@ -94,6 +103,13 @@ def _is_allowlisted(path: str, allowlist: list[dict[str, str]]) -> tuple[bool, s
     return False, ""
 
 
+def _strip_allowed_negated_copy(line: str) -> str:
+    cleaned = line
+    for phrase in ALLOWED_NEGATED_PUBLIC_COPY_PHRASES:
+        cleaned = cleaned.replace(phrase, "")
+    return cleaned
+
+
 def _iter_paths(paths: list[str]) -> list[Path]:
     selected: list[Path] = []
     for raw in paths:
@@ -119,8 +135,9 @@ def scan_paths(paths: list[str] | None = None, *, allowlist_path: Path = DEFAULT
         text = path.read_text(encoding="utf-8", errors="replace")
         allowed, reason = _is_allowlisted(rel, allowlist)
         for line_number, line in enumerate(text.splitlines(), start=1):
+            line_for_scan = _strip_allowed_negated_copy(line)
             for pattern_id, pattern in BLOCKED_PATTERNS.items():
-                if re.search(pattern, line, flags=re.IGNORECASE):
+                if re.search(pattern, line_for_scan, flags=re.IGNORECASE):
                     findings.append(
                         Finding(
                             path=rel,

@@ -590,7 +590,7 @@ export default function ProviderSettingsScreen() {
               {matchInProgress ? (
                 <View style={styles.matchLoadingRow}>
                   <ActivityIndicator size="small" color="#111827" />
-                  <Text style={styles.usageMeta}>Waiting for the local backend.</Text>
+                  <Text style={styles.usageMeta}>Checking communication patterns.</Text>
                 </View>
               ) : null}
 
@@ -603,8 +603,7 @@ export default function ProviderSettingsScreen() {
                         {matchViewModel.bandLabel}
                       </Text>
                       <Text style={styles.matchDisclosure}>
-                        Signal strength: {matchViewModel.signalStrength}. API detail:{" "}
-                        {matchViewModel.isLowSignal ? "not shown for low signal" : matchViewModel.compatibilityScoreLabel}
+                        Signal strength: {matchViewModel.signalStrengthLabel}
                       </Text>
                     </View>
                     <View style={styles.matchBandPill}>
