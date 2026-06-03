@@ -152,6 +152,8 @@ def test_synthetic_fixture_regression_runner_reads_existing_fixtures(monkeypatch
             "http://localhost:5000",
             "--limit",
             "5",
+            "--split",
+            "dev",
             "--engine-report-dir",
             str(report_dir),
         ]
@@ -161,3 +163,5 @@ def test_synthetic_fixture_regression_runner_reads_existing_fixtures(monkeypatch
     assert len(_read_jsonl(report_dir / "synthetic_regression_api_responses.jsonl")) == 5
     assert len(_read_jsonl(report_dir / "synthetic_regression_results.jsonl")) == 5
     assert "Synthetic Fixture API Regression Report" in (report_dir / "synthetic_regression_report.md").read_text(encoding="utf-8")
+    result_rows = _read_jsonl(report_dir / "synthetic_regression_results.jsonl")
+    assert {row["split"] for row in result_rows} == {"dev"}

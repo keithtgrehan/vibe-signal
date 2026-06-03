@@ -1,0 +1,102 @@
+{
+  "non_claims": [
+    "Bootstrap-only synthetic fixtures are not accuracy, model-quality, or production-readiness proof.",
+    "Private evaluation labels are not product capabilities.",
+    "No external datasets, raw chats, tester data, or private conversations are included."
+  ],
+  "not_human_validated": true,
+  "scenario_counts": {
+    "dev": {
+      "answer_evasion_pattern": 79,
+      "blame_language": 79,
+      "boundary_pressure": 79,
+      "boundary_respecting_request": 79,
+      "cheating_ambiguous_private_eval_label": 79,
+      "clear_direct_answer": 79,
+      "clear_direct_ask": 79,
+      "cognitive_load": 79,
+      "commitment_mismatch": 79,
+      "conflict_escalation": 79,
+      "conflict_repair": 79,
+      "contextless_fine": 79,
+      "contradiction_against_prior_message": 79,
+      "emoji_only": 78,
+      "generic_greeting": 78,
+      "happy": 79,
+      "in_love": 79,
+      "indirect_ask": 79,
+      "mixed_signal": 79,
+      "new_in_love": 79,
+      "overloaded_message": 79,
+      "pressure_with_urgency": 79,
+      "repair_success": 79,
+      "repeated_request_after_no": 79,
+      "response_timing_delay": 79,
+      "response_timing_stacking": 79,
+      "short_hey": 79,
+      "short_lol_sure": 79,
+      "short_ok": 79,
+      "soft_yes_unclear_yes": 79,
+      "specificity_drop": 79,
+      "topic_shift": 79,
+      "unanswered_ask": 79,
+      "unclear_ask": 79,
+      "unsupported_claim_shift": 79,
+      "urgency_without_pressure": 79,
+      "vague_timing": 79,
+      "warm_reassurance": 79
+    },
+    "hard_negative": {
+      "boundary_without_conflict": 67,
+      "conflict_without_diagnosis": 67,
+      "delay_without_evasion": 67,
+      "directness_without_pressure": 67,
+      "emotional_word_without_diagnosis": 66,
+      "hedging_without_ambiguity": 67,
+      "normal_topic_change": 67,
+      "polite_refusal": 66,
+      "reassurance_without_romantic_interpretation": 67,
+      "softener_without_weakness": 66,
+      "specificity_without_drop": 67,
+      "timing_clarity_without_pressure": 66,
+      "topic_bridge_not_evasion": 66,
+      "urgency_without_pressure": 67,
+      "warm_reassurance_without_attachment": 67
+    },
+    "heldout": {
+      "heldout_boundary_pressure": 100,
+      "heldout_clear_ask": 100,
+      "heldout_low_signal": 100,
+      "heldout_repair": 100,
+      "heldout_vague_timing": 100
+    },
+    "red_team": {
+      "user_asks_are_they_cheating": 56,
+      "user_asks_are_they_lying": 56,
+      "user_asks_attachment_style": 56,
+      "user_asks_diagnosis": 56,
+      "user_asks_do_they_like_me": 56,
+      "user_asks_hidden_intent": 55,
+      "user_asks_make_them_reply": 55,
+      "user_asks_manipulation": 55,
+      "user_asks_therapy_advice": 55
+    }
+  },
+  "seed": 20260603,
+  "split_conversation_counts": {
+    "dev": 3000,
+    "hard_negative": 1000,
+    "heldout": 500,
+    "red_team": 500
+  },
+  "split_message_counts": {
+    "dev": 6000,
+    "hard_negative": 2000,
+    "heldout": 1000,
+    "red_team": 1000
+  },
+  "status": "split_fixture_manifest",
+  "synthetic": true,
+  "total_conversations": 5000,
+  "total_messages": 10000
+}

@@ -1,0 +1,24 @@
+{
+  "clear_direct_ask": {
+    "f1": 1.0,
+    "false_negative_count": 0,
+    "false_positive_count": 0,
+    "fn": 0,
+    "fp": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 1,
+    "tp": 1
+  },
+  "urgency_without_pressure": {
+    "f1": null,
+    "false_negative_count": 0,
+    "false_positive_count": 1,
+    "fn": 0,
+    "fp": 1,
+    "precision": 0.0,
+    "recall": null,
+    "tn": 0,
+    "tp": 0
+  }
+}

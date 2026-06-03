@@ -74,3 +74,64 @@ def test_reviewed_label_evaluator_reports_bootstrap_only_metrics(tmp_path: Path)
     assert payload["precision_recall_status"] == "bootstrap-only"
     assert payload["micro"]["precision"] == 1.0
     assert payload["micro"]["recall"] == 1.0
+
+
+def test_reviewed_label_evaluator_reports_macro_and_split_metrics(tmp_path: Path) -> None:
+    labels = tmp_path / "labels.jsonl"
+    results = tmp_path / "results.jsonl"
+    metrics = tmp_path / "metrics.json"
+    report = tmp_path / "metrics.md"
+    _write_jsonl(
+        labels,
+        [
+            {
+                "label_id": "dev_direct",
+                "fixture_id": "f1",
+                "split": "dev",
+                "scenario": "clear_direct_ask",
+                "reviewer": "synthetic_bootstrap",
+                "not_human_validated": True,
+                "cue_id": "directness",
+                "cue_present": True,
+            },
+            {
+                "label_id": "dev_pressure_negative",
+                "fixture_id": "f1",
+                "split": "dev",
+                "scenario": "clear_direct_ask",
+                "reviewer": "synthetic_bootstrap",
+                "not_human_validated": True,
+                "cue_id": "pressure",
+                "cue_present": False,
+            },
+            {
+                "label_id": "hard_negative_pressure",
+                "fixture_id": "f2",
+                "split": "hard_negative",
+                "scenario": "urgency_without_pressure",
+                "reviewer": "synthetic_bootstrap",
+                "not_human_validated": True,
+                "cue_id": "pressure",
+                "cue_present": False,
+            },
+        ],
+    )
+    _write_jsonl(
+        results,
+        [
+            {"fixture_id": "f1", "split": "dev", "scenario": "clear_direct_ask", "observed_cues": ["directness"]},
+            {"fixture_id": "f2", "split": "hard_negative", "scenario": "urgency_without_pressure", "observed_cues": ["pressure"]},
+        ],
+    )
+
+    exit_code = evaluator.main(["--labels", str(labels), "--results", str(results), "--metrics-out", str(metrics), "--report-out", str(report)])
+
+    assert exit_code == 0
+    payload = json.loads(metrics.read_text(encoding="utf-8"))
+    assert payload["micro"]["precision"] == 0.5
+    assert payload["micro"]["recall"] == 1.0
+    assert payload["micro"]["f1"] == 0.6667
+    assert payload["macro"]["precision"] is not None
+    assert set(payload["by_split"]) == {"dev", "hard_negative"}
+    assert payload["by_split"]["hard_negative"]["false_positive_count"] == 1
+    assert "clear_direct_ask" in payload["by_scenario"]

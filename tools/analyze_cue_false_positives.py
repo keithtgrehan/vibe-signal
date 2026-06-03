@@ -12,10 +12,21 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RESULTS = REPO_ROOT / "reports" / "engine_eval" / "api_regression_results.jsonl"
 DEFAULT_REPORT = REPO_ROOT / "reports" / "engine_eval" / "false_positive_analysis.md"
 DEFAULT_BACKLOG = REPO_ROOT / "reports" / "engine_eval" / "cue_improvement_backlog.md"
+DEFAULT_SPLIT_RESULTS_ROOT = REPO_ROOT / "reports" / "engine_eval" / "splits"
+SPLIT_NAMES = ("dev", "hard_negative", "heldout", "red_team")
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def read_all_split_results(root: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for split in SPLIT_NAMES:
+        path = root / split / "synthetic_regression_results.jsonl"
+        if path.exists():
+            rows.extend(read_jsonl(path))
+    return rows
 
 
 def analyze(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -121,9 +132,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--results", default=str(DEFAULT_RESULTS))
     parser.add_argument("--report-out", default=str(DEFAULT_REPORT))
     parser.add_argument("--backlog-out", default=str(DEFAULT_BACKLOG))
+    parser.add_argument("--all-splits", action="store_true")
+    parser.add_argument("--split-results-root", default=str(DEFAULT_SPLIT_RESULTS_ROOT))
     args = parser.parse_args(argv)
 
-    rows = read_jsonl(Path(args.results))
+    if args.all_splits:
+        rows = read_all_split_results(Path(args.split_results_root))
+        if args.report_out == str(DEFAULT_REPORT):
+            args.report_out = str(REPO_ROOT / "reports" / "engine_eval" / "false_positive_analysis_10k.md")
+        if args.backlog_out == str(DEFAULT_BACKLOG):
+            args.backlog_out = str(REPO_ROOT / "reports" / "engine_eval" / "next_engine_improvement_backlog.md")
+    else:
+        rows = read_jsonl(Path(args.results))
     summary = analyze(rows)
     report_path = Path(args.report_out)
     backlog_path = Path(args.backlog_out)
