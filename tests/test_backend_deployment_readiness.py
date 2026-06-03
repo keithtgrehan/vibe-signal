@@ -145,3 +145,35 @@ def test_configured_cors_allows_only_exact_origins() -> None:
 
     assert allowed.headers["access-control-allow-origin"] == "https://mobile.example.com"
     assert "access-control-allow-origin" not in blocked.headers
+
+
+def test_configured_cors_allows_vercel_and_local_web_origins() -> None:
+    configured_app = create_app(
+        BackendSettings(
+            allowed_origins=(
+                "https://vibe-signal.vercel.app",
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+            ),
+            environment="production",
+            version="test",
+        )
+    )
+    client = TestClient(configured_app)
+
+    for origin in (
+        "https://vibe-signal.vercel.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ):
+        response = client.options(
+            "/api/analyze",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.headers["access-control-allow-origin"] == origin

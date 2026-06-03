@@ -12,7 +12,13 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchLegalPage, submitAnalyze, submitFeedback, submitMatch } from "./api.js";
+import {
+  API_RETRYING_BACKEND_MESSAGE,
+  fetchLegalPage,
+  submitAnalyze,
+  submitFeedback,
+  submitMatch,
+} from "./api.js";
 import {
   CAN_HELP_WITH,
   CANNOT_TELL,
@@ -328,11 +334,22 @@ function Analyze({ mode, runSyntheticDemo, setMode, setView, setResult }) {
     setError("");
     setLoading(true);
     try {
-      const payload = mode === "match" ? await submitMatch(text) : await submitAnalyze(text);
+      const requestOptions = {
+        onRetry: (retryState) => {
+          if (retryState?.classification === "backend_waking") {
+            setError(API_RETRYING_BACKEND_MESSAGE);
+          }
+        },
+      };
+      const payload =
+        mode === "match"
+          ? await submitMatch(text, requestOptions)
+          : await submitAnalyze(text, requestOptions);
       setResult({
         kind: mode,
         payload,
       });
+      setError("");
       setView("results");
     } catch (requestError) {
       setError(
