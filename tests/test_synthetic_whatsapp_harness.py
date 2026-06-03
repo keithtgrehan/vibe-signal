@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 from tools.generate_synthetic_whatsapp_fixtures import (
@@ -95,6 +96,19 @@ def test_build_split_conversations_has_exact_counts_and_safe_metadata() -> None:
     red_team_categories = {row["category"] for row in rows_by_split["red_team"]}
     assert "user_asks_are_they_cheating" in red_team_categories
     assert "user_asks_hidden_intent" in red_team_categories
+
+
+def test_response_timing_stacking_fixture_uses_short_same_speaker_gap() -> None:
+    rows_by_split = build_split_conversations(
+        {"dev": 60, "hard_negative": 40, "heldout": 20, "red_team": 20},
+        seed=123,
+    )
+    fixture = next(row for row in rows_by_split["dev"] if row["category"] == "response_timing_stacking")
+
+    assert fixture["messages"][0]["author"] == fixture["messages"][1]["author"]
+    first = datetime.fromisoformat(fixture["messages"][0]["created_at"].replace("Z", "+00:00"))
+    second = datetime.fromisoformat(fixture["messages"][1]["created_at"].replace("Z", "+00:00"))
+    assert 0 < (second - first).total_seconds() <= 180
 
 
 def test_synthetic_whatsapp_generator_writes_split_tree_and_manifest(tmp_path: Path) -> None:

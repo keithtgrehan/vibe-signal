@@ -7,14 +7,14 @@ Status: synthetic API regression only. This is not real-world accuracy, model-qu
 - Seed: `20260603`
 - Synthetic fixture pool: `3000` conversations / `6000` messages
 - Evaluated synthetic conversations: `3000`
-- API regression pass rate: `1104/3000`
-- Cue contract pass rate: `1183/3000`
-- Evidence completeness rate: `2842/3000`
+- API regression pass rate: `1341/3000`
+- Cue contract pass rate: `1341/3000`
+- Evidence completeness rate: `3000/3000`
 - Unsafe-output block rate: `3000/3000`
-- Fallback correctness rate: `2684/3000`
+- Fallback correctness rate: `2842/3000`
 - API transport failures: `0`
-- Missing expected cue count: `1580`
-- Unexpected cue count: `2686`
+- Missing expected cue count: `395`
+- Unexpected cue count: `2923`
 
 ## Evaluated Split Counts
 

@@ -15,7 +15,8 @@ cues:
     cue_family: directness
     description: Direct request, instruction, or confirmation wording.
     patterns:
-      - "\\b(?:please|can you|could you|will you|would you|i need|i want|confirm|send|review)\\b"
+      - "\\b(?:please|can you|could you|will you|would you|did you|do you|are you|i need|i want|confirm|send|review)\\b"
+      - "\\bi will\\s+(?:answer|reply|send|confirm|review|check|call|meet)\\b"
     reducers: []
     confidence: 0.74
     explanation: "Rule matched direct request wording."
@@ -40,7 +41,7 @@ cues:
     cue_family: hedging
     description: Qualifying or tentative wording.
     patterns:
-      - "\\b(?:maybe|perhaps|sort of|kind of|i guess|not sure|might|could be)\\b"
+      - "\\b(?:maybe|perhaps|sort of|kind of|i guess|i think|not sure|might|could be)\\b"
     reducers: []
     confidence: 0.72
     explanation: "Rule matched tentative or qualifying wording."
@@ -53,6 +54,7 @@ cues:
     description: Time-pressure wording.
     patterns:
       - "\\b(?:right now|urgent|asap|immediately|by tonight|deadline|need this now)\\b"
+      - "\\bby\\s+\\d{1,2}(?::\\d{2})?\\s?(?:am|pm)?\\b"
     reducers:
       - "\\b(?:no rush|no hurry|when you can)\\b"
     confidence: 0.76
@@ -65,7 +67,7 @@ cues:
     cue_family: reassurance
     description: Lower-pressure or permission-preserving wording.
     patterns:
-      - "\\b(?:no rush|no pressure|when you can|it is okay|that's okay|all good|only if you want)\\b"
+      - "\\b(?:no rush|no pressure|no stress|when you can|if you can|it is okay|that's okay|all good|no worries|only if you want)\\b"
     reducers: []
     confidence: 0.75
     explanation: "Rule matched reassurance or low-pressure wording."
@@ -90,7 +92,7 @@ cues:
     cue_family: conflict
     description: Disagreement, tension, or conflict-process wording.
     patterns:
-      - "\\b(?:upset|frustrated|argument|fight|disagree|not okay|hurt|sorry this got tense)\\b"
+      - "\\b(?:upset|frustrated|argument|fight|disagree|not okay|hurt|tense|sorry this got tense)\\b"
     reducers: []
     confidence: 0.7
     explanation: "Rule matched conflict or tension wording."

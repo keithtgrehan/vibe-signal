@@ -24,6 +24,10 @@ UNSUPPORTED_CLAIM_RE = re.compile(
     r"\b(?:you always|you never|obviously|everyone knows|that proves|you don'?t care|you are trying to|you'?re trying to)\b",
     re.IGNORECASE,
 )
+BRIDGE_BEFORE_ANSWER_RE = re.compile(
+    r"\b(?:before i answer|i will answer that|i'll answer that|but first i need|first i need one detail)\b",
+    re.IGNORECASE,
+)
 DIRECT_ANSWER_RE = re.compile(
     r"^\s*(?:yes|yeah|yep|no|ok|okay|sure|confirmed|not confirmed|that works|sounds good|works for me|i can|i can't|i cannot|i will|i won'?t|we can|we can'?t)\b",
     re.IGNORECASE,
@@ -45,6 +49,16 @@ CONTRADICTION_PATTERNS = (
     (re.compile(r"\bi will\b", re.IGNORECASE), re.compile(r"\bi won'?t\b", re.IGNORECASE)),
     (re.compile(r"\bfree\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", re.IGNORECASE), re.compile(r"\bnot free\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", re.IGNORECASE)),
     (re.compile(r"\bconfirmed\b", re.IGNORECASE), re.compile(r"\bnot confirmed\b", re.IGNORECASE)),
+    (re.compile(r"\balready sent\b|\bsent the file\b", re.IGNORECASE), re.compile(r"\bhave not sent\b|\bnot sent\b", re.IGNORECASE)),
+)
+CLAIM_SHIFT_PATTERNS = (
+    (re.compile(r"\bplan is approved\b", re.IGNORECASE), re.compile(r"\bplan is not approved\b", re.IGNORECASE)),
+    (re.compile(r"\bfile is ready\b", re.IGNORECASE), re.compile(r"\bfile is not ready\b", re.IGNORECASE)),
+    (re.compile(r"\broom is booked\b", re.IGNORECASE), re.compile(r"\broom is not booked\b", re.IGNORECASE)),
+)
+COMMITMENT_DETAIL_RE = re.compile(
+    r"\b(?:i can|i will|we can|we will|meet|send|reply|confirm|works|approved|booked|ready)\b",
+    re.IGNORECASE,
 )
 
 
@@ -131,11 +145,13 @@ def concrete_detail_count(text: str) -> int:
 
 def _has_direct_ask(text: str) -> bool:
     lowered = str(text or "").lower()
-    return is_question(lowered) or any(marker in lowered for marker in ("can you", "could you", "will you", "would you", "please confirm", "confirm"))
+    return is_question(lowered) or any(marker in lowered for marker in ("can you", "could you", "will you", "would you", "please confirm"))
 
 
 def _is_evasive_reply(previous: str, current: str) -> bool:
     if not _has_direct_ask(previous):
+        return False
+    if BRIDGE_BEFORE_ANSWER_RE.search(current):
         return False
     if CLARIFYING_REPLY_RE.search(current):
         return False
@@ -153,8 +169,7 @@ def _is_evasive_reply(previous: str, current: str) -> bool:
 def detect_specificity_drops(messages: list[dict[str, Any]], conversation_id: str) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for previous, current in zip(messages, messages[1:]):
-        if previous.get("author") == current.get("author"):
-            continue
+        same_author = previous.get("author") == current.get("author")
         previous_text = str(previous.get("text", ""))
         current_text = str(current.get("text", ""))
         previous_detail = concrete_detail_count(previous_text)
@@ -173,9 +188,17 @@ def detect_specificity_drops(messages: list[dict[str, Any]], conversation_id: st
             or current_numbers < previous_numbers
             or current_time_details < previous_time_details
         )
-        if _has_direct_ask(previous_text) and not direct_acknowledgement and not clarifying_reply and previous_detail >= 2 and concrete_drop and (
-            VAGUE_RE.search(current_text) or word_count(current_text) <= max(5, word_count(previous_text) // 2)
-        ):
+        current_is_vague = bool(VAGUE_RE.search(current_text))
+        prior_commitment_or_detail = bool(COMMITMENT_DETAIL_RE.search(previous_text) or previous_time_details or previous_numbers)
+        different_author_non_answer = (
+            not same_author
+            and _has_direct_ask(previous_text)
+            and not direct_acknowledgement
+            and not clarifying_reply
+            and current_is_vague
+        )
+        same_author_detail_drop = same_author and prior_commitment_or_detail and current_is_vague
+        if previous_detail >= 2 and concrete_drop and (different_author_non_answer or same_author_detail_drop):
             rows.append(
                 _feature_evidence(
                     conversation_id=conversation_id,
@@ -230,6 +253,27 @@ def detect_unsupported_claim_shifts(messages: list[dict[str, Any]], conversation
                 strength=2,
             )
         )
+    for previous, current in zip(messages, messages[1:]):
+        if previous.get("author") != current.get("author"):
+            continue
+        previous_text = str(previous.get("text", ""))
+        current_text = str(current.get("text", ""))
+        for positive, negative in CLAIM_SHIFT_PATTERNS:
+            if (positive.search(previous_text) and negative.search(current_text)) or (
+                negative.search(previous_text) and positive.search(current_text)
+            ):
+                rows.append(
+                    _feature_evidence(
+                        conversation_id=conversation_id,
+                        message=current,
+                        cue_family="unsupported_claim_shift",
+                        safe_phrase="This message changes an earlier claim without visible supporting detail.",
+                        explanation="A deterministic pattern comparison found an observable claim shift without explanation in the text.",
+                        source_message_id=_message_id(previous),
+                        strength=2,
+                    )
+                )
+                break
     return rows
 
 

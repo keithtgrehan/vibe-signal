@@ -1,7 +1,9 @@
 {
   "groups": {
     "ambiguity_vs_unclear_ask": {
-      "cofires": {},
+      "cofires": {
+        "ambiguity+unclear_ask": 79
+      },
       "cues": [
         "ambiguity",
         "indirect_ask",
@@ -9,8 +11,7 @@
         "vague_timing"
       ],
       "missing_within_group": {
-        "ambiguity": 79,
-        "unclear_ask": 79
+        "ambiguity": 79
       },
       "substitutions": {},
       "suggested_precedence_rule": "Ambiguity should stay observable wording; do not infer avoidance or hidden motive.",
@@ -25,9 +26,7 @@
         "conflict",
         "pressure"
       ],
-      "missing_within_group": {
-        "conflict": 100
-      },
+      "missing_within_group": {},
       "substitutions": {},
       "suggested_precedence_rule": "Conflict wording should not label a person or become pressure without obligation or constrained-choice wording.",
       "unexpected_within_group": {}
@@ -40,8 +39,7 @@
         "unsupported_claim_shift"
       ],
       "missing_within_group": {
-        "contradiction_against_prior_message": 237,
-        "unsupported_claim_shift": 79
+        "contradiction_against_prior_message": 158
       },
       "substitutions": {},
       "suggested_precedence_rule": "Contradiction and commitment mismatch must never imply lying or deception certainty.",
@@ -54,10 +52,7 @@
         "reassurance",
         "softening"
       ],
-      "missing_within_group": {
-        "hedging": 67,
-        "reassurance": 280
-      },
+      "missing_within_group": {},
       "substitutions": {},
       "suggested_precedence_rule": "Softening and reassurance should not imply anxiety, attraction, or attachment style.",
       "unexpected_within_group": {
@@ -75,8 +70,7 @@
         "warmth"
       ],
       "missing_within_group": {
-        "alignment": 79,
-        "reassurance": 280
+        "alignment": 79
       },
       "substitutions": {},
       "suggested_precedence_rule": "Warm or reassuring wording should stay communication-pattern evidence, not emotional truth.",
@@ -84,29 +78,21 @@
     },
     "specificity_vs_directness": {
       "cofires": {
-        "directness+specificity": 1036,
-        "directness+specificity_drop": 67,
-        "specificity+specificity_drop": 79
+        "directness+specificity": 1316,
+        "specificity+specificity_drop": 237
       },
       "cues": [
         "directness",
         "specificity",
         "specificity_drop"
       ],
-      "missing_within_group": {
-        "directness": 67,
-        "specificity": 280,
-        "specificity_drop": 158
-      },
-      "substitutions": {
-        "directness_predicted_when_specificity_expected": 146,
-        "specificity_drop_predicted_when_specificity_expected": 67
-      },
+      "missing_within_group": {},
+      "substitutions": {},
       "suggested_precedence_rule": "Specific detail is not directness unless it includes a clear ask, answer, decision, or commitment.",
       "unexpected_within_group": {
-        "directness": 911,
-        "specificity": 936,
-        "specificity_drop": 146
+        "directness": 790,
+        "specificity": 869,
+        "specificity_drop": 79
       }
     },
     "topic_shift_vs_evasion": {
@@ -123,7 +109,7 @@
       "substitutions": {},
       "suggested_precedence_rule": "Topic shift should become answer evasion only when it follows an immediately relevant direct question.",
       "unexpected_within_group": {
-        "answer_evasion_pattern": 258
+        "answer_evasion_pattern": 337
       }
     },
     "urgency_vs_pressure": {
@@ -135,14 +121,12 @@
         "pressure",
         "urgency"
       ],
-      "missing_within_group": {
-        "urgency": 225
-      },
+      "missing_within_group": {},
       "substitutions": {},
       "suggested_precedence_rule": "Urgency alone should not become pressure unless wording reduces the recipient's response space.",
       "unexpected_within_group": {
         "boundary_pressure": 79,
-        "urgency": 258
+        "urgency": 337
       }
     }
   },

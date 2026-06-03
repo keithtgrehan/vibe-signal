@@ -135,3 +135,48 @@ def test_reviewed_label_evaluator_reports_macro_and_split_metrics(tmp_path: Path
     assert set(payload["by_split"]) == {"dev", "hard_negative"}
     assert payload["by_split"]["hard_negative"]["false_positive_count"] == 1
     assert "clear_direct_ask" in payload["by_scenario"]
+
+
+def test_macro_f1_is_average_of_per_cue_f1_not_harmonic_of_macro_precision_recall() -> None:
+    labels = [
+        {
+            "fixture_id": "f1",
+            "reviewer": "synthetic_bootstrap",
+            "not_human_validated": True,
+            "cue_id": "cue_a",
+            "cue_present": True,
+        },
+        {
+            "fixture_id": "f2",
+            "reviewer": "synthetic_bootstrap",
+            "not_human_validated": True,
+            "cue_id": "cue_a",
+            "cue_present": True,
+        },
+        {
+            "fixture_id": "f1",
+            "reviewer": "synthetic_bootstrap",
+            "not_human_validated": True,
+            "cue_id": "cue_b",
+            "cue_present": False,
+        },
+        {
+            "fixture_id": "f2",
+            "reviewer": "synthetic_bootstrap",
+            "not_human_validated": True,
+            "cue_id": "cue_b",
+            "cue_present": False,
+        },
+    ]
+    results = [
+        {"fixture_id": "f1", "observed_cues": ["cue_a", "cue_b"]},
+        {"fixture_id": "f2", "observed_cues": []},
+    ]
+
+    metrics = evaluator.compute_metrics(labels, results)
+
+    assert metrics["per_cue"]["cue_a"]["f1"] == 0.6667
+    assert metrics["per_cue"]["cue_b"]["f1"] is None
+    assert metrics["macro"]["precision"] == 0.5
+    assert metrics["macro"]["recall"] == 0.5
+    assert metrics["macro"]["f1"] == 0.6667
