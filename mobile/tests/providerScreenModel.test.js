@@ -32,6 +32,7 @@ test("analysis input stays visible and analyze enables only when text exists", (
 
   const readyState = buildAnalysisComposerState({
     analysisText: "A visible text sample",
+    consent: true,
     loading: false,
     uploadInProgress: false,
     analysisInProgress: false,
@@ -40,14 +41,21 @@ test("analysis input stays visible and analyze enables only when text exists", (
 
   assert.equal(readyState.inputVisible, true);
   assert.equal(readyState.analyzeEnabled, true);
-  assert.equal(readyState.ctaLabel, "See what changed");
+  assert.equal(readyState.ctaLabel, "Review observable cues");
   assert.equal(readyState.loadingLabel, "Running analysis...");
+
+  const noConsent = buildAnalysisComposerState({
+    analysisText: "A visible text sample",
+    consent: false,
+  });
+  assert.equal(noConsent.analyzeEnabled, false);
+  assert.match(noConsent.consentLabel, /permission/i);
 });
 
 test("hero headline adapts to first use, drafted text, and result state", () => {
-  assert.equal(selectHeroHeadline({ analysisText: "", hasResult: false }), "See what changed in how they’re talking to you");
-  assert.equal(selectHeroHeadline({ analysisText: "Draft", hasResult: false }), "This message feels different. Here’s why.");
-  assert.equal(selectHeroHeadline({ analysisText: "Draft", hasResult: true }), "Detect tone shifts instantly");
+  assert.equal(selectHeroHeadline({ analysisText: "", hasResult: false }), "Review communication patterns");
+  assert.equal(selectHeroHeadline({ analysisText: "Draft", hasResult: false }), "Check observable cues in this text.");
+  assert.equal(selectHeroHeadline({ analysisText: "Draft", hasResult: true }), "Review observable wording cues");
 });
 
 test("local analysis result builder returns a stable insight payload", () => {
@@ -66,7 +74,7 @@ test("local analysis result builder returns a stable insight payload", () => {
   assert.ok(result.spans.every((item) => typeof item.note === "string"));
   assert.match(
     result.shareText,
-    /This message reads differently the second time|Something changed in the tone here|This reply shifts away from the earlier wording/
+    /This message has a small wording difference|The wording changes here|This reply uses different wording than the earlier point/
   );
   assert.ok(result.shareText.length < 80);
 });
@@ -81,7 +89,7 @@ test("weak or repetitive input falls back to an honest low-signal result", () =>
     "Language stays similar throughout",
     "No clear change in tone or directness",
   ]);
-  assert.match(result.suggestion, /longer exchange/i);
+  assert.match(result.suggestion, /permissioned context/i);
   assert.match(result.shareText, /No strong shift detected|Tone appears consistent here/i);
 });
 

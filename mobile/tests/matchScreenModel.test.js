@@ -57,8 +57,10 @@ test("match result view model renders score, factors, safe phrases, and explanat
   });
 
   assert.equal(viewModel.hasResult, true);
-  assert.equal(viewModel.compatibilityScoreLabel, "68%");
+  assert.equal(viewModel.compatibilityScoreLabel, "68% cue-weight score");
   assert.equal(viewModel.bandLabel, "Moderate fit");
+  assert.equal(viewModel.signalStrength, "medium");
+  assert.equal(viewModel.isLowSignal, false);
   assert.deepEqual(viewModel.positiveFactors, [
     "Specificity and concrete timing cues are present.",
     "Messages include agreement or shared-plan wording.",
@@ -91,7 +93,7 @@ test("match result view model keeps blocked claims out of UI disclosure", () => 
   assert.equal(combined.includes("cheat"), false);
   assert.equal(combined.includes("diagnos"), false);
   assert.equal(combined.includes("manipulat"), false);
-  assert.match(viewModel.disclosure, /observable communication-pattern compatibility/);
+  assert.match(viewModel.disclosure, /bounded communication-pattern review/);
 });
 
 test("match composer exposes consent and sensitive-data boundaries", () => {

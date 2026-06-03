@@ -70,8 +70,10 @@ export default function ProviderSettingsScreen() {
   const [localAnalysisResult, setLocalAnalysisResult] = useState(null);
   const [recentAnalyses, setRecentAnalyses] = useState([]);
   const [analysisText, setAnalysisText] = useState("");
+  const [analysisConsent, setAnalysisConsent] = useState(false);
   const [analysisStatusMessage, setAnalysisStatusMessage] = useState("");
   const [matchText, setMatchText] = useState("");
+  const [matchConsent, setMatchConsent] = useState(false);
   const [matchResult, setMatchResult] = useState(null);
   const [matchStatusMessage, setMatchStatusMessage] = useState("");
   const [matchErrorMessage, setMatchErrorMessage] = useState("");
@@ -171,6 +173,7 @@ export default function ProviderSettingsScreen() {
   const layout = getMobileLayoutMetrics();
   const composerState = buildAnalysisComposerState({
     analysisText,
+    consent: analysisConsent,
     loading: quota.loading,
     uploadInProgress,
     analysisInProgress: quota.usage_in_progress,
@@ -181,6 +184,7 @@ export default function ProviderSettingsScreen() {
     loading: matchInProgress,
     apiUrl: matchApiUrl,
   });
+  const matchSubmitEnabled = matchComposerState.submitEnabled && matchConsent;
   const matchViewModel = useMemo(
     () => buildMatchResultViewModel(matchResult || {}),
     [matchResult]
@@ -276,6 +280,10 @@ export default function ProviderSettingsScreen() {
     if (!normalizedInput) {
       return;
     }
+    if (!analysisConsent) {
+      setAnalysisStatusMessage("Confirm permission before local review. Quota was not used.");
+      return;
+    }
     setAnalysisStatusMessage(composerState.loadingLabel);
     clearCurrentResult();
     const analysisId = `local_${Date.now().toString(16)}`;
@@ -287,7 +295,7 @@ export default function ProviderSettingsScreen() {
     if (result.ok) {
       presentResult(result.result, { staged: true });
       setAnalysisStatusMessage(
-        result.result.analysisMode === "fallback" ? "Nothing clearly changed here." : "Here’s what changed."
+        result.result.analysisMode === "fallback" ? "Low signal. No action is required." : "Observable cues ready."
       );
       const recent = await historyStore.addAnalysis({
         id: analysisId,
@@ -353,14 +361,14 @@ export default function ProviderSettingsScreen() {
   function handleTryAnotherMessage() {
     setAnalysisText("");
     clearCurrentResult();
-    setAnalysisStatusMessage("Paste another message to spot the next shift.");
+    setAnalysisStatusMessage("Input cleared. Use another synthetic or permissioned example if helpful.");
   }
 
   function handlePasteDifferentConversation() {
     setAnalysisText("");
     clearCurrentResult();
     setShowExternalAi(false);
-    setAnalysisStatusMessage("Paste a different conversation to compare a new signal.");
+    setAnalysisStatusMessage("Input cleared. Use another permissioned conversation only if helpful.");
   }
 
   async function handleBackendMatch() {
@@ -370,6 +378,10 @@ export default function ProviderSettingsScreen() {
 
     if (!String(matchText || "").trim()) {
       setMatchStatusMessage(matchComposerState.emptyLabel);
+      return;
+    }
+    if (!matchConsent) {
+      setMatchStatusMessage("Confirm permission before checking communication fit.");
       return;
     }
 
@@ -417,7 +429,8 @@ export default function ProviderSettingsScreen() {
               <Text style={styles.heroEyebrow}>VibeSignal</Text>
               <Text style={styles.heroTitle}>{heroHeadline}</Text>
               <Text style={styles.heroSubtitle}>
-                Paste a message. We highlight observable shifts in tone, pacing, specificity, and directness.
+                Paste synthetic or permissioned text. We highlight observable wording shifts in
+                pacing, specificity, and directness.
               </Text>
             </View>
 
@@ -442,6 +455,18 @@ export default function ProviderSettingsScreen() {
                 autoCorrect={false}
                 style={[styles.input, styles.textarea]}
               />
+
+              <Pressable
+                style={({ pressed }) =>
+                  buildPressableStyle(styles.checkboxRow, styles.buttonPressedLight, false, pressed)
+                }
+                onPress={() => setAnalysisConsent((current) => !current)}
+              >
+                <View style={[styles.checkbox, analysisConsent && styles.checkboxChecked]}>
+                  {analysisConsent ? <Text style={styles.checkboxMark}>OK</Text> : null}
+                </View>
+                <Text style={styles.checkboxLabel}>{composerState.consentLabel}</Text>
+              </Pressable>
 
               <Pressable
                 style={({ pressed }) =>
@@ -519,14 +544,28 @@ export default function ProviderSettingsScreen() {
 
               <Pressable
                 style={({ pressed }) =>
+                  buildPressableStyle(styles.checkboxRow, styles.buttonPressedLight, false, pressed)
+                }
+                onPress={() => setMatchConsent((current) => !current)}
+              >
+                <View style={[styles.checkbox, matchConsent && styles.checkboxChecked]}>
+                  {matchConsent ? <Text style={styles.checkboxMark}>OK</Text> : null}
+                </View>
+                <Text style={styles.checkboxLabel}>
+                  I have permission to process this text and understand the draft legal boundaries.
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={({ pressed }) =>
                   buildPressableStyle(
                     styles.primaryButton,
                     styles.buttonPressed,
-                    !matchComposerState.submitEnabled,
+                    !matchSubmitEnabled,
                     pressed
                   )
                 }
-                disabled={!matchComposerState.submitEnabled}
+                disabled={!matchSubmitEnabled}
                 onPress={handleBackendMatch}
               >
                 <Text style={styles.primaryLabel}>
@@ -559,9 +598,13 @@ export default function ProviderSettingsScreen() {
                 <View style={styles.matchResultPanel}>
                   <View style={styles.matchScoreRow}>
                     <View>
-                      <Text style={styles.matchScoreLabel}>Compatibility score</Text>
+                      <Text style={styles.matchScoreLabel}>Communication pattern band</Text>
                       <Text style={styles.matchScoreValue}>
-                        {matchViewModel.compatibilityScoreLabel}
+                        {matchViewModel.bandLabel}
+                      </Text>
+                      <Text style={styles.matchDisclosure}>
+                        Signal strength: {matchViewModel.signalStrength}. API detail:{" "}
+                        {matchViewModel.isLowSignal ? "not shown for low signal" : matchViewModel.compatibilityScoreLabel}
                       </Text>
                     </View>
                     <View style={styles.matchBandPill}>
@@ -569,8 +612,32 @@ export default function ProviderSettingsScreen() {
                     </View>
                   </View>
 
+                  {matchViewModel.isLowSignal ? (
+                    <View style={styles.matchSection}>
+                      <Text style={styles.matchSectionTitle}>Low signal</Text>
+                      <Text style={styles.matchListText}>
+                        Not enough visible evidence was returned for a normal pattern review. No
+                        action is required.
+                      </Text>
+                    </View>
+                  ) : null}
+
                   <View style={styles.matchSection}>
-                    <Text style={styles.matchSectionTitle}>Positive factors</Text>
+                    <Text style={styles.matchSectionTitle}>What this can tell you</Text>
+                    {matchViewModel.canTell.map((item) => (
+                      <Text key={`can:${item}`} style={styles.matchListText}>• {item}</Text>
+                    ))}
+                  </View>
+
+                  <View style={styles.matchSection}>
+                    <Text style={styles.matchSectionTitle}>What this cannot tell you</Text>
+                    {matchViewModel.cannotInfer.map((item) => (
+                      <Text key={`cannot:${item}`} style={styles.matchListText}>• {item}</Text>
+                    ))}
+                  </View>
+
+                  <View style={styles.matchSection}>
+                    <Text style={styles.matchSectionTitle}>Helpful cues</Text>
                     {(matchViewModel.positiveFactors.length
                       ? matchViewModel.positiveFactors
                       : [matchViewModel.emptyPositiveLabel]
@@ -582,7 +649,7 @@ export default function ProviderSettingsScreen() {
                   </View>
 
                   <View style={styles.matchSection}>
-                    <Text style={styles.matchSectionTitle}>Risk factors</Text>
+                    <Text style={styles.matchSectionTitle}>Friction cues</Text>
                     {(matchViewModel.riskFactors.length
                       ? matchViewModel.riskFactors
                       : [matchViewModel.emptyRiskLabel]
@@ -594,7 +661,7 @@ export default function ProviderSettingsScreen() {
                   </View>
 
                   <View style={styles.matchSection}>
-                    <Text style={styles.matchSectionTitle}>Evidence phrases</Text>
+                    <Text style={styles.matchSectionTitle}>Observed cue phrases</Text>
                     {(matchViewModel.evidencePhrases.length
                       ? matchViewModel.evidencePhrases
                       : [matchViewModel.emptyEvidenceLabel]
@@ -606,10 +673,13 @@ export default function ProviderSettingsScreen() {
                   </View>
 
                   <View style={styles.matchSection}>
-                    <Text style={styles.matchSectionTitle}>Explanation</Text>
-                    <Text style={styles.matchExplanationText}>{matchViewModel.explanation}</Text>
+                    <Text style={styles.matchSectionTitle}>Possible next steps</Text>
+                    {matchViewModel.safeNextSteps.map((item) => (
+                      <Text key={`step:${item}`} style={styles.matchListText}>• {item}</Text>
+                    ))}
                   </View>
 
+                  <Text style={styles.matchExplanationText}>{matchViewModel.explanation}</Text>
                   <Text style={styles.matchDisclosure}>{matchViewModel.disclosure}</Text>
                 </View>
               ) : null}

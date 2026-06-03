@@ -29,6 +29,16 @@ const BANNED_PATTERNS = [
   /\btruth(?:ful)?\b/i,
   /\bintent\b/i,
   /\boutcome\b/i,
+  /\bsecretly\b/i,
+  /\bmake\s+them\b/i,
+  /\bwin them back\b/i,
+  /\battachment style\b/i,
+  /\bdiagnos/i,
+  /\bnarcissist\b/i,
+  /\bautism\b/i,
+  /\badhd\b/i,
+  /\bguaranteed\b/i,
+  /\bemotional truth\b/i,
 ];
 
 const MAX_SUMMARY_LENGTH = 220;
