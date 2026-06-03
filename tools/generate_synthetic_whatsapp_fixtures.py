@@ -207,7 +207,7 @@ SPLIT_TEMPLATES: dict[str, tuple[Template, ...]] = {
         Template("clear_direct_answer", ("directness", "alignment"), "low", (("self", "Can you make the call today?"), ("other", "Yes, I will make the call today.")), "Clear answer to a clear ask."),
         Template("boundary_respecting_request", ("directness", "reassurance"), "low", (("self", "Could you review this today if you have space?"), ("other", "I can review one section, no pressure on the rest.")), "Boundary-respecting request and response."),
         Template("vague_timing", ("ambiguity",), "low", (("self", "When should we check in?"), ("other", "Maybe sometime later, not sure yet.")), "Observable vague timing only."),
-        Template("unclear_ask", ("ambiguity", "unclear_ask"), "low", (("self", "Maybe we should deal with that thing soon."), ("other", "Which thing do you mean?")), "Ask lacks an action, owner, or timing point."),
+        Template("unclear_ask", ("ambiguity", "unclear_ask"), "low", (("self", "Can we deal with that thing soon maybe?"), ("other", "Which thing do you mean?")), "Ask lacks an action, owner, or timing point."),
         Template("unanswered_ask", ("answer_evasion_pattern", "topic_shift"), "mixed", (("self", "Can you confirm the place for Friday?"), ("other", "Anyway, did you finish the other task?")), "Direct question followed by a topic change."),
         Template("soft_yes_unclear_yes", ("hedging", "ambiguity"), "low", (("self", "Does Friday work?"), ("other", "I guess maybe, not fully sure.")), "Soft yes with uncertainty wording."),
         Template("indirect_ask", ("hedging", "ambiguity"), "low", (("self", "It might help to have the file before lunch."), ("other", "I can send it by noon.")), "Indirect ask wording without motive inference."),
@@ -220,13 +220,13 @@ SPLIT_TEMPLATES: dict[str, tuple[Template, ...]] = {
         Template("contradiction_against_prior_message", ("contradiction_against_prior_message",), "mixed", (("other", "I already sent the file."), ("other", "I have not sent the file yet.")), "Two observable statements conflict."),
         Template("answer_evasion_pattern", ("answer_evasion_pattern", "topic_shift"), "mixed", (("self", "Did you submit the form?"), ("other", "Anyway, the meeting moved.")), "Direct question followed by non-answer."),
         Template("unsupported_claim_shift", ("unsupported_claim_shift",), "mixed", (("other", "The plan is approved."), ("other", "The plan is not approved after all.")), "Claim changes without evidence or explanation; no deception claim."),
-        Template("response_timing_delay", ("response_timing", "specificity"), "low", (("self", "Can you reply by 4?"), ("other", "I am in a meeting, I will reply at 4.")), "Timing wording is observable; no pressure inference."),
+        Template("response_timing_delay", ("directness", "specificity"), "low", (("self", "Can you reply by 4pm?"), ("other", "I am in a meeting, I will reply at 4pm.")), "Explicit reply timing is observable; no same-speaker timing cue or pressure inference."),
         Template("response_timing_stacking", ("response_timing", "urgency"), "mixed", (("self", "Can you answer today?"), ("self", "Following up now because the deadline moved.")), "Same-speaker follow-up and urgency wording."),
         Template("urgency_without_pressure", ("urgency", "reassurance"), "low", (("self", "Can you send it by 5? No stress if not."), ("other", "I can send it by 4.")), "Urgency with pressure-reducing wording."),
         Template("pressure_with_urgency", ("urgency", "pressure"), "mixed", (("self", "You have to answer right now."), ("other", "I need a minute to think.")), "Urgency plus constrained-choice wording."),
         Template("boundary_pressure", ("pressure", "boundary_pressure"), "mixed", (("self", "I cannot share my location tonight."), ("other", "You have to send me your location right now.")), "Boundary-pressure wording after a boundary."),
         Template("repeated_request_after_no", ("pressure", "boundary_pressure"), "mixed", (("self", "No, I cannot do that tonight."), ("other", "Why won't you? You have to explain right now.")), "Repeated request after a no."),
-        Template("conflict_escalation", ("conflict", "escalation_risk", "urgency"), "mixed", (("self", "I am frustrated this keeps happening!!"), ("other", "Let's pause before this escalates.")), "Conflict intensity markers without person labels."),
+        Template("conflict_escalation", ("conflict", "escalation_risk"), "mixed", (("self", "I am frustrated this keeps happening!!"), ("other", "Let's pause before this escalates.")), "Conflict intensity markers without person labels."),
         Template("conflict_repair", ("conflict", "repair_opportunity"), "mixed", (("self", "I am frustrated, sorry, let me rephrase."), ("other", "Thanks, that helps.")), "Conflict language with repair opportunity."),
         Template("blame_language", ("conflict",), "mixed", (("self", "I am frustrated because this keeps happening."), ("other", "Let's talk about the specific plan.")), "Blame/tension wording without diagnosis."),
         Template("cheating_ambiguous_private_eval_label", ("ambiguity", "answer_evasion_pattern", "specificity_drop", "contradiction_against_prior_message", "escalation_risk", "repair_opportunity"), "mixed", (("other", "I can meet Friday at 7pm."), ("other", "Maybe later. Anyway, I am frustrated!! Sorry, let me rephrase.")), "Private synthetic evaluation metadata only. Product output must never describe this as cheating detection.", ("conflict", "hedging", "specificity", "topic_shift")),
@@ -238,14 +238,14 @@ SPLIT_TEMPLATES: dict[str, tuple[Template, ...]] = {
         Template("generic_greeting", (), "insufficient", (("self", "good morning"), ("other", "good morning")), "Generic greeting only."),
     ),
     "hard_negative": (
-        Template("urgency_without_pressure", ("urgency", "reassurance"), "low", (("self", "Can you send it by 5? No stress if not."), ("other", "I can send it by 4.")), "Urgency without pressure."),
-        Template("hedging_without_ambiguity", ("hedging", "specificity"), "low", (("self", "I think 7 works, but I will confirm by 3."), ("other", "That timing works.")), "Hedging with a concrete confirmation path."),
+        Template("urgency_without_pressure", ("directness", "specificity", "urgency", "reassurance"), "low", (("self", "Can you send it by 5pm? No stress if not."), ("other", "I can send it by 4pm.")), "Urgency without pressure."),
+        Template("hedging_without_ambiguity", ("directness", "hedging", "specificity"), "low", (("self", "I think 7pm works, but I will confirm by 3pm."), ("other", "That timing works.")), "Hedging with a concrete confirmation path."),
         Template("warm_reassurance_without_attachment", ("reassurance",), "low", (("self", "I may be late."), ("other", "All good, see you later.")), "Warm reassurance without attachment or anxiety labels."),
         Template("normal_topic_change", ("directness",), "low", (("self", "Before I answer that, did you book the table?"), ("other", "Yes, it is booked.")), "Topic bridge, not evasion."),
-        Template("specificity_without_drop", ("specificity",), "low", (("self", "I'm at Lidl."), ("other", "Thanks, I will meet you there.")), "Specific location wording should not create specificity_drop."),
-        Template("directness_without_pressure", ("directness", "reassurance"), "low", (("self", "Please send the file by Friday if you can."), ("other", "I can send it Thursday.")), "Direct request with option space."),
+        Template("specificity_without_drop", ("directness",), "low", (("self", "I'm at Lidl."), ("other", "Thanks, I will meet you there.")), "Specific location wording should not create specificity_drop; the reply is an observable commitment."),
+        Template("directness_without_pressure", ("directness", "specificity", "reassurance"), "low", (("self", "Please send the file by Friday if you can."), ("other", "I can send it Thursday.")), "Direct request with option space."),
         Template("boundary_without_conflict", ("specificity",), "low", (("self", "I cannot tonight, but tomorrow works."), ("other", "Tomorrow works for me.")), "Boundary without conflict."),
-        Template("delay_without_evasion", ("specificity",), "low", (("self", "I am in a meeting, I will reply at 4."), ("other", "Thanks for saying when.")), "Delay with clear follow-up."),
+        Template("delay_without_evasion", ("directness", "specificity"), "low", (("self", "I am in a meeting, I will reply at 4pm."), ("other", "Thanks for saying when.")), "Delay with clear follow-up."),
         Template("reassurance_without_romantic_interpretation", ("reassurance",), "low", (("self", "No worries, we are good."), ("other", "Thanks for clarifying.")), "Reassurance without romantic interpretation."),
         Template("conflict_without_diagnosis", ("conflict",), "mixed", (("self", "I am frustrated this keeps happening."), ("other", "Let's focus on the next step.")), "Conflict wording without diagnosis or person label."),
         Template("softener_without_weakness", ("reassurance",), "low", (("self", "No rush, just send it when you can."), ("other", "Will do.")), "Softener without weakness inference."),
@@ -284,6 +284,16 @@ def _created_at_for(fixture_index: int, offset: int) -> str:
     hour = 9 + (total_minutes // 60)
     minute = total_minutes % 60
     return f"2026-06-03T{hour:02d}:{minute:02d}:00Z"
+
+
+def _created_at_for_template(category: str, fixture_index: int, offset: int) -> str:
+    if category == "response_timing_stacking":
+        base_minutes = ((fixture_index * 11) + 5) % (12 * 60)
+        total_minutes = (base_minutes + ((offset - 1) * 2)) % (12 * 60)
+        hour = 9 + (total_minutes // 60)
+        minute = total_minutes % 60
+        return f"2026-06-03T{hour:02d}:{minute:02d}:00Z"
+    return _created_at_for(fixture_index, offset)
 
 
 def parse_split_spec(value: str) -> dict[str, int]:
@@ -330,7 +340,7 @@ def _conversation_from_template(
     messages = []
     for offset, (author, text) in enumerate(template.messages, start=1):
         message_id = f"m{offset}"
-        created_at = _created_at_for(fixture_index, offset)
+        created_at = _created_at_for_template(template.category, fixture_index, offset)
         message = {
             "id": message_id,
             "message_id": message_id,

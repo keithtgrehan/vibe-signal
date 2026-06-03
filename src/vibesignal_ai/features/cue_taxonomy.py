@@ -21,6 +21,8 @@ ACTION_OR_DECISION_RE = re.compile(
     re.IGNORECASE,
 )
 VAGUE_OR_HEDGE_RE = re.compile(r"\b(?:maybe|idk|not sure|whatever|sometime|later|we'll see|unclear)\b", re.IGNORECASE)
+LOW_PRESSURE_COMMAND_RE = re.compile(r"\b(?:no rush|no pressure|no stress|when you can)\b", re.IGNORECASE)
+STRONG_DIRECT_MARKER_RE = re.compile(r"\b(?:please|can you|could you|will you|would you|i need|i want|please confirm|did you|do you|are you)\b", re.IGNORECASE)
 PRESSURE_DIRECTIVE_RE = re.compile(r"\b(?:you have to|you must|right now|or else|owe me|don't say no)\b", re.IGNORECASE)
 ESCALATION_MARKER_RE = re.compile(
     r"\b(?:or else|you always|you never|your fault|stop asking|not okay|fight|argument|right now)\b|[!?]{2,}|\b[A-Z]{3,}\b",
@@ -205,7 +207,15 @@ def _add_pattern_cue(
         return
     if cue_family == "directness" and PRESSURE_DIRECTIVE_RE.search(text):
         return
+    if cue_family == "directness" and LOW_PRESSURE_COMMAND_RE.search(text) and not STRONG_DIRECT_MARKER_RE.search(text):
+        return
     if cue_family == "directness" and VAGUE_OR_HEDGE_RE.search(text) and not ACTION_OR_DECISION_RE.search(text):
+        return
+    if cue_family == "hedging" and match.group(0).lower() == "i think" and not (
+        ACTION_OR_DECISION_RE.search(text) or "works" in str(text or "").lower()
+    ):
+        return
+    if cue_family == "urgency" and match.group(0).lower().startswith("by ") and not STRONG_DIRECT_MARKER_RE.search(text):
         return
     if cue_family == "specificity" and not _specificity_context_is_actionable(text):
         return
@@ -224,7 +234,15 @@ def _add_pattern_cue(
 
 
 def _message_is_overloaded(text: str) -> bool:
-    return _word_count(text) >= 30 or _sentence_count(text) >= 4 or text.count("?") >= 2 or _request_marker_count(text) >= 4
+    comma_list_count = str(text or "").count(",")
+    conjunction_count = len(re.findall(r"\b(?:and|whether)\b", str(text or ""), flags=re.IGNORECASE))
+    return (
+        _word_count(text) >= 30
+        or _sentence_count(text) >= 4
+        or text.count("?") >= 2
+        or _request_marker_count(text) >= 4
+        or (comma_list_count >= 4 and conjunction_count >= 1 and _word_count(text) >= 14)
+    )
 
 
 def _add_whole_message_cue(

@@ -47,3 +47,15 @@ def test_direct_question_followed_by_vague_topic_change_is_evasion() -> None:
 
     assert result.answer_evasion_pattern
     assert result.specificity_drop
+
+
+def test_topic_bridge_before_answer_is_not_evasion() -> None:
+    result = extract_matching_features(
+        [
+            {"id": "m1", "author": "self", "text": "Can you answer the budget question?"},
+            {"id": "m2", "author": "other", "text": "I will answer that, but first I need one detail."},
+        ],
+        conversation_id="synthetic_answer_evasion_topic_bridge",
+    )
+
+    assert result.answer_evasion_pattern == []
