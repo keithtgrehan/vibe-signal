@@ -1,6 +1,8 @@
 version: public_copy_safety_allowlist_v1
 description: Controlled references to blocked concepts that are not public product claims.
 allow:
+  - path: README.md
+    reason: README names blocked categories only in explicit product-boundary and non-capability statements required for reviewer clarity.
   - path: docs/research/**
     reason: Research and false-positive analysis references blocked concepts only as limitations.
   - path: docs/proof/**
