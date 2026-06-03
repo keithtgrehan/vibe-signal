@@ -23,9 +23,9 @@ Vibe Signal provides communication-pattern support. Outputs are pattern-based su
 - deception detection
 - hidden-intent prediction
 - attraction or cheating prediction
-- diagnosis or neurotype inference
+- health, neurotype, or identity inference
 - attachment-style scoring
-- manipulation scoring
+- pressure or control scoring
 - emotional-truth claims
 - response optimization intended to pressure someone to reply
 - harassment, stalking, coercive monitoring, or surveillance

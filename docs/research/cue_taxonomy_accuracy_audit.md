@@ -68,3 +68,10 @@ Every normal cue should define:
 ## Remaining Work
 
 Human-reviewed labels are needed before any precision/recall or accuracy claim. Future evaluation should measure regression pass rate, fixture coverage, unsafe-output block rate, and evidence completeness rate only.
+
+## RC Hardening Update - 2026-06-03
+
+- Risky user requests for blocked inferences now trigger the low-signal fallback instead of a normal result. This covers requests framed around private interest, deception, identity labels, or influence.
+- Public cue-boundary tests now assert that urgency without coercive wording does not become pressure, contradiction does not become deception language, reassurance does not become identity or anxiety labeling, and pressure labels wording rather than the person.
+- The 1,000-message synthetic WhatsApp fixture loop checks cue contract coverage, evidence completeness, cannot-infer presence, signal-strength enum validity, absence of unsafe user-facing output, and repair-suggestion safety.
+- The red-line output blocker now caches static policy files only, reducing regression runtime without storing user inputs or generated outputs.

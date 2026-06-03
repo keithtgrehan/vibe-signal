@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import re
 from time import time
 from typing import Any
@@ -14,10 +13,6 @@ SAFE_EVENT_ID_RE = re.compile(
     r"|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 )
 SAFE_TIMESTAMP_RE = re.compile(r"^[0-9]{10,17}(?:\.[0-9]{1,6})?$")
-
-
-def _hash_text(text: str) -> str:
-    return "sha256:" + hashlib.sha256(str(text or "").encode("utf-8")).hexdigest()
 
 
 def _safe_event_id(value: Any, fallback: str) -> str:
@@ -48,7 +43,6 @@ def store_feedback_metadata(payload: dict[str, Any]) -> dict[str, Any]:
         "match_id": str(payload.get("match_id", "")),
         "rating": payload.get("rating"),
         "comment_length": len(comment),
-        "comment_sha256": _hash_text(comment) if comment else "",
         "stored_at_unix": round(time(), 3),
     }
     FEEDBACK_ROWS.append(row)

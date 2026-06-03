@@ -31,3 +31,4 @@ def test_feedback_route_stores_metadata_only_when_consented() -> None:
     assert body["stored_feedback"]["match_id"] == "vibe_match_123"
     assert body["stored_feedback"]["comment_length"] == 6
     assert "comment" not in body["stored_feedback"]
+    assert "comment_sha256" not in body["stored_feedback"]

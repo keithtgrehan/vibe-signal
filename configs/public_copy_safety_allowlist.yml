@@ -1,0 +1,57 @@
+version: public_copy_safety_allowlist_v1
+description: Controlled references to blocked concepts that are not public product claims.
+allow:
+  - path: docs/research/**
+    reason: Research and false-positive analysis references blocked concepts only as limitations.
+  - path: docs/proof/**
+    reason: Closed-beta proof and gate docs may name blocked categories as no-go checks.
+  - path: docs/control_room/**
+    reason: Control-room strategy/source summaries may mention competitor/category risks.
+  - path: docs/legal_safe_output_policy.md
+    reason: Red-line policy contains explicit examples of disallowed wording.
+  - path: docs/claims_matrix.md
+    reason: Claims matrix contrasts allowed wording with blocked claims.
+  - path: docs/model_card_vibe_matching_v0.md
+    reason: Model card names blocked uses as limitations, not capabilities.
+  - path: docs/vibe_cue_taxonomy.md
+    reason: Cue taxonomy docs name blocked inferences as limitations.
+  - path: docs/data_rights_and_consent_policy.md
+    reason: Data rights policy names prohibited uses.
+  - path: docs/neurodivergent_support_policy.md
+    reason: Accessibility policy names prohibited identity/health inferences.
+  - path: docs/closed_beta_readiness_checklist.md
+    reason: Operator checklist names blocked claims as no-go criteria.
+  - path: docs/final_closed_beta_launch_gate_report.md
+    reason: Launch gate report names blocked claims as rollback triggers.
+  - path: docs/monitoring_no_raw_logs.md
+    reason: Monitoring policy names blocked claims as incident triggers.
+  - path: docs/device_qa_script.md
+    reason: QA script names blocked claims as no-go criteria.
+  - path: docs/closed_beta_tester_instructions.md
+    reason: Tester instructions state product boundaries.
+  - path: docs/ios/**
+    reason: iOS/TestFlight docs may state product limitations and review blockers.
+  - path: src/vibesignal_ai/safety/**
+    reason: Safety registries intentionally include blocked terms.
+  - path: src/vibesignal_ai/evidence/objects.py
+    reason: Evidence validator contains blocked-pattern fixtures.
+  - path: src/vibesignal_ai/matching/contracts.py
+    reason: Match contract exposes blocked_interpretations as safety metadata.
+  - path: src/vibesignal_ai/summaries/templates.py
+    reason: Prompt template states disallowed claims.
+  - path: scripts/**
+    reason: Validation and smoke scripts include blocked strings for tests.
+  - path: tests/**
+    reason: Tests and fixtures intentionally include unsafe examples to prove blocking.
+  - path: mobile/tests/**
+    reason: Mobile tests intentionally include unsafe examples to prove blocking.
+  - path: web/tests/**
+    reason: Web tests intentionally include unsafe examples to prove blocking.
+  - path: reports/**
+    reason: Reports may record blocked-output regression metadata.
+  - path: schemas/**
+    reason: Schemas may name blocked safety fields.
+  - path: configs/vibe_training_sources.example.yml
+    reason: Dataset-rights registry names blocked source uses.
+  - path: configs/vibe_cue_taxonomy.yml
+    reason: Cue taxonomy names blocked inferences as limitations.

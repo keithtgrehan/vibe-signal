@@ -165,6 +165,18 @@ def test_normalize_timeout_rejects_invalid_values(timeout: float) -> None:
         smoke.normalize_timeout(timeout)
 
 
+@pytest.mark.parametrize("retries", [0, -1, 6])
+def test_normalize_retries_rejects_invalid_values(retries: int) -> None:
+    with pytest.raises(ValueError):
+        smoke.normalize_retries(retries)
+
+
+@pytest.mark.parametrize("delay", [-1, 31, float("inf"), float("nan")])
+def test_normalize_retry_delay_rejects_invalid_values(delay: float) -> None:
+    with pytest.raises(ValueError):
+        smoke.normalize_retry_delay_seconds(delay)
+
+
 def test_default_transport_maps_timeout_to_safe_failure(monkeypatch) -> None:
     def fail_timeout(*_args, **_kwargs):
         raise TimeoutError("raw transport timeout detail")
@@ -213,6 +225,34 @@ def test_run_smoke_checks_passes_with_safe_fake_transport() -> None:
     assert len(results) == len(smoke.SMOKE_ENDPOINTS)
     assert all(result.ok for result in results)
     assert all(result.request_id == REQUEST_ID for result in results)
+
+
+def test_run_smoke_checks_retries_transient_endpoint_failure() -> None:
+    seen: dict[str, int] = {}
+
+    def transient_transport(
+        method: str,
+        url: str,
+        body: bytes | None,
+        headers: dict[str, str],
+        timeout: float,
+    ) -> smoke.TransportResponse:
+        path = urlparse(url).path
+        seen[path] = seen.get(path, 0) + 1
+        if path == "/healthz" and seen[path] == 1:
+            return smoke.TransportResponse(0, {}, "raw transport body should not print")
+        return fake_success_transport(method, url, body, headers, timeout)
+
+    results = smoke.run_smoke_checks(
+        "https://api.example.test",
+        transport=transient_transport,
+        retries=2,
+        retry_delay_seconds=0,
+    )
+
+    assert all(result.ok for result in results)
+    assert seen["/healthz"] == 2
+    assert "raw transport body" not in json.dumps([result.__dict__ for result in results])
 
 
 def test_run_smoke_checks_can_include_bounded_event_routes() -> None:
@@ -284,6 +324,20 @@ def test_match_response_user_facing_text_blocks_unsafe_claims() -> None:
     }
 
     assert smoke.validate_match(payload) == "match_unsafe_user_facing_claim"
+
+
+def test_feedback_validation_blocks_returned_comment_hash() -> None:
+    payload = {
+        "status": "accepted",
+        "raw_comment_persisted": False,
+        "stored_feedback": {
+            "match_id": "vibe_match_deployment_smoke",
+            "comment_length": len(str(smoke.SYNTHETIC_FEEDBACK_PAYLOAD["comment"])),
+            "comment_sha256": "abc123",
+        },
+    }
+
+    assert smoke.validate_feedback(payload) == "feedback_comment_hash_returned"
 
 
 def test_run_smoke_checks_returns_failure_without_printing_body() -> None:
