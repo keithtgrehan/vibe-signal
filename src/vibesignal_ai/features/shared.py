@@ -13,7 +13,7 @@ from ..nlp.spacy_features import analyze_spacy_structure
 
 WORD_RE = re.compile(r"[A-Za-z0-9']+")
 NUMBER_RE = re.compile(r"\b\d+(?::\d+)?\b")
-TIME_RE = re.compile(r"\b(?:[01]?\d|2[0-3])(?::[0-5]\d)?\s?(?:am|pm)?\b", re.IGNORECASE)
+TIME_RE = re.compile(r"\b(?:(?:[01]?\d|2[0-3]):[0-5]\d\s?(?:am|pm)?|(?:[1-9]|1[0-2])\s?(?:am|pm))\b", re.IGNORECASE)
 DAY_RE = re.compile(
     r"\b(today|tonight|tomorrow|yesterday|monday|tuesday|wednesday|thursday|friday|saturday|sunday|weekend)\b",
     re.IGNORECASE,

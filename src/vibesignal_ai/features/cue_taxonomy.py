@@ -16,6 +16,17 @@ from ..evidence.objects import build_evidence_object
 CONFIG_PATH = Path(__file__).resolve().parents[3] / "configs" / "vibe_cue_taxonomy.yml"
 ASK_RE = re.compile(r"\b(can|could|will|would)\s+you\b|\?|\bplease\b|\bconfirm\b", re.IGNORECASE)
 REQUEST_MARKER_RE = re.compile(r"\b(?:can you|could you|will you|would you|please|confirm|send|review|check|compare|rewrite|tell me)\b", re.IGNORECASE)
+ACTION_OR_DECISION_RE = re.compile(
+    r"\b(?:confirm|send|review|check|compare|rewrite|tell me|meet|call|reply|answer|decide|choose|bring|share|explain|plan|need|deadline)\b",
+    re.IGNORECASE,
+)
+VAGUE_OR_HEDGE_RE = re.compile(r"\b(?:maybe|idk|not sure|whatever|sometime|later|we'll see|unclear)\b", re.IGNORECASE)
+PRESSURE_DIRECTIVE_RE = re.compile(r"\b(?:you have to|you must|right now|or else|owe me|don't say no)\b", re.IGNORECASE)
+ESCALATION_MARKER_RE = re.compile(
+    r"\b(?:or else|you always|you never|your fault|stop asking|not okay|fight|argument|right now)\b|[!?]{2,}|\b[A-Z]{3,}\b",
+    re.IGNORECASE,
+)
+INTENSE_PUNCTUATION_RE = re.compile(r"[!?]{2,}|\b[A-Z]{3,}\b")
 
 
 @dataclass(frozen=True)
@@ -114,6 +125,25 @@ def _first_match(rule: CueRule, text: str) -> re.Match[str] | None:
     return None
 
 
+def _has_direct_request_or_decision(text: str) -> bool:
+    lowered = str(text or "").lower()
+    return bool(ASK_RE.search(lowered) or REQUEST_MARKER_RE.search(lowered) or lowered.strip().startswith(("yes", "no", "i can", "i can't", "i cannot", "i will", "i won't", "we can", "we can't")))
+
+
+def _specificity_context_is_actionable(text: str) -> bool:
+    lowered = str(text or "").lower()
+    return bool(_has_direct_request_or_decision(lowered) or ACTION_OR_DECISION_RE.search(lowered) or "available" in lowered or "works" in lowered)
+
+
+def _unclear_ask_context(text: str) -> bool:
+    lowered = str(text or "").lower()
+    if not ASK_RE.search(lowered):
+        return False
+    if not VAGUE_OR_HEDGE_RE.search(lowered):
+        return False
+    return not ACTION_OR_DECISION_RE.search(lowered)
+
+
 def _evidence(
     *,
     rule: CueRule,
@@ -173,6 +203,12 @@ def _add_pattern_cue(
     match = _first_match(rule, text)
     if not match:
         return
+    if cue_family == "directness" and PRESSURE_DIRECTIVE_RE.search(text):
+        return
+    if cue_family == "directness" and VAGUE_OR_HEDGE_RE.search(text) and not ACTION_OR_DECISION_RE.search(text):
+        return
+    if cue_family == "specificity" and not _specificity_context_is_actionable(text):
+        return
     cues.append(
         _evidence(
             rule=rule,
@@ -226,7 +262,6 @@ def _message_cues(message: dict[str, Any], conversation_id: str) -> list[dict[st
         "pressure",
         "conflict",
         "alignment",
-        "topic_shift",
         "ambiguity",
         "repair_opportunity",
         "boundary_pressure",
@@ -238,13 +273,41 @@ def _message_cues(message: dict[str, Any], conversation_id: str) -> list[dict[st
         _add_whole_message_cue(cues, cue_family="cognitive_load", text=text, message=message, conversation_id=conversation_id)
         _add_whole_message_cue(cues, cue_family="overloaded_message", text=text, message=message, conversation_id=conversation_id)
 
-    if "ambiguity" in {cue["cue_family"] for cue in cues} and not ASK_RE.search(text):
+    if "ambiguity" in {cue["cue_family"] for cue in cues} and _unclear_ask_context(text):
         _add_whole_message_cue(cues, cue_family="unclear_ask", text=text, message=message, conversation_id=conversation_id)
 
     cue_families = {cue["cue_family"] for cue in cues}
-    if "pressure" in cue_families and ({"conflict", "boundary_pressure"} & cue_families):
+    pressure_escalation = "pressure" in cue_families and ({"conflict", "boundary_pressure"} & cue_families) and ESCALATION_MARKER_RE.search(text)
+    conflict_intensity = "conflict" in cue_families and INTENSE_PUNCTUATION_RE.search(text)
+    if pressure_escalation or conflict_intensity:
         _add_whole_message_cue(cues, cue_family="escalation_risk", text=text, message=message, conversation_id=conversation_id)
 
+    return cues
+
+
+def _topic_shift_cues(messages: list[dict[str, Any]], conversation_id: str) -> list[dict[str, Any]]:
+    cues: list[dict[str, Any]] = []
+    rule = RULES_BY_FAMILY["topic_shift"]
+    previous: dict[str, Any] | None = None
+    for message in messages:
+        text = _strip_quotes_and_code(str(message.get("text", "")))
+        if previous:
+            previous_text = _strip_quotes_and_code(str(previous.get("text", "")))
+            different_author = str(previous.get("author", previous.get("speaker_role", ""))) != str(message.get("author", message.get("speaker_role", "")))
+            match = _first_match(rule, text)
+            if different_author and ASK_RE.search(previous_text) and match:
+                cues.append(
+                    _evidence(
+                        rule=rule,
+                        message=message,
+                        text=text,
+                        start=match.start(),
+                        end=match.end(),
+                        evidence_text=match.group(0),
+                        conversation_id=conversation_id,
+                    )
+                )
+        previous = message
     return cues
 
 
@@ -271,5 +334,6 @@ def detect_cues(messages: Iterable[dict[str, Any]], *, conversation_id: str = "s
     cues: list[dict[str, Any]] = []
     for message in materialized:
         cues.extend(_message_cues(message, conversation_id))
+    cues.extend(_topic_shift_cues(materialized, conversation_id))
     cues.extend(_response_timing_cues(materialized, conversation_id))
     return cues

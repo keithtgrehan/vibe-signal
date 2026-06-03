@@ -28,9 +28,14 @@ DIRECT_ANSWER_RE = re.compile(
     r"^\s*(?:yes|yeah|yep|no|ok|okay|sure|confirmed|not confirmed|that works|sounds good|works for me|i can|i can't|i cannot|i will|i won'?t|we can|we can'?t)\b",
     re.IGNORECASE,
 )
+WORKS_REPLY_RE = re.compile(r"\bworks\b", re.IGNORECASE)
 TOPIC_SHIFT_RE = re.compile(r"\b(?:anyway|separately|another thing|new topic|switching topics)\b", re.IGNORECASE)
+CLARIFYING_REPLY_RE = re.compile(
+    r"\b(?:one request first|answer clearly|can you clarify|could you clarify|which part|what do you mean|send one request|split this into|one thing at a time)\b",
+    re.IGNORECASE,
+)
 TIME_DETAIL_RE = re.compile(
-    r"\b(?:\d{1,2}(?::\d{2})?\s?(?:am|pm)?|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow|weekend)\b",
+    r"\b(?:(?:\d{1,2}:\d{2}\s?(?:am|pm)?|\d{1,2}\s?(?:am|pm))|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow|weekend)\b",
     re.IGNORECASE,
 )
 NUMBER_RE = re.compile(r"\b\d+(?::\d+)?\b")
@@ -132,7 +137,11 @@ def _has_direct_ask(text: str) -> bool:
 def _is_evasive_reply(previous: str, current: str) -> bool:
     if not _has_direct_ask(previous):
         return False
+    if CLARIFYING_REPLY_RE.search(current):
+        return False
     if DIRECT_ANSWER_RE.search(current) and not TOPIC_SHIFT_RE.search(current):
+        return False
+    if WORKS_REPLY_RE.search(current) and responsiveness_score(previous, current) >= 0.08 and not TOPIC_SHIFT_RE.search(current):
         return False
     overlap = responsiveness_score(previous, current)
     vague = bool(VAGUE_RE.search(current))
@@ -157,13 +166,14 @@ def detect_specificity_drops(messages: list[dict[str, Any]], conversation_id: st
         previous_specificity = specificity_score(previous_text)
         current_specificity = specificity_score(current_text)
         direct_acknowledgement = bool(DIRECT_ANSWER_RE.search(current_text))
+        clarifying_reply = bool(CLARIFYING_REPLY_RE.search(current_text))
         concrete_drop = (
             current_detail < previous_detail
             or current_specificity + 0.18 < previous_specificity
             or current_numbers < previous_numbers
             or current_time_details < previous_time_details
         )
-        if _has_direct_ask(previous_text) and not direct_acknowledgement and previous_detail >= 2 and concrete_drop and (
+        if _has_direct_ask(previous_text) and not direct_acknowledgement and not clarifying_reply and previous_detail >= 2 and concrete_drop and (
             VAGUE_RE.search(current_text) or word_count(current_text) <= max(5, word_count(previous_text) // 2)
         ):
             rows.append(

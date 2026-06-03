@@ -14,9 +14,8 @@ Terminal B:
 
 ```bash
 VIBE_SIGNAL_API_URL=http://localhost:5000 \
-python tools/generate_synthetic_whatsapp_fixtures.py \
-  --messages 1000 \
-  --api-url http://localhost:5000
+python tools/run_synthetic_fixture_regression.py \
+  --input data/synthetic/whatsapp/conversations.jsonl
 ```
 
 If port `5000` is occupied by macOS Control Center/AirTunes or another local service, use a free port and keep the same API base URL in Terminal B:
@@ -25,17 +24,15 @@ If port `5000` is occupied by macOS Control Center/AirTunes or another local ser
 PYTHONPATH=src python -m uvicorn backend.app:app --host 0.0.0.0 --port 5050
 
 VIBE_SIGNAL_API_URL=http://localhost:5050 \
-python tools/generate_synthetic_whatsapp_fixtures.py \
-  --messages 1000 \
-  --api-url http://localhost:5050
+python tools/run_synthetic_fixture_regression.py \
+  --input data/synthetic/whatsapp/conversations.jsonl
 ```
 
 The command writes:
 
-- `data/synthetic/whatsapp/conversations.jsonl`
-- `reports/engine_eval/api_responses.jsonl`
-- `reports/engine_eval/api_regression_results.jsonl`
-- `reports/engine_eval/api_regression_report.md`
+- `reports/engine_eval/synthetic_regression_api_responses.jsonl`
+- `reports/engine_eval/synthetic_regression_results.jsonl`
+- `reports/engine_eval/synthetic_regression_report.md`
 
 ## Deployed Sample
 
@@ -43,9 +40,8 @@ Use a bounded sample against production:
 
 ```bash
 VIBE_SIGNAL_API_URL=https://vibe-signal.onrender.com \
-python tools/generate_synthetic_whatsapp_fixtures.py \
-  --messages 1000 \
-  --api-url https://vibe-signal.onrender.com \
+python tools/run_synthetic_fixture_regression.py \
+  --input data/synthetic/whatsapp/conversations.jsonl \
   --limit 100
 ```
 
@@ -63,15 +59,15 @@ Use regression terms only:
 
 Do not call these accuracy, model quality, or validation.
 
-## Current Seed Results
+## Current Precision-Cleanup Results
 
-The first local run on this branch used port `5050` because port `5000` was occupied by macOS Control Center/AirTunes.
+The local run on this branch used port `5050` because port `5000` was occupied by macOS Control Center/AirTunes.
 
 - Local API regression: `455` synthetic conversations, `1000` messages, `0` transport errors.
-- Local strict API regression pass rate: `189/455`.
+- Local synthetic API regression pass rate: `455/455`.
 - Local evidence completeness rate: `455/455`.
 - Local unsafe-output block rate: `455/455`.
 - Local fallback correctness rate: `455/455`.
-- Deployed sample: `100` synthetic conversations, `0` transport errors, strict pass rate `30/100`.
+- Deployed sample: not rerun as a branch-valid comparison because the hosted backend has not been redeployed from this branch.
 
-The deployed sample appears to be behind the branch route hardening because it still misses match-specific `/api/analyze` cues and low-signal fallback cases.
+The previous deployed sample from PR #21 was `30/100`; rerun the bounded sample after Render is updated.

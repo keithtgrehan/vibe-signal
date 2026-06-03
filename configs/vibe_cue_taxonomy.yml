@@ -27,8 +27,8 @@ cues:
     cue_family: specificity
     description: Specific date, time, deadline, or concrete schedule detail.
     patterns:
-      - "\\b(?:\\d{1,2}(?::\\d{2})?\\s?(?:am|pm)?|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow)\\b"
-      - "\\b(?:before|by)\\s+(?:\\d{1,2}(?::\\d{2})?\\s?(?:am|pm)?|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow|lunch|dinner|noon|midnight|end of day|eod)\\b"
+      - "\\b(?:(?:\\d{1,2}:\\d{2}\\s?(?:am|pm)?|\\d{1,2}\\s?(?:am|pm))|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow)\\b"
+      - "\\b(?:before|by)\\s+(?:(?:\\d{1,2}:\\d{2}\\s?(?:am|pm)?|\\d{1,2}\\s?(?:am|pm))|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow|lunch|dinner|noon|midnight|end of day|eod)\\b"
     reducers: []
     confidence: 0.72
     explanation: "Rule matched a concrete time, date, or deadline marker."
@@ -40,7 +40,7 @@ cues:
     cue_family: hedging
     description: Qualifying or tentative wording.
     patterns:
-      - "\\b(?:maybe|perhaps|sort of|kind of|i guess|not sure|might|could be|if you want)\\b"
+      - "\\b(?:maybe|perhaps|sort of|kind of|i guess|not sure|might|could be)\\b"
     reducers: []
     confidence: 0.72
     explanation: "Rule matched tentative or qualifying wording."

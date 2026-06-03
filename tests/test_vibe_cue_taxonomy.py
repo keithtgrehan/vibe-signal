@@ -69,6 +69,9 @@ def synthetic_messages() -> list[dict]:
         {"id": "m10", "author": "other", "created_at": "2026-05-31T10:09:00Z", "text": "Sorry, let me rephrase what I meant."},
         {"id": "m11", "author": "self", "created_at": "2026-05-31T10:10:00Z", "text": "You can say no; is that okay?"},
         {"id": "m12", "author": "self", "created_at": "2026-05-31T10:10:40Z", "text": "Just checking again."},
+        {"id": "m13", "author": "self", "created_at": "2026-05-31T10:15:00Z", "text": "Can you confirm the plan?"},
+        {"id": "m14", "author": "other", "created_at": "2026-05-31T10:20:00Z", "text": "Anyway, separately, another thing for tomorrow."},
+        {"id": "m15", "author": "self", "created_at": "2026-05-31T10:25:00Z", "text": "Can you maybe?"},
     ]
 
 

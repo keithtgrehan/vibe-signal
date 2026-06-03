@@ -2,10 +2,10 @@
   "label_count": 1000,
   "micro": {
     "fn": 0,
-    "fp": 137,
-    "precision": 0.5142,
+    "fp": 85,
+    "precision": 0.6304,
     "recall": 1.0,
-    "tn": 718,
+    "tn": 770,
     "tp": 145
   },
   "non_claims": [
@@ -31,26 +31,26 @@
     },
     "answer_evasion_pattern": {
       "fn": 0,
-      "fp": 5,
-      "precision": 0.6667,
+      "fp": 0,
+      "precision": 1.0,
       "recall": 1.0,
-      "tn": 35,
+      "tn": 40,
       "tp": 10
     },
     "boundary_pressure": {
       "fn": 0,
-      "fp": 5,
-      "precision": 0.6667,
+      "fp": 0,
+      "precision": 1.0,
       "recall": 1.0,
-      "tn": 35,
+      "tn": 40,
       "tp": 10
     },
     "cognitive_load": {
       "fn": 0,
-      "fp": 5,
-      "precision": 0.5,
+      "fp": 0,
+      "precision": 1.0,
       "recall": 1.0,
-      "tn": 40,
+      "tn": 45,
       "tp": 5
     },
     "conflict": {
@@ -71,10 +71,10 @@
     },
     "directness": {
       "fn": 0,
-      "fp": 10,
-      "precision": 0.6667,
+      "fp": 5,
+      "precision": 0.8,
       "recall": 1.0,
-      "tn": 20,
+      "tn": 25,
       "tp": 20
     },
     "escalation_risk": {
@@ -95,18 +95,18 @@
     },
     "overloaded_message": {
       "fn": 0,
-      "fp": 5,
-      "precision": 0.5,
+      "fp": 0,
+      "precision": 1.0,
       "recall": 1.0,
-      "tn": 40,
+      "tn": 45,
       "tp": 5
     },
     "pressure": {
       "fn": 0,
-      "fp": 5,
-      "precision": 0.6667,
+      "fp": 0,
+      "precision": 1.0,
       "recall": 1.0,
-      "tn": 35,
+      "tn": 40,
       "tp": 10
     },
     "reassurance": {
@@ -127,18 +127,18 @@
     },
     "specificity": {
       "fn": 0,
-      "fp": 27,
-      "precision": 0.3571,
+      "fp": 25,
+      "precision": 0.375,
       "recall": 1.0,
-      "tn": 8,
+      "tn": 10,
       "tp": 15
     },
     "specificity_drop": {
       "fn": 0,
-      "fp": 10,
-      "precision": 0.3333,
+      "fp": 5,
+      "precision": 0.5,
       "recall": 1.0,
-      "tn": 35,
+      "tn": 40,
       "tp": 5
     },
     "topic_shift": {
@@ -151,10 +151,10 @@
     },
     "unclear_ask": {
       "fn": 0,
-      "fp": 15,
-      "precision": 0.0,
+      "fp": 0,
+      "precision": null,
       "recall": null,
-      "tn": 35,
+      "tn": 50,
       "tp": 0
     },
     "unsupported_claim_shift": {
