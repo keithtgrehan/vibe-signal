@@ -160,6 +160,32 @@ export function buildLowSignalFallback(text = "") {
   };
 }
 
+export function buildNoEvidenceFallback() {
+  return {
+    inputPreviewLength: 0,
+    isLowSignal: true,
+    resultState: "no_safe_evidence",
+    signalStrength: "insufficient",
+    signalStrengthLabel: signalStrengthLabel("insufficient"),
+    title: "No safe evidence phrase returned.",
+    body:
+      "This result did not include a safe quoted phrase, so Vibe Signal will not render a full read.",
+    tryItems: ["Add the previous message", "Try a synthetic example", "Review a clearer exchange"],
+    mainRead: "No safe evidence phrase returned.",
+    evidencePhrases: [],
+    evidenceDetails: [],
+    patternLabels: ["Evidence unavailable"],
+    patternExplanation:
+      "A result needs at least one safe quoted phrase before Vibe Signal shows interpretation.",
+    cannotInferText: DEFAULT_CANNOT_INFER,
+    safeNextStep: "Add context or try a synthetic example before relying on this read.",
+    safeNextSteps: ["Add context or try a synthetic example before relying on this read."],
+    canTell: CAN_TELL,
+    cannotInfer: CANNOT_TELL,
+    feedbackOptions: FEEDBACK_OPTIONS,
+  };
+}
+
 export function buildMatchComposerState({
   conversationText = "",
   loading = false,
@@ -221,6 +247,20 @@ export function buildMatchResultViewModel(result = {}) {
     result?.risk_factors?.length ? result.risk_factors : result?.top_friction_factors
   );
   const evidenceDetails = collectEvidenceDetails(result);
+  if (!evidenceDetails.length) {
+    return {
+      ...buildNoEvidenceFallback(),
+      hasResult: Boolean(result && Object.keys(result).length),
+      bandLabel: "Insufficient signal",
+      confidenceLabel: result?.confidence?.level
+        ? `${normalizeText(result.confidence.level)} evidence confidence`
+        : "Evidence confidence unavailable",
+      confidenceReasons: normalizeList(result?.confidence?.reasons).slice(0, 3),
+      disclosure:
+        "This is a bounded communication-pattern review, not a verdict about another person.",
+    };
+  }
+
   const safeNextSteps = normalizeList(result?.safe_next_steps).length
     ? normalizeList(result?.safe_next_steps)
     : DEFAULT_NEXT_STEPS;

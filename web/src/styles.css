@@ -53,6 +53,14 @@ button:disabled {
   cursor: not-allowed;
 }
 
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(255, 184, 77, 0.78);
+  outline-offset: 3px;
+}
+
 .app-shell {
   min-height: 100vh;
 }
@@ -188,7 +196,7 @@ h1 {
   max-width: 680px;
   margin-top: 12px;
   color: var(--foreground);
-  font-size: 64px;
+  font-size: clamp(44px, 5vw, 58px);
   line-height: 1.04;
   font-weight: 900;
 }
@@ -353,6 +361,51 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+.demo-flow-strip,
+.explainability-rail {
+  display: grid;
+  gap: 10px;
+}
+
+.explainability-rail {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.demo-flow-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 18px;
+  border-top: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.demo-flow-strip span,
+.explainability-rail span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 700;
+}
+
+.demo-flow-strip strong,
+.explainability-rail strong {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  background: rgba(255, 184, 77, 0.12);
+  color: var(--primary);
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -433,12 +486,29 @@ h3 {
 }
 
 .synthetic-demo-card {
-  min-height: 245px;
+  min-height: 270px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 18px;
   padding: 20px;
+}
+
+.demo-card-header {
+  display: grid;
+  gap: 8px;
+}
+
+.demo-card-header span {
+  width: fit-content;
+  border: 1px solid rgba(255, 184, 77, 0.24);
+  border-radius: var(--radius);
+  background: rgba(255, 184, 77, 0.08);
+  color: var(--primary);
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 900;
 }
 
 .synthetic-demo-card p,
@@ -613,6 +683,13 @@ h3 {
   color: var(--foreground);
   font-size: 13px;
   font-weight: 800;
+}
+
+.field-helper {
+  margin-top: -8px;
+  color: var(--muted-strong);
+  font-size: 13px;
+  line-height: 20px;
 }
 
 textarea {
@@ -995,6 +1072,12 @@ textarea:focus {
   font-weight: 700;
 }
 
+.feedback-option-selected {
+  border-color: rgba(125, 211, 168, 0.34) !important;
+  color: var(--positive) !important;
+  background: rgba(125, 211, 168, 0.1) !important;
+}
+
 .error-text {
   color: #ffc1c1 !important;
   font-weight: 700;
@@ -1052,6 +1135,8 @@ textarea:focus {
   .synthetic-demo-grid,
   .faq-grid,
   .split-heading,
+  .demo-flow-strip,
+  .explainability-rail,
   .inline-demo-row,
   .result-grid,
   .phrase-grid,

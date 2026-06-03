@@ -47,6 +47,20 @@ export const HOW_IT_WORKS_STEPS = [
   },
 ];
 
+export const RESULT_EXPLAINABILITY_STEPS = [
+  "Evidence",
+  "Pattern",
+  "Limits",
+  "Next step",
+];
+
+export const REVIEWER_DEMO_FLOW = [
+  "Open with a synthetic card",
+  "Show evidence before interpretation",
+  "Point to limits and the safe next step",
+  "Use metadata-only feedback",
+];
+
 export const FAQ_ITEMS = [
   {
     question: "Is this trying to read intent?",
@@ -70,6 +84,7 @@ export const SYNTHETIC_DEMOS = [
     title: "Unclear ask",
     exchange: "self: Are we still on for Friday?\nother: maybe later, not sure yet",
     highlight: "Vibe Signal will highlight vague timing after a direct question.",
+    previewPattern: "Vague timing",
     actionLabel: "Run demo",
     requiresPrivateConsent: false,
     result: {
@@ -103,6 +118,7 @@ export const SYNTHETIC_DEMOS = [
     exchange:
       "self: I need a little time to think.\nother: I need an answer tonight or this will not work.",
     highlight: "Vibe Signal will highlight urgency and consequence pressure in the wording.",
+    previewPattern: "Urgency pressure",
     actionLabel: "Run demo",
     requiresPrivateConsent: false,
     result: {
@@ -136,6 +152,7 @@ export const SYNTHETIC_DEMOS = [
     exchange:
       "self: That landed harder than I meant.\nother: I appreciate you saying that. Can we reset and choose a time tomorrow?",
     highlight: "Vibe Signal will highlight reassurance, repair wording, and a clear next step.",
+    previewPattern: "Repair wording",
     actionLabel: "Run demo",
     requiresPrivateConsent: false,
     result: {
@@ -161,6 +178,93 @@ export const SYNTHETIC_DEMOS = [
         },
       ],
       safe_next_steps: ["Keep the next reply specific and low pressure."],
+    },
+  },
+  {
+    id: "low_signal_fallback",
+    title: "Low-signal fallback",
+    exchange: "self: hey\nother: ok",
+    highlight: "Vibe Signal will avoid over-reading a short context-light exchange.",
+    previewPattern: "Not enough context",
+    actionLabel: "Run demo",
+    requiresPrivateConsent: false,
+    result: {
+      match_id: "synthetic_low_signal_fallback",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      result_state: "low_signal",
+      low_signal_fallback: true,
+      signal_strength: "insufficient",
+      safe_explanation: "This exchange is too short to read safely.",
+      safe_next_steps: ["Add the previous message or try a synthetic example."],
+    },
+  },
+  {
+    id: "boundary_respecting_request",
+    title: "Boundary-respecting request",
+    exchange:
+      "self: I cannot decide tonight.\nother: That is okay. Could you send a yes or no by Friday if you have capacity?",
+    highlight: "Vibe Signal will highlight a clear ask that leaves room for a no or later.",
+    previewPattern: "Clear low-pressure ask",
+    actionLabel: "Run demo",
+    requiresPrivateConsent: false,
+    result: {
+      match_id: "synthetic_boundary_respecting_request",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      signal_strength: "high",
+      compatibility_band: "supportive",
+      safe_explanation: "This reply makes a specific request while preserving room to decline or delay.",
+      evidence: [
+        {
+          evidence_id: "boundary_1",
+          safe_phrase: "That is okay",
+          cue_family: "reassurance",
+          explanation: "The reply accepts the stated boundary before making another ask.",
+          repair_suggestion: "Respond with the decision point you can actually meet.",
+        },
+        {
+          evidence_id: "boundary_2",
+          safe_phrase: "if you have capacity",
+          cue_family: "low_pressure_request",
+          explanation: "The wording keeps the request conditional on capacity.",
+        },
+      ],
+      safe_next_steps: ["Respond with the decision point you can actually meet."],
+    },
+  },
+  {
+    id: "overloaded_message",
+    title: "Overloaded message",
+    exchange:
+      "self: Can we choose one plan?\nother: I can talk after work, but also need to finish errands, call Sam, and figure out dinner.",
+    highlight: "Vibe Signal will highlight cognitive load and suggest narrowing the next ask.",
+    previewPattern: "Overloaded reply",
+    actionLabel: "Run demo",
+    requiresPrivateConsent: false,
+    result: {
+      match_id: "synthetic_overloaded_message",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      signal_strength: "medium",
+      compatibility_band: "mixed",
+      safe_explanation: "This reply stacks several tasks after a request to choose one plan.",
+      evidence: [
+        {
+          evidence_id: "overloaded_1",
+          safe_phrase: "also need to finish errands, call Sam, and figure out dinner",
+          cue_family: "cognitive_load",
+          explanation: "The reply adds several competing tasks instead of narrowing to one plan.",
+          repair_suggestion: "Ask for one decision point and make later acceptable.",
+        },
+        {
+          evidence_id: "overloaded_2",
+          safe_phrase: "I can talk after work",
+          cue_family: "partial_clarity",
+          explanation: "There is one usable timing cue, but the rest of the message adds load.",
+        },
+      ],
+      safe_next_steps: ["Ask for one decision point and make later acceptable."],
     },
   },
 ];

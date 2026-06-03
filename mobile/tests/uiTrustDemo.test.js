@@ -22,6 +22,13 @@ test("mobile landing uses required trust-first hero and synthetic-first actions"
   assert.match(appText, /Unclear ask/);
   assert.match(appText, /Pressure \/ urgency/);
   assert.match(appText, /Repair opportunity/);
+  assert.match(appText, /Low-signal fallback/);
+  assert.match(appText, /Boundary-respecting request/);
+  assert.match(appText, /Overloaded message/);
+  assert.match(appText, /Synthetic demo result/);
+  assert.match(appText, /accessibilityRole="checkbox"/);
+  assert.match(appText, /accessibilityLiveRegion="polite"/);
+  assert.match(appText, /accessibilityLiveRegion="assertive"/);
 });
 
 test("mobile consumer UI avoids developer-facing backend and API detail copy", () => {
@@ -31,4 +38,12 @@ test("mobile consumer UI avoids developer-facing backend and API detail copy", (
       assert.equal(text.includes(forbidden), false, `${file} exposed ${forbidden}`);
     }
   }
+});
+
+test("provider screen custom consent checkboxes expose accessibility roles and state", () => {
+  const providerText = readFileSync(resolve(ROOT, "src/screens/ProviderSettingsScreen.js"), "utf8");
+  assert.match(providerText, /accessibilityRole="checkbox"/);
+  assert.match(providerText, /accessibilityState=\{\{ checked: analysisConsent \}\}/);
+  assert.match(providerText, /accessibilityState=\{\{ checked: matchConsent \}\}/);
+  assert.match(providerText, /accessibilityState=\{\{ checked: state\.consentAcknowledged \}\}/);
 });

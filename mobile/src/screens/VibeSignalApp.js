@@ -82,6 +82,7 @@ const SYNTHETIC_DEMOS = [
     title: "Unclear ask",
     exchange: SAMPLE_TEXT,
     highlight: "Highlights vague timing after a direct question.",
+    previewPattern: "Vague timing",
     result: {
       match_id: "synthetic_unclear_ask",
       synthetic: true,
@@ -113,6 +114,7 @@ const SYNTHETIC_DEMOS = [
     exchange:
       "self: I need a little time to think.\nother: I need an answer tonight or this will not work.",
     highlight: "Highlights urgency and consequence pressure in the wording.",
+    previewPattern: "Urgency pressure",
     result: {
       match_id: "synthetic_pressure_urgency",
       synthetic: true,
@@ -144,6 +146,7 @@ const SYNTHETIC_DEMOS = [
     exchange:
       "self: That landed harder than I meant.\nother: I appreciate you saying that. Can we reset and choose a time tomorrow?",
     highlight: "Highlights reassurance, repair wording, and a clear next step.",
+    previewPattern: "Repair wording",
     result: {
       match_id: "synthetic_repair_opportunity",
       synthetic: true,
@@ -167,6 +170,87 @@ const SYNTHETIC_DEMOS = [
         },
       ],
       safe_next_steps: ["Keep the next reply specific and low pressure."],
+    },
+  },
+  {
+    id: "low_signal_fallback",
+    title: "Low-signal fallback",
+    exchange: "self: hey\nother: ok",
+    highlight: "Avoids over-reading a short context-light exchange.",
+    previewPattern: "Not enough context",
+    result: {
+      match_id: "synthetic_low_signal_fallback",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      result_state: "low_signal",
+      low_signal_fallback: true,
+      signal_strength: "insufficient",
+      safe_explanation: "This exchange is too short to read safely.",
+      safe_next_steps: ["Add the previous message or try a synthetic example."],
+    },
+  },
+  {
+    id: "boundary_respecting_request",
+    title: "Boundary-respecting request",
+    exchange:
+      "self: I cannot decide tonight.\nother: That is okay. Could you send a yes or no by Friday if you have capacity?",
+    highlight: "Highlights a clear ask that leaves room for a no or later.",
+    previewPattern: "Clear low-pressure ask",
+    result: {
+      match_id: "synthetic_boundary_respecting_request",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      signal_strength: "high",
+      compatibility_band: "supportive",
+      safe_explanation: "This reply makes a specific request while preserving room to decline or delay.",
+      evidence: [
+        {
+          evidence_id: "boundary_1",
+          safe_phrase: "That is okay",
+          cue_family: "reassurance",
+          explanation: "The reply accepts the stated boundary before making another ask.",
+          repair_suggestion: "Respond with the decision point you can actually meet.",
+        },
+        {
+          evidence_id: "boundary_2",
+          safe_phrase: "if you have capacity",
+          cue_family: "low_pressure_request",
+          explanation: "The wording keeps the request conditional on capacity.",
+        },
+      ],
+      safe_next_steps: ["Respond with the decision point you can actually meet."],
+    },
+  },
+  {
+    id: "overloaded_message",
+    title: "Overloaded message",
+    exchange:
+      "self: Can we choose one plan?\nother: I can talk after work, but also need to finish errands, call Sam, and figure out dinner.",
+    highlight: "Highlights cognitive load and suggests narrowing the next ask.",
+    previewPattern: "Overloaded reply",
+    result: {
+      match_id: "synthetic_overloaded_message",
+      synthetic: true,
+      requiresPrivateConsent: false,
+      signal_strength: "medium",
+      compatibility_band: "mixed",
+      safe_explanation: "This reply stacks several tasks after a request to choose one plan.",
+      evidence: [
+        {
+          evidence_id: "overloaded_1",
+          safe_phrase: "also need to finish errands, call Sam, and figure out dinner",
+          cue_family: "cognitive_load",
+          explanation: "The reply adds several competing tasks instead of narrowing to one plan.",
+          repair_suggestion: "Ask for one decision point and make later acceptable.",
+        },
+        {
+          evidence_id: "overloaded_2",
+          safe_phrase: "I can talk after work",
+          cue_family: "partial_clarity",
+          explanation: "There is one usable timing cue, but the rest of the message adds load.",
+        },
+      ],
+      safe_next_steps: ["Ask for one decision point and make later acceptable."],
     },
   },
 ];
@@ -221,7 +305,9 @@ function useBackendClients() {
 function PressableText({ children, style, textStyle, disabled = false, ...props }) {
   return (
     <Pressable
+      accessibilityRole={props.accessibilityRole || "button"}
       disabled={disabled}
+      hitSlop={props.hitSlop || 6}
       style={({ pressed }) => [
         ...(Array.isArray(style) ? style : [style]),
         pressed && !disabled && styles.pressed,
@@ -314,6 +400,7 @@ function HomeScreen({ runSyntheticDemo, setScreen, setMode }) {
             onPress={() => runSyntheticDemo(demo.id)}
           >
             <Text style={styles.modeLabel}>{demo.title}</Text>
+            <Text style={styles.demoPatternPill}>{demo.previewPattern}</Text>
             <Text style={styles.syntheticExchange}>{demo.exchange}</Text>
             <Text style={styles.modeBody}>{demo.highlight}</Text>
             <Text style={styles.modeAction}>Run demo</Text>
@@ -363,6 +450,17 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
   const apiConfigured = apiUrlState.ok;
   const hasText = Boolean(normalizeText(text));
   const canSubmit = hasText && consent && apiConfigured && !loading;
+  const submitStatus = !hasText
+    ? "Add a short exchange, or run a synthetic example first."
+    : !consent
+      ? "Private analysis unlocks after the permission checkbox."
+      : !apiConfigured
+        ? "Private analysis is not connected in this build. Synthetic demos still work."
+        : loading
+          ? mode === "match"
+            ? "Checking communication patterns..."
+            : "Surfacing cue evidence..."
+          : "Ready to review permissioned text.";
 
   async function handleSubmit() {
     if (!hasText) {
@@ -454,6 +552,7 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
               onPress={() => runSyntheticDemo(demo.id)}
             >
               <Text style={styles.inlineDemoTitle}>{demo.title}</Text>
+              <Text style={styles.inlineDemoPattern}>{demo.previewPattern}</Text>
               <Text style={styles.inlineDemoAction}>Run demo</Text>
             </Pressable>
           ))}
@@ -490,6 +589,7 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
           textAlignVertical="top"
           autoCorrect={false}
           autoCapitalize="none"
+          accessibilityLabel="Permissioned conversation text"
           style={styles.textArea}
         />
 
@@ -510,6 +610,9 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
         </View>
 
         <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: consent }}
+          hitSlop={6}
           style={({ pressed }) => [styles.checkboxRow, pressed && styles.pressed]}
           onPress={() => setConsent((current) => !current)}
         >
@@ -521,8 +624,13 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
           </Text>
         </Pressable>
 
-        {status ? <Text style={styles.statusText}>{status}</Text> : null}
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <Text accessibilityLiveRegion="polite" style={styles.statusText}>{submitStatus}</Text>
+        {status && status !== submitStatus ? (
+          <Text accessibilityLiveRegion="polite" style={styles.statusText}>{status}</Text>
+        ) : null}
+        {error ? (
+          <Text accessibilityLiveRegion="assertive" style={styles.errorText}>{error}</Text>
+        ) : null}
 
         <PressableText
           disabled={!canSubmit}
@@ -591,6 +699,7 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
   const [feedbackStatus, setFeedbackStatus] = useState("");
   const [feedbackError, setFeedbackError] = useState("");
   const [submittedFeedbackTags, setSubmittedFeedbackTags] = useState([]);
+  const [pendingFeedbackTag, setPendingFeedbackTag] = useState("");
 
   async function sendFeedback(option) {
     if (feedbackLoading) {
@@ -602,6 +711,7 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
       return;
     }
     setFeedbackLoading(true);
+    setPendingFeedbackTag(option.id);
     setFeedbackStatus("");
     setFeedbackError("");
     try {
@@ -621,6 +731,7 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
       setFeedbackError(response.userMessage || "Feedback could not be sent.");
     } finally {
       setFeedbackLoading(false);
+      setPendingFeedbackTag("");
     }
   }
 
@@ -628,7 +739,9 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
     return (
       <>
         <View style={[styles.resultHero, styles.lowSignalCard]}>
-          <Text style={styles.eyebrow}>Low-signal fallback</Text>
+          <Text style={styles.eyebrow}>
+            {viewModel.resultState === "no_safe_evidence" ? "Evidence fallback" : "Low-signal fallback"}
+          </Text>
           <Text style={styles.screenTitle}>{viewModel.title}</Text>
           <Text style={styles.helperText}>{viewModel.body}</Text>
         </View>
@@ -663,9 +776,38 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
   return (
     <>
       <View style={styles.resultHero}>
+        {result?.synthetic ? (
+          <Text style={styles.syntheticResultPill}>
+            Synthetic demo result{result.demoTitle ? `: ${result.demoTitle}` : ""}
+          </Text>
+        ) : null}
         <Text style={styles.eyebrow}>Main read</Text>
         <Text style={styles.screenTitle}>{viewModel.mainRead}</Text>
         <Text style={styles.signalPill}>{viewModel.signalStrengthLabel}</Text>
+      </View>
+
+      <View style={styles.resultSignalGrid}>
+        <View style={styles.signalStatCard}>
+          <Text style={styles.evidenceFamily}>Fit read</Text>
+          <Text style={styles.signalStatText}>{viewModel.bandLabel}</Text>
+        </View>
+        <View style={styles.signalStatCard}>
+          <Text style={styles.evidenceFamily}>Evidence confidence</Text>
+          <Text style={styles.signalStatText}>{viewModel.confidenceLabel}</Text>
+        </View>
+      </View>
+
+      <View style={styles.resultGrid}>
+        <FactorList
+          title="Alignment cues"
+          items={viewModel.positiveFactors}
+          empty={viewModel.emptyPositiveLabel}
+        />
+        <FactorList
+          title="Friction cues"
+          items={viewModel.riskFactors}
+          empty={viewModel.emptyRiskLabel}
+        />
       </View>
 
       <View style={styles.card}>
@@ -711,6 +853,9 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
           Optional metadata-only feedback. No free-text comment or message text is sent.
         </Text>
         <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: feedbackConsent }}
+          hitSlop={6}
           style={({ pressed }) => [styles.checkboxRow, pressed && styles.pressed]}
           onPress={() => setFeedbackConsent((current) => !current)}
         >
@@ -726,16 +871,24 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
               disabled={
                 !feedbackConsent || feedbackLoading || submittedFeedbackTags.includes(option.id)
               }
-              style={[styles.secondaryButton, styles.feedbackButton]}
+              style={[
+                styles.secondaryButton,
+                styles.feedbackButton,
+                submittedFeedbackTags.includes(option.id) && styles.feedbackButtonSelected,
+              ]}
               textStyle={styles.secondaryButtonText}
               onPress={() => sendFeedback(option)}
             >
-              {feedbackLoading ? "Sending..." : option.label}
+              {pendingFeedbackTag === option.id ? "Sending..." : option.label}
             </PressableText>
           ))}
         </View>
-        {feedbackStatus ? <Text style={styles.statusText}>{feedbackStatus}</Text> : null}
-        {feedbackError ? <Text style={styles.errorText}>{feedbackError}</Text> : null}
+        {feedbackStatus ? (
+          <Text accessibilityLiveRegion="polite" style={styles.statusText}>{feedbackStatus}</Text>
+        ) : null}
+        {feedbackError ? (
+          <Text accessibilityLiveRegion="assertive" style={styles.errorText}>{feedbackError}</Text>
+        ) : null}
       </View>
 
       <PressableText
@@ -891,7 +1044,9 @@ function LegalScreen({ setScreen }) {
           ))}
         </View>
 
-        {status ? <Text style={styles.statusText}>{status}</Text> : null}
+        {status ? (
+          <Text accessibilityLiveRegion="polite" style={styles.statusText}>{status}</Text>
+        ) : null}
         {(page.sections || []).map((section) => (
           <Text key={section} style={styles.legalSection}>
             {section}
@@ -1009,7 +1164,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
   },
   headerButton: {
-    minHeight: 38,
+    minHeight: 44,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -1126,6 +1281,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 9,
   },
+  demoPatternPill: {
+    alignSelf: "flex-start",
+    color: COLORS.primary,
+    borderWidth: 1,
+    borderColor: "rgba(255, 184, 77, 0.28)",
+    backgroundColor: "rgba(255, 184, 77, 0.1)",
+    borderRadius: 8,
+    overflow: "hidden",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: "900",
+  },
   modeCard: {
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -1165,7 +1334,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     alignSelf: "flex-start",
-    minHeight: 34,
+    minHeight: 44,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -1218,6 +1387,12 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: "800",
   },
+  inlineDemoPattern: {
+    color: COLORS.muted,
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: "700",
+  },
   inlineDemoAction: {
     color: COLORS.primary,
     fontSize: 12,
@@ -1230,7 +1405,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   segmentButton: {
-    minHeight: 40,
+    minHeight: 44,
     flex: 1,
     minWidth: 120,
     borderRadius: 8,
@@ -1242,7 +1417,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   legalButton: {
-    minHeight: 38,
+    minHeight: 44,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -1351,6 +1526,20 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 14,
   },
+  syntheticResultPill: {
+    alignSelf: "flex-start",
+    color: COLORS.positive,
+    borderWidth: 1,
+    borderColor: "rgba(125, 211, 168, 0.24)",
+    backgroundColor: "rgba(125, 211, 168, 0.08)",
+    borderRadius: 8,
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "900",
+  },
   scorePanel: {
     borderWidth: 1,
     borderColor: "rgba(255, 184, 77, 0.28)",
@@ -1406,6 +1595,27 @@ const styles = StyleSheet.create({
   },
   resultGrid: {
     gap: 10,
+  },
+  resultSignalGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  signalStatCard: {
+    flexGrow: 1,
+    flexBasis: "46%",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+    borderRadius: 8,
+    padding: 13,
+    gap: 6,
+  },
+  signalStatText: {
+    color: COLORS.foreground,
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: "800",
   },
   sectionTitle: {
     color: COLORS.foreground,
@@ -1499,6 +1709,10 @@ const styles = StyleSheet.create({
   feedbackButton: {
     flexGrow: 1,
     flexBasis: "46%",
+  },
+  feedbackButtonSelected: {
+    borderColor: "rgba(125, 211, 168, 0.34)",
+    backgroundColor: "rgba(125, 211, 168, 0.1)",
   },
   evidenceCard: {
     borderWidth: 1,

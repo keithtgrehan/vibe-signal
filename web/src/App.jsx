@@ -19,6 +19,8 @@ import {
   FAQ_ITEMS,
   HERO_COPY,
   HOW_IT_WORKS_STEPS,
+  RESULT_EXPLAINABILITY_STEPS,
+  REVIEWER_DEMO_FLOW,
   SYNTHETIC_DEMOS,
   TRUST_STRIP_ITEMS,
 } from "./trustContent.js";
@@ -83,6 +85,9 @@ function TopNav({ goToHowItWorks, runSyntheticDemo, setView }) {
         <button type="button" onClick={() => setView("beta")}>
           Beta
         </button>
+        <button type="button" onClick={() => setView("legal")}>
+          Privacy
+        </button>
       </nav>
     </header>
   );
@@ -127,6 +132,14 @@ function Home({ goToHowItWorks, runSyntheticDemo, setView }) {
             </div>
             <span className="status-pill">bounded read</span>
           </div>
+          <div className="demo-flow-strip" aria-label="Reviewer demo path">
+            {REVIEWER_DEMO_FLOW.map((item, index) => (
+              <span key={item}>
+                <strong>{index + 1}</strong>
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -158,6 +171,14 @@ function Home({ goToHowItWorks, runSyntheticDemo, setView }) {
             Vibe Signal shows the visible phrase, the pattern label, what cannot be inferred, and
             one low-pressure next step.
           </p>
+        </div>
+        <div className="explainability-rail" aria-label="Result hierarchy">
+          {RESULT_EXPLAINABILITY_STEPS.map((step, index) => (
+            <span key={step}>
+              <strong>{index + 1}</strong>
+              {step}
+            </span>
+          ))}
         </div>
         <ResultPreview view={preview} />
       </section>
@@ -226,7 +247,10 @@ function SyntheticDemoCards({ runSyntheticDemo }) {
       {SYNTHETIC_DEMOS.map((demo) => (
         <article className="synthetic-demo-card" key={demo.id}>
           <div>
-            <h3>{demo.title}</h3>
+            <div className="demo-card-header">
+              <h3>{demo.title}</h3>
+              <span>{demo.previewPattern}</span>
+            </div>
             <p className="synthetic-exchange">{demo.exchange}</p>
             <p>{demo.highlight}</p>
           </div>
@@ -271,6 +295,13 @@ function Analyze({ mode, runSyntheticDemo, setMode, setView, setResult }) {
 
   const hasText = normalizeText(text).length > 0;
   const canSubmit = hasText && consent && !loading;
+  const submitStatus = !hasText
+    ? "Add a short exchange, or run a synthetic example first."
+    : !consent
+      ? "Private analysis unlocks after the permission checkbox."
+      : loading
+        ? "Checking visible wording cues..."
+        : "Ready to review permissioned text.";
 
   async function handleSubmit() {
     if (!hasText) {
@@ -338,7 +369,7 @@ function Analyze({ mode, runSyntheticDemo, setMode, setView, setResult }) {
           ))}
         </div>
 
-        <div className="segmented-control" role="tablist" aria-label="Analysis mode">
+        <div className="segmented-control" aria-label="Analysis mode">
           <button
             className={mode === "match" ? "active" : ""}
             type="button"
@@ -358,6 +389,9 @@ function Analyze({ mode, runSyntheticDemo, setMode, setView, setResult }) {
         <label className="field-label" htmlFor="conversation">
           Permissioned conversation text
         </label>
+        <p className="field-helper" id="conversation-helper">
+          Use one line per message. Prefixing with self: or other: helps keep evidence clear.
+        </p>
         <div className="input-tools">
           <Button tone="secondary" onClick={() => setText(SAMPLE_TEXT)}>
             Load synthetic text
@@ -373,10 +407,11 @@ function Analyze({ mode, runSyntheticDemo, setMode, setView, setResult }) {
             setText(event.target.value);
             setError("");
           }}
+          aria-describedby="conversation-helper consent-helper"
           placeholder="self: Can you confirm Friday?&#10;other: maybe later"
         />
 
-        <div className="disclosure-box consent-card">
+        <div className="disclosure-box consent-card" id="consent-helper">
           <ShieldCheck size={18} />
           <div>
             <strong>Before you paste</strong>
@@ -405,7 +440,7 @@ function Analyze({ mode, runSyntheticDemo, setMode, setView, setResult }) {
         ) : null}
 
         <div className="form-footer">
-          <span>Private text requires permission. Synthetic demos do not.</span>
+          <span aria-live="polite">{submitStatus}</span>
           <Button disabled={!canSubmit} onClick={handleSubmit}>
             {loading ? "Checking..." : mode === "match" ? "Review patterns" : "Surface evidence"}
           </Button>
@@ -479,7 +514,9 @@ function MatchResults({ result, runSyntheticDemo, setView }) {
       <>
         <section className="result-hero low-signal-result">
           <div>
-            <p className="eyebrow">Low-signal fallback</p>
+            <p className="eyebrow">
+              {view.resultState === "no_safe_evidence" ? "Evidence fallback" : "Low-signal fallback"}
+            </p>
             <h2>{view.title}</h2>
             <p>{view.body}</p>
           </div>
@@ -576,6 +613,7 @@ function MatchResults({ result, runSyntheticDemo, setView }) {
             <Button
               key={option.id}
               tone="secondary"
+              className={submittedFeedback.includes(option.id) ? "feedback-option-selected" : ""}
               disabled={!feedbackConsent || !view.matchId || submittedFeedback.includes(option.id)}
               onClick={() => sendFeedback(option)}
             >
@@ -583,8 +621,16 @@ function MatchResults({ result, runSyntheticDemo, setView }) {
             </Button>
           ))}
         </div>
-        {feedbackStatus ? <p className="success-text">{feedbackStatus}</p> : null}
-        {feedbackError ? <p className="error-text">{feedbackError}</p> : null}
+        {feedbackStatus ? (
+          <p className="success-text" role="status" aria-live="polite">
+            {feedbackStatus}
+          </p>
+        ) : null}
+        {feedbackError ? (
+          <p className="error-text" role="alert">
+            {feedbackError}
+          </p>
+        ) : null}
       </section>
 
       <Button onClick={() => setView("analyze")}>
@@ -830,6 +876,10 @@ export default function App() {
   const [view, setView] = useState("home");
   const [mode, setMode] = useState("match");
   const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, [view]);
 
   function runSyntheticDemo(demoId) {
     setResult({

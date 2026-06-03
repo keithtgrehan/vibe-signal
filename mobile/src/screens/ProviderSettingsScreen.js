@@ -457,6 +457,9 @@ export default function ProviderSettingsScreen() {
               />
 
               <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: analysisConsent }}
+                hitSlop={6}
                 style={({ pressed }) =>
                   buildPressableStyle(styles.checkboxRow, styles.buttonPressedLight, false, pressed)
                 }
@@ -543,6 +546,9 @@ export default function ProviderSettingsScreen() {
               />
 
               <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: matchConsent }}
+                hitSlop={6}
                 style={({ pressed }) =>
                   buildPressableStyle(styles.checkboxRow, styles.buttonPressedLight, false, pressed)
                 }
@@ -1133,6 +1139,9 @@ export default function ProviderSettingsScreen() {
                   "Required only for optional external AI. Local analysis still works without this."}
               </Text>
               <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: state.consentAcknowledged }}
+                hitSlop={6}
                 style={({ pressed }) =>
                   buildPressableStyle(styles.checkboxRow, styles.buttonPressedLight, false, pressed)
                 }
