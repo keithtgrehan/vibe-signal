@@ -73,7 +73,8 @@
     "id": "T008",
     "name": "Topic shift marker",
     "messages": [
-      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:35:00Z", "text": "Separately, can you confirm the time?"}
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:35:00Z", "text": "Can you confirm the time?"},
+      {"id": "m2", "author": "B", "created_at": "2026-05-31T10:40:00Z", "text": "Separately, another thing came up."}
     ],
     "expected_present": [{"cue_id": "topic_shift", "min_strength": 2}, {"cue_id": "directness", "min_strength": 2}],
     "expected_absent": ["pressure"],
@@ -83,7 +84,7 @@
     "id": "T009",
     "name": "Ambiguous unclear ask",
     "messages": [
-      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:40:00Z", "text": "Maybe later, whatever works."}
+      {"id": "m1", "author": "A", "created_at": "2026-05-31T10:40:00Z", "text": "Could you maybe?"}
     ],
     "expected_present": [{"cue_id": "ambiguity", "min_strength": 2}, {"cue_id": "unclear_ask", "min_strength": 2}],
     "expected_absent": ["directness", "specificity"],

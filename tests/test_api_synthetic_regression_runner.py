@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from tools import generate_synthetic_whatsapp_fixtures as runner
+from tools import run_synthetic_fixture_regression as regression_runner
 
 
 class FakeResponse:
@@ -101,3 +102,62 @@ def test_api_url_validation_rejects_paths_and_credentials() -> None:
             pass
         else:
             raise AssertionError(value)
+
+
+def test_synthetic_fixture_regression_runner_reads_existing_fixtures(monkeypatch, tmp_path: Path) -> None:
+    conversations = runner.build_conversations(22)
+    input_path = tmp_path / "conversations.jsonl"
+    runner.write_jsonl(input_path, conversations)
+
+    def fake_urlopen(request, timeout):  # noqa: ANN001
+        assert timeout == 10.0
+        assert urlparse(request.full_url).path == "/api/analyze"
+        payload = json.loads(request.data.decode("utf-8"))
+        expected = next(row for row in conversations if row["fixture_id"] == payload["conversation_id"])
+        evidence = [
+            {
+                "cue_id": cue,
+                "cue_family": cue,
+                "evidence_text": expected["messages"][0]["text"],
+                "span_start": 0,
+                "span_end": len(expected["messages"][0]["text"]),
+                "safe_phrase": "observable synthetic cue.",
+                "explanation": "Synthetic regression test response.",
+            }
+            for cue in expected["expected_cues"]
+        ]
+        return FakeResponse(
+            {
+                "conversation_id": payload["conversation_id"],
+                "analysis_mode": "deterministic_local_only",
+                "signal_state": "low_signal" if expected["expected_result_type"] == "low_signal" else "ready",
+                "signal_strength": "insufficient" if expected["expected_result_type"] == "low_signal" else "low",
+                "low_signal_fallback": expected["expected_result_type"] == "low_signal",
+                "provider_used": False,
+                "raw_chat_persisted": False,
+                "safe_summary": "Cue evidence only; no fit, motive, deception, or emotional-state estimate.",
+                "cannot_infer": ["private feelings or motives"],
+                "evidence": evidence,
+            }
+        )
+
+    monkeypatch.setattr(runner, "urlopen", fake_urlopen)
+    report_dir = tmp_path / "engine_eval"
+
+    exit_code = regression_runner.main(
+        [
+            "--input",
+            str(input_path),
+            "--api-url",
+            "http://localhost:5000",
+            "--limit",
+            "5",
+            "--engine-report-dir",
+            str(report_dir),
+        ]
+    )
+
+    assert exit_code == 0
+    assert len(_read_jsonl(report_dir / "synthetic_regression_api_responses.jsonl")) == 5
+    assert len(_read_jsonl(report_dir / "synthetic_regression_results.jsonl")) == 5
+    assert "Synthetic Fixture API Regression Report" in (report_dir / "synthetic_regression_report.md").read_text(encoding="utf-8")

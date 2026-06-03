@@ -7,8 +7,8 @@ These metrics compare engine/API observed cue IDs against synthetic bootstrap or
 - Label status: `bootstrap`
 - Label rows: `1000`
 - API result rows: `455`
-- Micro precision: `0.5142`
+- Micro precision: `0.6304`
 - Micro recall: `1.0`
-- TP/FP/FN/TN: `145/137/0/718`
+- TP/FP/FN/TN: `145/85/0/770`
 
 Human-reviewed labels are required before any validation or quality claim.

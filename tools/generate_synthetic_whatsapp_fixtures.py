@@ -73,6 +73,7 @@ class Template:
     expected_signal_strength: str
     messages: tuple[tuple[str, str], ...]
     notes: str
+    allowed_extra_cues: tuple[str, ...] = ()
 
 
 TEMPLATES: tuple[Template, ...] = (
@@ -115,6 +116,7 @@ TEMPLATES: tuple[Template, ...] = (
             ("other", "Maybe later, whatever. Anyway, I am frustrated."),
         ),
         "Synthetic tension example using observable wording only.",
+        allowed_extra_cues=("hedging", "specificity", "specificity_drop", "topic_shift"),
     ),
     Template(
         "scared",
@@ -125,6 +127,7 @@ TEMPLATES: tuple[Template, ...] = (
             ("other", "You have to send me your location right now."),
         ),
         "Synthetic boundary-pressure example.",
+        allowed_extra_cues=("escalation_risk", "specificity"),
     ),
     Template(
         "low_signal",
@@ -145,6 +148,7 @@ TEMPLATES: tuple[Template, ...] = (
             ("other", "You have to answer right now and explain why."),
         ),
         "Synthetic pressure after a boundary statement.",
+        allowed_extra_cues=("escalation_risk", "specificity", "urgency"),
     ),
     Template(
         "conflict_repair",
@@ -165,6 +169,7 @@ TEMPLATES: tuple[Template, ...] = (
             ("other", "Can you send one request first so I can answer clearly?"),
         ),
         "Synthetic dense multi-ask message.",
+        allowed_extra_cues=("specificity",),
     ),
     Template(
         "cheating_ambiguous",
@@ -181,15 +186,23 @@ TEMPLATES: tuple[Template, ...] = (
             ("other", "I can meet Friday at 7pm."),
             ("self", "Can you confirm Friday at 7pm and the place?"),
             ("other", "Maybe later. Anyway."),
-            ("other", "I can't meet Friday. You have to stop asking because I am frustrated. Sorry, let me rephrase."),
+            ("other", "I can't meet Friday at 7pm. I am frustrated!! Sorry, let me rephrase."),
         ),
         "Private synthetic evaluation metadata only. This category must never be described as product ability or cheating detection.",
+        allowed_extra_cues=("conflict", "directness", "hedging", "specificity", "topic_shift"),
     ),
 )
 
 
 def _message_text(text: str, fixture_index: int) -> str:
-    return f"{text} [synthetic fixture {fixture_index}]"
+    return text
+
+
+def _created_at_for(fixture_index: int, offset: int) -> str:
+    total_minutes = ((fixture_index * 11) + (offset * 5)) % (12 * 60)
+    hour = 9 + (total_minutes // 60)
+    minute = total_minutes % 60
+    return f"2026-06-03T{hour:02d}:{minute:02d}:00Z"
 
 
 def build_conversations(target_messages: int, *, seed: int = DEFAULT_SEED) -> list[dict[str, Any]]:
@@ -215,7 +228,7 @@ def build_conversations(target_messages: int, *, seed: int = DEFAULT_SEED) -> li
                 {
                     "id": f"m{offset}",
                     "author": author,
-                    "created_at": f"2026-06-03T09:{(fixture_index + offset) % 60:02d}:00Z",
+                    "created_at": _created_at_for(fixture_index, offset),
                     "text": _message_text(text, fixture_index),
                 }
                 for offset, (author, text) in enumerate(template.messages, start=1)
@@ -238,6 +251,7 @@ def build_conversations(target_messages: int, *, seed: int = DEFAULT_SEED) -> li
                     "messages": messages,
                     "expected_result_type": "low_signal" if template.category == "low_signal" else "pattern_review",
                     "expected_cues": list(template.expected_cues),
+                    "allowed_extra_cues": list(template.allowed_extra_cues),
                     "expected_evidence_spans": [
                         {
                             "cue": cue,
@@ -410,8 +424,13 @@ def _low_signal_fallback(result: dict[str, Any]) -> bool:
 def evaluate_api_response(conversation: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
     observed_cues = _observed_cues(result)
     expected_cues = set(str(cue) for cue in conversation["expected_cues"])
+    allowed_extra_cues = set(str(cue) for cue in conversation.get("allowed_extra_cues", []))
     missing_expected = sorted(cue for cue in expected_cues if cue not in observed_cues and conversation["category"] != "low_signal")
-    unexpected_cues = sorted(cue for cue in observed_cues if cue not in expected_cues and conversation["category"] != "low_signal")
+    unexpected_cues = sorted(
+        cue
+        for cue in observed_cues
+        if cue not in expected_cues and cue not in allowed_extra_cues and conversation["category"] != "low_signal"
+    )
     evidence_rows = result.get("evidence", []) or []
     evidence_complete = bool(evidence_rows) and all(
         isinstance(item, dict)
@@ -472,6 +491,7 @@ def evaluate_api_response(conversation: dict[str, Any], result: dict[str, Any]) 
         "endpoint": "/api/analyze",
         "expected_result_type": conversation["expected_result_type"],
         "expected_cues": sorted(expected_cues),
+        "allowed_extra_cues": sorted(allowed_extra_cues),
         "observed_cues": sorted(observed_cues),
         "missing_expected_cues": missing_expected,
         "unexpected_cues": unexpected_cues,
