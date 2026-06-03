@@ -44,9 +44,11 @@ Built now:
 - Expo mobile shell with an always-available local analysis path
 - polished Expo mobile UI for match, cue evidence, feedback, and legal draft routes
 - standalone Vite React web UI for the same backend-only match, cue evidence, feedback, and legal flows
+- synthetic-first onboarding, private-input consent gates, low-signal fallback UI, and evidence-first result hierarchy
 - deterministic local analysis and structured result rendering
 - deterministic communication-fit matching engine with `/api/match`
 - synthetic matching corpus and validator
+- dataset/source-rights registry with commercial fail-closed validation
 - research-only sklearn baseline on synthetic fixtures
 - optional offline embedding experiment scaffold
 - recent-analysis persistence plus copy/share actions
@@ -101,6 +103,10 @@ Start here if you want the fastest credible walkthrough:
 - [docs/closed_beta_tester_instructions.md](docs/closed_beta_tester_instructions.md) for tester-facing boundaries and bug report format
 - [docs/provider_disclosure_notes.md](docs/provider_disclosure_notes.md) for optional provider positioning
 - [docs/legal_safe_output_policy.md](docs/legal_safe_output_policy.md) for wording and safety constraints
+- [docs/datasets_rights.md](docs/datasets_rights.md) and [docs/dataset_attribution.md](docs/dataset_attribution.md) for metadata-only dataset rights gates and attribution posture
+- [docs/research/nlp_engine_deep_research.md](docs/research/nlp_engine_deep_research.md) for deterministic cue/explainability research and known false-positive risks
+- [docs/ios/testflight_launch_runbook.md](docs/ios/testflight_launch_runbook.md) and [docs/ios/real_device_qa_checklist.md](docs/ios/real_device_qa_checklist.md) for iOS/TestFlight readiness steps
+- [docs/proof/closed_beta/launch_readiness.md](docs/proof/closed_beta/launch_readiness.md) for metadata-only launch gate proof
 - [docs/proof/phase_validation_2026-04-07/final_phase_validation_summary.md](docs/proof/phase_validation_2026-04-07/final_phase_validation_summary.md) for bounded execution proof
 
 ## Running The Current Repo

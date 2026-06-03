@@ -1,0 +1,39 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://vibe-signal.onrender.com",
+        "EXPO_PUBLIC_ENABLE_RAW_LOGS": "false",
+        "EXPO_PUBLIC_ENABLE_ANALYTICS": "false"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://vibe-signal.onrender.com",
+        "EXPO_PUBLIC_ENABLE_RAW_LOGS": "false",
+        "EXPO_PUBLIC_ENABLE_ANALYTICS": "false"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://vibe-signal.onrender.com",
+        "EXPO_PUBLIC_ENABLE_RAW_LOGS": "false",
+        "EXPO_PUBLIC_ENABLE_ANALYTICS": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
