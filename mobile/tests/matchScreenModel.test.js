@@ -109,6 +109,22 @@ test("match result view model keeps blocked claims out of UI disclosure", () => 
   assert.match(viewModel.disclosure, /bounded communication-pattern review/);
 });
 
+test("match result view model falls back when no safe evidence phrase is available", () => {
+  const viewModel = buildMatchResultViewModel({
+    match_id: "mobile_no_evidence",
+    signal_strength: "medium",
+    safe_explanation: "The backend returned a summary without a safe evidence phrase.",
+  });
+
+  assert.equal(viewModel.isLowSignal, true);
+  assert.equal(viewModel.title, "No safe evidence phrase returned.");
+  assert.deepEqual(viewModel.evidenceDetails, []);
+  assert.equal(
+    viewModel.safeNextStep,
+    "Add context or try a synthetic example before relying on this read."
+  );
+});
+
 test("match composer exposes consent and sensitive-data boundaries", () => {
   const state = buildMatchComposerState({
     conversationText: "self: Can you confirm?\nother: Yes.",

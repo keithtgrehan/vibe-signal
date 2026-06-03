@@ -92,6 +92,30 @@ export function buildLowSignalFallback(text = "") {
   };
 }
 
+export function buildNoEvidenceFallback() {
+  return {
+    inputPreviewLength: 0,
+    isLowSignal: true,
+    resultState: "no_safe_evidence",
+    signalStrength: "insufficient",
+    title: "No safe evidence phrase returned.",
+    body:
+      "This result did not include a safe quoted phrase, so Vibe Signal will not render a full read.",
+    tryItems: ["Add the previous message", "Try a synthetic example", "Review a clearer exchange"],
+    mainRead: "No safe evidence phrase returned.",
+    signalStrengthLabel: signalStrengthLabel("insufficient"),
+    evidencePhrases: [],
+    evidenceDetails: [],
+    patternLabels: ["Evidence unavailable"],
+    patternExplanation:
+      "A result needs at least one safe quoted phrase before Vibe Signal shows interpretation.",
+    cannotInferText: DEFAULT_CANNOT_INFER,
+    safeNextStep: "Add context or try a synthetic example before relying on this read.",
+    canTell: CAN_HELP_WITH,
+    cannotTell: CANNOT_TELL,
+  };
+}
+
 export function buildSyntheticResult(demoId) {
   const demo = SYNTHETIC_DEMOS.find((item) => item.id === demoId) || SYNTHETIC_DEMOS[0];
   return {
@@ -127,6 +151,15 @@ export function buildTrustFirstResultView(result = {}) {
     }))
     .filter((row) => row.phrase)
     .slice(0, 6);
+
+  if (!evidenceDetails.length) {
+    return {
+      ...buildNoEvidenceFallback(),
+      matchId: normalizeText(result?.match_id),
+      confidenceReasons: normalizeList(result?.confidence?.reasons).slice(0, 3),
+    };
+  }
+
   const seenPatterns = new Set();
   const patternLabels = evidenceDetails
     .map((row) => row.family)
