@@ -1,0 +1,50 @@
+confusion_groups:
+  urgency_vs_pressure:
+    cues:
+      - urgency
+      - pressure
+      - boundary_pressure
+    suggested_precedence_rule: "Urgency alone should not become pressure unless wording reduces the recipient's response space."
+  ambiguity_vs_unclear_ask:
+    cues:
+      - ambiguity
+      - unclear_ask
+      - vague_timing
+      - indirect_ask
+    suggested_precedence_rule: "Ambiguity should stay observable wording; do not infer avoidance or hidden motive."
+  hedging_vs_softening:
+    cues:
+      - hedging
+      - reassurance
+      - softening
+    suggested_precedence_rule: "Softening and reassurance should not imply anxiety, attraction, or attachment style."
+  specificity_vs_directness:
+    cues:
+      - specificity
+      - directness
+      - specificity_drop
+    suggested_precedence_rule: "Specific detail is not directness unless it includes a clear ask, answer, decision, or commitment."
+  topic_shift_vs_evasion:
+    cues:
+      - topic_shift
+      - answer_evasion_pattern
+    suggested_precedence_rule: "Topic shift should become answer evasion only when it follows an immediately relevant direct question."
+  conflict_vs_pressure:
+    cues:
+      - conflict
+      - pressure
+      - blame_language
+    suggested_precedence_rule: "Conflict wording should not label a person or become pressure without obligation or constrained-choice wording."
+  reassurance_vs_warmth:
+    cues:
+      - reassurance
+      - alignment
+      - repair_opportunity
+      - warmth
+    suggested_precedence_rule: "Warm or reassuring wording should stay communication-pattern evidence, not emotional truth."
+  contradiction_vs_deception:
+    cues:
+      - contradiction_against_prior_message
+      - commitment_mismatch
+      - unsupported_claim_shift
+    suggested_precedence_rule: "Contradiction and commitment mismatch must never imply lying or deception certainty."

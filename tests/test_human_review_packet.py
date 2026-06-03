@@ -11,13 +11,15 @@ def _read_jsonl(path: Path) -> list[dict]:
 
 
 def test_create_human_review_packet_writes_balanced_seed_and_bootstrap_labels(tmp_path: Path) -> None:
+    fixture_dir = tmp_path / "legacy_fixtures"
     output = tmp_path / "seed_review_packet.jsonl"
     labels = tmp_path / "seed_reviewed_labels.jsonl"
+    packet.generator.main(["--messages", "1000", "--no-api", "--out-dir", str(fixture_dir)])
 
     exit_code = packet.main(
         [
             "--input",
-            "data/synthetic/whatsapp/conversations.jsonl",
+            str(fixture_dir / "conversations.jsonl"),
             "--output",
             str(output),
             "--bootstrap-labels-output",
@@ -57,3 +59,49 @@ def test_review_packet_instructions_block_hidden_inferences() -> None:
     assert "cheating" in text
     assert "attraction" in text
     assert "diagnosis" in text
+
+
+def test_create_human_review_packet_v2_balances_splits_and_marks_bootstrap_suggestions(tmp_path: Path) -> None:
+    out_dir = tmp_path / "whatsapp"
+    packet_path = tmp_path / "human_review_packet_v2.jsonl"
+    bootstrap_path = tmp_path / "human_review_packet_v2_bootstrap_labels.jsonl"
+    packet.generator.main(
+        [
+            "--messages",
+            "1000",
+            "--splits",
+            "dev=400,hard_negative=250,heldout=200,red_team=150",
+            "--no-api",
+            "--out-dir",
+            str(out_dir),
+        ]
+    )
+
+    exit_code = packet.main(
+        [
+            "--input-root",
+            str(out_dir),
+            "--output",
+            str(packet_path),
+            "--bootstrap-labels-output",
+            str(bootstrap_path),
+            "--v2",
+        ]
+    )
+
+    assert exit_code == 0
+    rows = _read_jsonl(packet_path)
+    labels = _read_jsonl(bootstrap_path)
+    assert len(rows) == 100
+    assert {split: sum(1 for row in rows if row["split"] == split) for split in {"dev", "hard_negative", "heldout", "red_team"}} == {
+        "dev": 40,
+        "hard_negative": 25,
+        "heldout": 20,
+        "red_team": 15,
+    }
+    assert all(row["bootstrap_labels_are_suggestions_only"] is True for row in rows)
+    assert all(row["not_human_validated"] is True for row in labels)
+    instruction_text = " ".join(rows[0]["review_instructions"]).lower()
+    assert "review observable wording only" in instruction_text
+    assert "do not label cheating" in instruction_text
+    assert "do not infer true emotion" in instruction_text
