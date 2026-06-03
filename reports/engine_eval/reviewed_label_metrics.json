@@ -1,0 +1,181 @@
+{
+  "label_count": 1000,
+  "micro": {
+    "fn": 0,
+    "fp": 137,
+    "precision": 0.5142,
+    "recall": 1.0,
+    "tn": 718,
+    "tp": 145
+  },
+  "non_claims": [
+    "Bootstrap metrics are not human-reviewed labels.",
+    "Metrics are not real-world accuracy, model-quality proof, or production readiness."
+  ],
+  "per_cue": {
+    "alignment": {
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 45,
+      "tp": 5
+    },
+    "ambiguity": {
+      "fn": 0,
+      "fp": 5,
+      "precision": 0.6667,
+      "recall": 1.0,
+      "tn": 35,
+      "tp": 10
+    },
+    "answer_evasion_pattern": {
+      "fn": 0,
+      "fp": 5,
+      "precision": 0.6667,
+      "recall": 1.0,
+      "tn": 35,
+      "tp": 10
+    },
+    "boundary_pressure": {
+      "fn": 0,
+      "fp": 5,
+      "precision": 0.6667,
+      "recall": 1.0,
+      "tn": 35,
+      "tp": 10
+    },
+    "cognitive_load": {
+      "fn": 0,
+      "fp": 5,
+      "precision": 0.5,
+      "recall": 1.0,
+      "tn": 40,
+      "tp": 5
+    },
+    "conflict": {
+      "fn": 0,
+      "fp": 5,
+      "precision": 0.6667,
+      "recall": 1.0,
+      "tn": 35,
+      "tp": 10
+    },
+    "contradiction_against_prior_message": {
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 45,
+      "tp": 5
+    },
+    "directness": {
+      "fn": 0,
+      "fp": 10,
+      "precision": 0.6667,
+      "recall": 1.0,
+      "tn": 20,
+      "tp": 20
+    },
+    "escalation_risk": {
+      "fn": 0,
+      "fp": 10,
+      "precision": 0.3333,
+      "recall": 1.0,
+      "tn": 35,
+      "tp": 5
+    },
+    "hedging": {
+      "fn": 0,
+      "fp": 15,
+      "precision": 0.0,
+      "recall": null,
+      "tn": 35,
+      "tp": 0
+    },
+    "overloaded_message": {
+      "fn": 0,
+      "fp": 5,
+      "precision": 0.5,
+      "recall": 1.0,
+      "tn": 40,
+      "tp": 5
+    },
+    "pressure": {
+      "fn": 0,
+      "fp": 5,
+      "precision": 0.6667,
+      "recall": 1.0,
+      "tn": 35,
+      "tp": 10
+    },
+    "reassurance": {
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 40,
+      "tp": 10
+    },
+    "repair_opportunity": {
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 40,
+      "tp": 10
+    },
+    "specificity": {
+      "fn": 0,
+      "fp": 27,
+      "precision": 0.3571,
+      "recall": 1.0,
+      "tn": 8,
+      "tp": 15
+    },
+    "specificity_drop": {
+      "fn": 0,
+      "fp": 10,
+      "precision": 0.3333,
+      "recall": 1.0,
+      "tn": 35,
+      "tp": 5
+    },
+    "topic_shift": {
+      "fn": 0,
+      "fp": 10,
+      "precision": 0.0,
+      "recall": null,
+      "tn": 40,
+      "tp": 0
+    },
+    "unclear_ask": {
+      "fn": 0,
+      "fp": 15,
+      "precision": 0.0,
+      "recall": null,
+      "tn": 35,
+      "tp": 0
+    },
+    "unsupported_claim_shift": {
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 45,
+      "tp": 5
+    },
+    "urgency": {
+      "fn": 0,
+      "fp": 5,
+      "precision": 0.5,
+      "recall": 1.0,
+      "tn": 40,
+      "tp": 5
+    }
+  },
+  "precision_recall_status": "bootstrap-only",
+  "result_count": 455,
+  "reviewed_label_status": "bootstrap",
+  "status": "complete"
+}

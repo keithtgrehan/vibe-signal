@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from tools.generate_synthetic_whatsapp_fixtures import build_conversations, main
+from tools.generate_synthetic_whatsapp_fixtures import build_conversations, main, select_for_api_regression
 
 
 def _read_jsonl(path: Path) -> list[dict]:
@@ -22,17 +22,26 @@ def test_build_conversations_uses_synthetic_metadata_only() -> None:
     assert all(row["synthetic"] is True and row["not_copied_from_real_chat"] is True for row in rows)
 
 
-def test_synthetic_whatsapp_generator_writes_reports(tmp_path: Path) -> None:
+def test_synthetic_whatsapp_generator_no_api_writes_fixtures_only(tmp_path: Path) -> None:
     out_dir = tmp_path / "data"
     report_dir = tmp_path / "reports"
 
-    exit_code = main(["--messages", "22", "--no-api", "--out-dir", str(out_dir), "--report-dir", str(report_dir)])
+    exit_code = main(["--messages", "22", "--no-api", "--out-dir", str(out_dir), "--engine-report-dir", str(report_dir)])
 
     assert exit_code == 0
     conversations = _read_jsonl(out_dir / "conversations.jsonl")
-    evaluations = _read_jsonl(out_dir / "evaluations.jsonl")
     assert sum(row["message_count"] for row in conversations) == 22
-    assert len(evaluations) == len(conversations)
-    assert all(row["source_type"] == "synthetic_fixture" for row in evaluations)
-    assert "not real-world accuracy" in (report_dir / "fixture_regression_report.md").read_text(encoding="utf-8")
-    assert "Unsafe-output block rate" in (report_dir / "unsafe_output_regression_report.md").read_text(encoding="utf-8")
+    assert not (out_dir / "evaluations.jsonl").exists()
+    assert not (report_dir / "api_regression_report.md").exists()
+
+
+def test_synthetic_whatsapp_api_limit_selection_is_deterministic_and_balanced() -> None:
+    rows = build_conversations(1000)
+
+    first = select_for_api_regression(rows, limit=100, seed=123)
+    second = select_for_api_regression(rows, limit=100, seed=123)
+
+    assert [row["fixture_id"] for row in first] == [row["fixture_id"] for row in second]
+    assert len(first) == 100
+    counts = {category: sum(1 for row in first if row["category"] == category) for category in {row["category"] for row in first}}
+    assert set(counts.values()) == {10}

@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from vibesignal_ai.features.cue_taxonomy import detect_cues
+from vibesignal_ai.matching.features import extract_matching_features
 from vibesignal_ai.matching.contracts import BLOCKED_INTERPRETATIONS
 from vibesignal_ai.safety.validator import validate_payload
 
@@ -24,13 +24,17 @@ def analyze(payload: dict[str, Any]) -> dict[str, Any]:
     errors = validate_payload(messages)
     if errors:
         raise HTTPException(status_code=400, detail="; ".join(errors))
-    evidence = detect_cues(messages, conversation_id=conversation_id)
-    signal_state = "ready" if evidence else "low_signal"
+    features = extract_matching_features(messages, conversation_id=conversation_id)
+    evidence = features.all_evidence
+    signal_state = "ready" if evidence and features.total_word_count >= 10 else "low_signal"
+    signal_strength = "low" if signal_state == "ready" else "insufficient"
     return {
         "conversation_id": conversation_id,
         "analysis_mode": "deterministic_local_only",
         "analysis_quality": "cue_evidence_only",
         "signal_state": signal_state,
+        "signal_strength": signal_strength,
+        "low_signal_fallback": signal_state == "low_signal",
         "provider_used": False,
         "raw_chat_persisted": False,
         "safe_summary": "Cue evidence only; no fit, motive, deception, or emotional-state estimate.",
