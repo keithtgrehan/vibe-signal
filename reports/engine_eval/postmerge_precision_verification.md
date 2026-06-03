@@ -124,6 +124,8 @@ Because the deployed commit is unverified, these samples are not proof that prod
 
 ## Next Step Recommendation
 
-1. Expose a comparable commit or deploy identifier in `/api/status`, then redeploy main to Render.
+1. Configure Render with safe `/api/status` deploy metadata such as `GIT_COMMIT`, `DEPLOY_VERSION`, `BUILD_TIMESTAMP`, and `SERVICE_REVISION`, then redeploy main to Render.
 2. Rerun the bounded deployed sample after redeploy or after commit identity can be verified.
 3. Start the 10k hard-negative eval sprint only after deployed version confidence is current.
+
+Follow-up note: `docs/proof/closed_beta/backend_status_metadata.md` documents the safe metadata fields future deployed checks can compare against local `git rev-parse HEAD`. Missing or unsafe-looking metadata returns `"unknown"` and must not be treated as a secret source or compliance signal.

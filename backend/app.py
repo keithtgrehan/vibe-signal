@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import logging
+import os
+import re
 from datetime import UTC, datetime
+from typing import Iterable
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -11,6 +14,49 @@ from fastapi.responses import JSONResponse
 from .config import BackendSettings, load_backend_settings, safe_version_label
 from .monitoring import LOGGER_NAME, SafeRequestLoggingMiddleware
 from .routes import analyze, events, feedback, legal, match
+
+
+SAFE_STATUS_METADATA_RE = re.compile(r"^[0-9A-Za-z][0-9A-Za-z._:@+-]{0,79}$")
+BLOCKED_STATUS_METADATA_RE = re.compile(
+    r"secret|token|password|passwd|bearer|cookie|authorization|api[_-]?key|private|raw|message|chat|sk-|://|/|\\|~",
+    re.IGNORECASE,
+)
+
+
+def _safe_status_metadata_value(value: str | None) -> str:
+    candidate = str(value or "").strip()
+    if (
+        candidate
+        and SAFE_STATUS_METADATA_RE.fullmatch(candidate)
+        and not BLOCKED_STATUS_METADATA_RE.search(candidate)
+    ):
+        return candidate
+    return "unknown"
+
+
+def _first_safe_status_metadata_value(env_names: Iterable[str]) -> str:
+    for env_name in env_names:
+        value = _safe_status_metadata_value(os.environ.get(env_name))
+        if value != "unknown":
+            return value
+    return "unknown"
+
+
+def _deploy_metadata_payload() -> dict[str, str]:
+    return {
+        "git_commit": _first_safe_status_metadata_value(
+            ("GIT_COMMIT", "RENDER_GIT_COMMIT", "VERCEL_GIT_COMMIT_SHA")
+        ),
+        "deploy_version": _first_safe_status_metadata_value(
+            ("DEPLOY_VERSION", "VIBE_DEPLOY_VERSION", "RENDER_DEPLOY_VERSION")
+        ),
+        "build_timestamp": _first_safe_status_metadata_value(
+            ("BUILD_TIMESTAMP", "VIBE_BUILD_TIMESTAMP", "RENDER_BUILD_TIMESTAMP")
+        ),
+        "service_revision": _first_safe_status_metadata_value(
+            ("SERVICE_REVISION", "RENDER_SERVICE_NAME", "RENDER_SERVICE_ID")
+        ),
+    }
 
 
 def _readiness_payload(app: FastAPI) -> dict[str, object]:
@@ -110,6 +156,7 @@ def create_app(settings: BackendSettings | None = None) -> FastAPI:
             "raw_message_logging_enabled": settings.raw_message_logging_enabled,
             "analytics_tracking_enabled": settings.analytics_tracking_enabled,
             "training_enabled": settings.training_enabled,
+            **_deploy_metadata_payload(),
         }
 
     backend_app.include_router(analyze.router)
