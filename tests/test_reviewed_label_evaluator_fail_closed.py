@@ -1,0 +1,76 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from tools import evaluate_reviewed_cue_labels as evaluator
+
+
+def _write_jsonl(path: Path, rows: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+
+
+def test_reviewed_label_evaluator_fails_closed_without_labels(tmp_path: Path) -> None:
+    report = tmp_path / "reviewed_label_evaluation.md"
+    metrics = tmp_path / "metrics.json"
+
+    exit_code = evaluator.main(
+        [
+            "--labels",
+            str(tmp_path / "missing.jsonl"),
+            "--results",
+            str(tmp_path / "missing_results.jsonl"),
+            "--report-out",
+            str(report),
+            "--metrics-out",
+            str(metrics),
+        ]
+    )
+
+    assert exit_code == 1
+    payload = json.loads(metrics.read_text(encoding="utf-8"))
+    assert payload["precision_recall_status"] == "gated"
+    assert "GATED" in report.read_text(encoding="utf-8")
+
+
+def test_reviewed_label_evaluator_reports_bootstrap_only_metrics(tmp_path: Path) -> None:
+    labels = tmp_path / "labels.jsonl"
+    results = tmp_path / "results.jsonl"
+    report = tmp_path / "reviewed_label_evaluation.md"
+    metrics = tmp_path / "metrics.json"
+    _write_jsonl(
+        labels,
+        [
+            {
+                "label_id": "l1",
+                "fixture_id": "f1",
+                "source_type": "synthetic_fixture",
+                "reviewer": "synthetic_bootstrap",
+                "not_human_validated": True,
+                "cue_id": "directness",
+                "cue_present": True,
+                "evidence_supports_cue": True,
+                "evidence_text": "Can you",
+                "unsafe_wording_flag": False,
+                "low_signal_flag": False,
+                "blocked_inference_guard": {
+                    "no_hidden_intent": True,
+                    "no_cheating": True,
+                    "no_attraction": True,
+                    "no_diagnosis": True,
+                    "no_true_emotion": True,
+                    "no_attachment_style_or_neurotype": True,
+                },
+            }
+        ],
+    )
+    _write_jsonl(results, [{"fixture_id": "f1", "observed_cues": ["directness"]}])
+
+    exit_code = evaluator.main(["--labels", str(labels), "--results", str(results), "--report-out", str(report), "--metrics-out", str(metrics)])
+
+    assert exit_code == 0
+    payload = json.loads(metrics.read_text(encoding="utf-8"))
+    assert payload["precision_recall_status"] == "bootstrap-only"
+    assert payload["micro"]["precision"] == 1.0
+    assert payload["micro"]["recall"] == 1.0

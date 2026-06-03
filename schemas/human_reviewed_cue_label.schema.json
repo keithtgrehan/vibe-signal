@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vibe Signal Human Reviewed Cue Label",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "label_id",
+    "fixture_id",
+    "source_type",
+    "reviewer",
+    "not_human_validated",
+    "cue_id",
+    "cue_present",
+    "evidence_supports_cue",
+    "evidence_text",
+    "unsafe_wording_flag",
+    "low_signal_flag",
+    "blocked_inference_guard"
+  ],
+  "properties": {
+    "label_id": { "type": "string", "minLength": 1 },
+    "fixture_id": { "type": "string", "minLength": 1 },
+    "source_type": { "type": "string", "enum": ["synthetic_fixture"] },
+    "reviewer": { "type": "string", "minLength": 1 },
+    "not_human_validated": { "type": "boolean" },
+    "cue_id": { "type": "string", "minLength": 1 },
+    "cue_present": { "type": "boolean" },
+    "evidence_supports_cue": { "type": "boolean" },
+    "evidence_text": { "type": "string" },
+    "unsafe_wording_flag": { "type": "boolean" },
+    "low_signal_flag": { "type": "boolean" },
+    "notes": { "type": "string" },
+    "blocked_inference_guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_hidden_intent",
+        "no_cheating",
+        "no_attraction",
+        "no_diagnosis",
+        "no_true_emotion",
+        "no_attachment_style_or_neurotype"
+      ],
+      "properties": {
+        "no_hidden_intent": { "type": "boolean", "const": true },
+        "no_cheating": { "type": "boolean", "const": true },
+        "no_attraction": { "type": "boolean", "const": true },
+        "no_diagnosis": { "type": "boolean", "const": true },
+        "no_true_emotion": { "type": "boolean", "const": true },
+        "no_attachment_style_or_neurotype": { "type": "boolean", "const": true }
+      }
+    }
+  }
+}
