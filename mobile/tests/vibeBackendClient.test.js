@@ -64,15 +64,18 @@ test("submitFeedbackMetadata includes a bounded feedback idempotency key", async
 
   const response = await client.submitFeedbackMetadata({
     matchId: "vibe_match_123",
-    rating: 1,
+    feedbackTag: "too_strong",
     consent: true,
   });
 
   assert.equal(response.ok, true);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].feedback_event_id, "evt_feedback_vibe_match_123_1");
+  assert.equal(calls[0].feedback_event_id, "evt_feedback_vibe_match_123_too_strong");
+  assert.equal(calls[0].feedback_tag, "too_strong");
   assert.equal(calls[0].comment, "");
   assert.equal(calls[0].consent_to_store_feedback, true);
+  assert.equal(Object.hasOwn(calls[0], "raw_message_text"), false);
+  assert.equal(Object.hasOwn(calls[0], "source_text"), false);
 });
 
 test("backend client does not return raw backend error response bodies", async () => {
