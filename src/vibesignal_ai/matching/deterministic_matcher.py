@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Any
 
 from .confidence import build_confidence
@@ -34,6 +35,10 @@ NEGATIVE_WEIGHTS = {
     "unsupported_claim_shift": (0.1, 0.2),
     "answer_evasion_pattern": (0.1, 0.2),
 }
+BLOCKED_INFERENCE_REQUEST_RE = re.compile(
+    r"\b(?:secretly|they\s+like\s+you|lying|lie\s+detector|cheat(?:ing)?|diagnos|narcissist|attachment\s+style|autis(?:m|tic)|adhd|manipulat|make\s+them|win\s+them\s+back|true\s+feelings|really\s+think)\b",
+    re.IGNORECASE,
+)
 
 
 def clamp_score(value: float) -> float:
@@ -93,6 +98,10 @@ def _match_id(conversation_id: str, messages: list[dict[str, Any]]) -> str:
     return "vibe_match_" + digest.hexdigest()[:16]
 
 
+def _has_blocked_inference_request(messages: list[dict[str, Any]]) -> bool:
+    return any(BLOCKED_INFERENCE_REQUEST_RE.search(str(message.get("text", ""))) for message in messages)
+
+
 USER_FACING_CANNOT_INFER = [
     "private feelings or attraction",
     "hidden motives or future relationship outcomes",
@@ -102,9 +111,15 @@ USER_FACING_CANNOT_INFER = [
 ]
 
 
-def _is_low_signal(messages: list[dict[str, Any]], features: MatchingFeatures, evidence: list[dict[str, Any]], confidence: dict[str, Any]) -> bool:
+def _is_low_signal(
+    messages: list[dict[str, Any]],
+    features: MatchingFeatures,
+    evidence: list[dict[str, Any]],
+    confidence: dict[str, Any],
+) -> bool:
     return (
-        len(messages) < 2
+        _has_blocked_inference_request(messages)
+        or len(messages) < 2
         or features.total_word_count < 10
         or len(evidence) == 0
         or (confidence.get("level") == "low" and len(evidence) < 2)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 import re
 from typing import Any
@@ -15,10 +16,12 @@ POLICY_PATH = ROOT / "redline_policy.json"
 PHRASES_PATH = ROOT / "blocked_phrases.yml"
 
 
+@lru_cache(maxsize=1)
 def _load_policy() -> dict[str, Any]:
     return json.loads(POLICY_PATH.read_text(encoding="utf-8"))
 
 
+@lru_cache(maxsize=1)
 def _load_phrases() -> dict[str, Any]:
     return yaml.safe_load(PHRASES_PATH.read_text(encoding="utf-8")) or {}
 

@@ -39,3 +39,14 @@ I cannot determine private feelings, motives, diagnosis, or outcomes from this t
 | softener vs weakness | politeness varies by culture | label wording only |
 | topic shift vs evasion | ordinary conversation can drift | mixed/low signal |
 | synthetic regression vs accuracy | fixtures are not population validation | no model-quality claims |
+
+## RC False-Positive Findings - 2026-06-03
+
+| Case | Finding | Added check |
+| --- | --- | --- |
+| short/context-light exchanges | The safest behavior is low signal even when a weak ambiguity cue fires. | `tests/test_low_signal_fallback.py` |
+| risky inference requests | Requests about blocked inferences should not receive a normal analysis result. | `tests/test_blocked_inference_requests.py` |
+| urgency without coercion | Deadline wording can be useful context without pressure. | `tests/test_nlp_cue_contracts.py` |
+| contradiction/commitment mismatch | A change in stated availability is not deception proof. | `tests/test_nlp_cue_contracts.py` |
+| reassurance wording | Reassurance is visible wording, not an identity, anxiety, or relationship-style label. | `tests/test_nlp_cue_contracts.py` |
+| synthetic category metadata | `cheating_ambiguous` is private synthetic evaluation metadata only and never a product capability claim. | `tests/test_synthetic_fixture_regression.py` |

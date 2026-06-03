@@ -38,7 +38,7 @@ LEGAL_PAGES: dict[str, dict[str, Any]] = {
         "sections": [
             "Use Vibe Signal only for communication-support and observable wording-pattern review.",
             "Outputs are pattern-based suggestions, not truth claims, professional advice, relationship predictions, or identity/health judgments.",
-            "Do not use the app to pressure, harass, surveil, diagnose, profile, or make hidden-state claims about another person.",
+            "Do not use the app to pressure, harass, surveil, profile, assign health or identity labels, or make hidden-state claims about another person.",
             "Do not submit material you do not have permission to process.",
             "Closed beta is not production launch. Draft terms require legal review before public launch.",
         ],

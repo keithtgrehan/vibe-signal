@@ -15,7 +15,7 @@ Many message-analysis products overclaim. VibeSignal takes the narrower path:
 - pattern detection, not certainty
 - structured outputs, not raw-text magic
 - local-first analysis, with optional external AI only when configured
-- descriptive language, not accusations or diagnoses
+- descriptive language, not accusations or health/identity labels
 
 This makes it easier to discuss the product with recruiters, interviewers, or operators as a workflow and trust-boundary exercise instead of an "AI knows what they meant" pitch.
 
@@ -80,7 +80,7 @@ The important repo boundary is simple: deterministic local artifacts are the sou
 - External AI is optional and BYOK-driven.
 - Provider configuration stays separate from deterministic artifacts.
 - Secure on-device credential storage is preferred when supported.
-- The repo does not claim deception detection, intent inference, diagnosis, or mental-health judgment.
+- The repo does not claim deception detection, intent inference, health labeling, or mental-health judgment.
 
 ## How To Review The Repo
 Start here if you want the fastest credible walkthrough:

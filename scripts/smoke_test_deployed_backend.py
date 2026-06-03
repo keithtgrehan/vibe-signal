@@ -8,6 +8,7 @@ import json
 import math
 import re
 import sys
+import time
 from dataclasses import dataclass
 from typing import Any, Callable
 from urllib.error import HTTPError, URLError
@@ -184,6 +185,20 @@ def normalize_timeout(raw_value: float) -> float:
     return timeout
 
 
+def normalize_retries(raw_value: int) -> int:
+    retries = int(raw_value)
+    if retries < 1 or retries > 5:
+        raise ValueError("retries_must_be_between_1_and_5")
+    return retries
+
+
+def normalize_retry_delay_seconds(raw_value: float) -> float:
+    delay = float(raw_value)
+    if not math.isfinite(delay) or delay < 0 or delay > 30:
+        raise ValueError("retry_delay_seconds_must_be_between_0_and_30")
+    return delay
+
+
 def smoke_request_for_path(path: str) -> tuple[str, bytes | None, dict[str, str]]:
     if path == "/api/analyze":
         body = json.dumps(SYNTHETIC_ANALYZE_PAYLOAD, separators=(",", ":")).encode("utf-8")
@@ -355,6 +370,8 @@ def validate_feedback(payload: dict[str, Any]) -> str:
         return "feedback_match_id_mismatch"
     if "comment" in stored_feedback:
         return "feedback_raw_comment_returned"
+    if "comment_sha256" in stored_feedback:
+        return "feedback_comment_hash_returned"
     if stored_feedback.get("comment_length") != len(str(SYNTHETIC_FEEDBACK_PAYLOAD["comment"])):
         return "feedback_comment_metadata_mismatch"
     return ""
@@ -400,19 +417,24 @@ def run_smoke_checks(
     transport: Transport = default_transport,
     timeout: float = REQUEST_TIMEOUT_SECONDS,
     include_events: bool = False,
+    retries: int = 1,
+    retry_delay_seconds: float = 0.0,
 ) -> list[SmokeResult]:
     normalized_base_url = normalize_base_url(base_url)
     normalized_timeout = normalize_timeout(timeout)
+    normalized_retries = normalize_retries(retries)
+    normalized_retry_delay_seconds = normalize_retry_delay_seconds(retry_delay_seconds)
     results: list[SmokeResult] = []
     endpoints = (*SMOKE_ENDPOINTS, *EVENT_ENDPOINTS) if include_events else SMOKE_ENDPOINTS
     for path in endpoints:
-        method, body, headers = smoke_request_for_path(path)
-        response = transport(method, f"{normalized_base_url}{path}", body, headers, normalized_timeout)
-        request_id = safe_request_id(response.headers.get("x-request-id", ""))
-        if response.status_code != 200:
-            detail = "transport_error" if response.status_code == 0 else "unexpected_status"
-            results.append(
-                SmokeResult(
+        result: SmokeResult | None = None
+        for attempt in range(normalized_retries):
+            method, body, headers = smoke_request_for_path(path)
+            response = transport(method, f"{normalized_base_url}{path}", body, headers, normalized_timeout)
+            request_id = safe_request_id(response.headers.get("x-request-id", ""))
+            if response.status_code != 200:
+                detail = "transport_error" if response.status_code == 0 else "unexpected_status"
+                result = SmokeResult(
                     method=method,
                     path=path,
                     ok=False,
@@ -420,11 +442,8 @@ def run_smoke_checks(
                     detail=detail,
                     request_id=request_id,
                 )
-            )
-            continue
-        if request_id == "unsafe_or_missing":
-            results.append(
-                SmokeResult(
+            elif request_id == "unsafe_or_missing":
+                result = SmokeResult(
                     method=method,
                     path=path,
                     ok=False,
@@ -432,25 +451,27 @@ def run_smoke_checks(
                     detail="request_id_missing",
                     request_id=request_id,
                 )
-            )
-            continue
-        payload, parse_error = parse_json_body(response)
-        if parse_error:
-            results.append(
-                SmokeResult(method, path, False, response.status_code, parse_error, request_id)
-            )
-            continue
-        validation_error = validation_error_for_path(path, payload)
-        results.append(
-            SmokeResult(
-                method=method,
-                path=path,
-                ok=not validation_error,
-                status_code=response.status_code,
-                detail=validation_error or "ok",
-                request_id=request_id,
-            )
-        )
+            else:
+                payload, parse_error = parse_json_body(response)
+                if parse_error:
+                    result = SmokeResult(method, path, False, response.status_code, parse_error, request_id)
+                else:
+                    validation_error = validation_error_for_path(path, payload)
+                    result = SmokeResult(
+                        method=method,
+                        path=path,
+                        ok=not validation_error,
+                        status_code=response.status_code,
+                        detail=validation_error or "ok",
+                        request_id=request_id,
+                    )
+            if result.ok or attempt + 1 == normalized_retries:
+                break
+            if normalized_retry_delay_seconds:
+                time.sleep(normalized_retry_delay_seconds)
+        if result is None:
+            raise RuntimeError("smoke_result_missing")
+        results.append(result)
     return results
 
 
@@ -476,6 +497,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run safe Vibe Signal backend deployment smoke tests.")
     parser.add_argument("--base-url", required=True, help="Backend base URL, for example https://example.invalid")
     parser.add_argument("--timeout", type=float, default=REQUEST_TIMEOUT_SECONDS)
+    parser.add_argument("--retries", type=int, default=2, help="Bounded attempts per endpoint for cold Render starts.")
+    parser.add_argument("--retry-delay-seconds", type=float, default=1.0)
     parser.add_argument(
         "--include-events",
         action="store_true",
@@ -484,7 +507,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        results = run_smoke_checks(args.base_url, timeout=args.timeout, include_events=args.include_events)
+        results = run_smoke_checks(
+            args.base_url,
+            timeout=args.timeout,
+            include_events=args.include_events,
+            retries=args.retries,
+            retry_delay_seconds=args.retry_delay_seconds,
+        )
     except ValueError as exc:
         print(f"[FAIL] invalid smoke-test argument: {exc}", file=sys.stderr)
         return 2
