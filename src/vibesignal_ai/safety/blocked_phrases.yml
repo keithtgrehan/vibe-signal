@@ -2,20 +2,58 @@ version: vibe_blocked_phrases_v1
 phrases:
   - phrase: they are lying
     category: deception_or_truth
+  - phrase: they lied
+    category: deception_or_truth
+  - phrase: they cheated
+    category: deception_or_truth
+  - phrase: hidden motive
+    category: intent_or_outcome
   - phrase: proves cheating
     category: deception_or_truth
   - phrase: this proves cheating
     category: deception_or_truth
   - phrase: hidden intent
     category: intent_or_outcome
+  - phrase: secretly
+    category: intent_or_outcome
+  - phrase: they secretly want
+    category: emotion_or_mind_reading
+  - phrase: they like you
+    category: emotion_or_mind_reading
   - phrase: they love you
+    category: emotion_or_mind_reading
+  - phrase: truth about how they feel
     category: emotion_or_mind_reading
   - phrase: emotionally vulnerable; use that
     category: manipulation
+  - phrase: manipulate
+    category: manipulation
+  - phrase: pressure them
+    category: manipulation
+  - phrase: win them back
+    category: manipulation
   - phrase: make them jealous
+    category: manipulation
+  - phrase: make them reply
     category: manipulation
   - phrase: trigger their attachment
     category: manipulation
+  - phrase: attachment style
+    category: diagnosis_or_health
+  - phrase: neurotype
+    category: diagnosis_or_health
+  - phrase: guaranteed
+    category: unsupported_certainty
+  - phrase: addictive
+    category: dark_pattern_engagement
+  - phrase: compulsive
+    category: dark_pattern_engagement
+  - phrase: streak
+    category: dark_pattern_engagement
+  - phrase: don't miss out
+    category: dark_pattern_engagement
+  - phrase: keep checking
+    category: dark_pattern_engagement
   - phrase: use their vulnerability
     category: manipulation
   - phrase: reject this candidate
@@ -31,6 +69,8 @@ regexes:
     category: diagnosis_or_health
   - pattern: "\\bthey\\s+have\\s+adhd\\b"
     category: diagnosis_or_health
+  - pattern: "\\bthey\\s+(?:are|have)\\s+(?:a\\s+)?narcissist\\b"
+    category: diagnosis_or_health
   - pattern: "\\bdiagnos(?:e|is|tic)\\b"
     category: diagnosis_or_health
   - pattern: "\\bprotected\\s+trait\\b"
@@ -40,4 +80,6 @@ regexes:
   - pattern: "\\bmicro[- ]expression\\b"
     category: biometric_or_media
   - pattern: "\\bmake\\s+them\\b"
+    category: manipulation
+  - pattern: "\\bthey\\s+(?:are|were|seem|seemed)\\s+manipulating\\s+you\\b"
     category: manipulation

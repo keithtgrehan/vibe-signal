@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -95,6 +96,21 @@ def create_app(settings: BackendSettings | None = None) -> FastAPI:
     @backend_app.get("/readyz")
     def readyz() -> dict[str, object]:
         return _readiness_payload(backend_app)
+
+    @backend_app.get("/api/status")
+    def api_status() -> dict[str, object]:
+        settings: BackendSettings = backend_app.state.backend_settings
+        return {
+            "ok": True,
+            "service": "vibe-signal-backend",
+            "version": safe_version_label(settings.version),
+            "environment": settings.environment,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "raw_message_persistence_enabled": settings.raw_message_persistence_enabled,
+            "raw_message_logging_enabled": settings.raw_message_logging_enabled,
+            "analytics_tracking_enabled": settings.analytics_tracking_enabled,
+            "training_enabled": settings.training_enabled,
+        }
 
     backend_app.include_router(analyze.router)
     backend_app.include_router(match.router)

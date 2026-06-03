@@ -52,6 +52,8 @@
         "reasons": {"type": "array", "items": {"type": "string"}}
       }
     },
+    "result_state": {"type": "string", "enum": ["ready", "low_signal"]},
+    "signal_strength": {"type": "string", "enum": ["strong", "medium", "low", "mixed", "insufficient"]},
     "top_alignment_factors": {"type": "array", "items": {"type": "string"}},
     "top_friction_factors": {"type": "array", "items": {"type": "string"}},
     "positive_factors": {"type": "array", "items": {"type": "string"}},
@@ -64,6 +66,9 @@
     "evidence": {"type": "array"},
     "safe_summary": {"type": "string", "minLength": 1},
     "safe_explanation": {"type": "string", "minLength": 1},
+    "cannot_infer": {"type": "array", "items": {"type": "string"}},
+    "safe_next_steps": {"type": "array", "items": {"type": "string"}},
+    "low_signal_fallback": {"type": "boolean"},
     "redline_status": {"type": "string", "enum": ["allow", "block"]},
     "blocked_interpretations": {
       "type": "array",

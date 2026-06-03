@@ -63,8 +63,9 @@ test("paywall view model can show a value-first teaser before the hard limit", (
     },
   });
 
-  assert.equal(model.title, "Unlock deeper pattern detection");
-  assert.match(model.body, /started spotting the shift/i);
+  assert.equal(model.title, "Additional private reviews");
+  assert.match(model.body, /free weekly quota/i);
+  assert.match(model.body, /cancel anytime/i);
 });
 
 test("paywall view model only accepts secure legal links", () => {

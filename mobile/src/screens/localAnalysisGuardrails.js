@@ -1,6 +1,6 @@
 const REPLACEMENTS = [
   [/\bcheating\b/gi, "a notable inconsistency"],
-  [/\blying\b/gi, "stating something inaccurately"],
+  [/\blying\b/gi, "showing an inconsistency"],
   [/\bliar\b/gi, "speaker"],
   [/\bfaithful\b/gi, "consistent"],
   [/\bunfaithful\b/gi, "inconsistent"],
@@ -13,9 +13,9 @@ const REPLACEMENTS = [
   [/\bmanipulative\b/gi, "hard to read"],
   [/\btoxic\b/gi, "strained"],
   [/\babusive\b/gi, "harmful"],
-  [/\bthis means\b/gi, "this may indicate"],
-  [/\bthis proves\b/gi, "this can suggest"],
-  [/\bthis shows they are\b/gi, "this can read as"],
+  [/\bthis means\b/gi, "the visible wording shows"],
+  [/\bthis proves\b/gi, "the visible wording shows"],
+  [/\bthis shows they are\b/gi, "the visible wording can be described as"],
 ];
 
 function sanitizeText(text) {

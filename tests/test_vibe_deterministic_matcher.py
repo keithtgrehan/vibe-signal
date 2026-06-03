@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from vibesignal_ai.matching import match_conversation
 from vibesignal_ai.matching.deterministic_matcher import band_for_score, clamp_score
 
@@ -76,10 +78,39 @@ def test_specificity_drop_and_contradiction_return_safe_cues() -> None:
         )
     )
 
-    assert result["specificity_drop"]
+    assert result["specificity_drop"] == []
     assert result["contradiction_against_prior_message"]
     assert result["contradiction_against_prior_message"][0]["safe_phrase"] == "This reply conflicts with an earlier stated availability/commitment."
     assert "lied" not in result["safe_summary"].lower()
+
+
+def test_specificity_drop_requires_prior_direct_ask_and_non_answer() -> None:
+    result = match_conversation(
+        request_with(
+            [
+                {"id": "m1", "author": "self", "text": "Can you confirm Friday at 3pm?", "created_at": "2026-05-31T09:01:00Z"},
+                {"id": "m2", "author": "other", "text": "Maybe later.", "created_at": "2026-05-31T09:02:00Z"},
+            ],
+            conversation_id="synthetic_specificity_drop_non_answer",
+        )
+    )
+
+    assert result["specificity_drop"]
+    assert result["answer_evasion_pattern"]
+
+
+def test_match_request_rejects_debug_summary_override() -> None:
+    with pytest.raises(ValueError, match="unsupported field"):
+        match_conversation(
+            {
+                "conversation_id": "synthetic_debug_override_rejected",
+                "messages": [
+                    {"id": "m1", "author": "self", "text": "Can you confirm Friday?"},
+                    {"id": "m2", "author": "other", "text": "Maybe later."},
+                ],
+                "debug_summary_override": "They lied.",
+            }
+        )
 
 
 def test_repeated_negative_availability_is_not_a_contradiction() -> None:

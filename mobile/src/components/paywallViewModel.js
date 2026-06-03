@@ -29,13 +29,13 @@ export function buildPaywallViewModel({
     title: premiumActive
       ? "Premium unlocked"
       : softPrompt
-      ? "Unlock deeper pattern detection"
-      : "Keep reading the full signal",
+      ? "Additional private reviews"
+      : "Free weekly quota reached",
     body: premiumActive
       ? "Unlimited analyses are active on this device."
       : softPrompt
-      ? "You've started spotting the shift. Premium keeps local analysis available without weekly limits and makes repeat checks feel instant."
-      : "Free usage is exhausted for the current period. Premium keeps local analysis available without weekly limits and unlocks a smoother repeat-use loop.",
+      ? "Premium allows more local communication-pattern reviews after the free weekly quota. Cancel anytime."
+      : "Free usage is exhausted for the current period. Premium allows additional local pattern reviews after purchase. Cancel anytime.",
     priceDisplay: effectivePrice,
     purchaseEnabled: !premiumActive && purchaseAvailable,
     restoreEnabled: Boolean(restoreAvailable),

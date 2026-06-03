@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 
 from vibesignal_ai.features.cue_taxonomy import detect_cues
+from vibesignal_ai.matching.contracts import BLOCKED_INTERPRETATIONS
 from vibesignal_ai.safety.validator import validate_payload
 
 
@@ -23,10 +24,22 @@ def analyze(payload: dict[str, Any]) -> dict[str, Any]:
     errors = validate_payload(messages)
     if errors:
         raise HTTPException(status_code=400, detail="; ".join(errors))
+    evidence = detect_cues(messages, conversation_id=conversation_id)
+    signal_state = "ready" if evidence else "low_signal"
     return {
         "conversation_id": conversation_id,
         "analysis_mode": "deterministic_local_only",
+        "analysis_quality": "cue_evidence_only",
+        "signal_state": signal_state,
         "provider_used": False,
         "raw_chat_persisted": False,
-        "evidence": detect_cues(messages, conversation_id=conversation_id),
+        "safe_summary": "Cue evidence only; no fit, motive, deception, or emotional-state estimate.",
+        "blocked_interpretations": BLOCKED_INTERPRETATIONS,
+        "cannot_infer": [
+            "private feelings or motives",
+            "deception verdicts or private context not present in the text",
+            "clinical, neurodevelopmental, personality, relationship-style, or identity labels",
+            "relationship outcomes",
+        ],
+        "evidence": evidence,
     }

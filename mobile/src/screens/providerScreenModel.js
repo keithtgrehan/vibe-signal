@@ -157,12 +157,12 @@ function buildShiftProfile(earlierMetrics, laterMetrics) {
 function buildHeroHeadline({ analysisText = "", hasResult = false } = {}) {
   const normalizedText = normalizeText(analysisText);
   if (hasResult) {
-    return "Detect tone shifts instantly";
+    return "Review observable wording cues";
   }
   if (normalizedText) {
-    return "This message feels different. Here’s why.";
+    return "Check observable cues in this text.";
   }
-  return "See what changed in how they’re talking to you";
+  return "Review communication patterns";
 }
 
 function countShiftSignals(profile) {
@@ -247,7 +247,7 @@ function buildHeadlineInsight(profile) {
     return "The wording becomes more reserved";
   }
   if (profile.hedgeUp) {
-    return "Tone just became less certain";
+    return "The wording uses less certain language";
   }
   if (profile.vagueUp) {
     return "The wording gets less specific";
@@ -262,9 +262,9 @@ function buildHeadlineInsight(profile) {
     return "The tone becomes more urgent";
   }
   if (profile.urgencyDown) {
-    return "The tone feels more measured";
+    return "The wording is more measured";
   }
-  return "There’s a subtle shift in tone";
+    return "There is a subtle wording shift";
 }
 
 function describePrimaryPattern(earlierMetrics, laterMetrics, profile) {
@@ -391,12 +391,12 @@ function formatSpanNote(notes, fallback) {
 
 function buildShareText(profile) {
   if (profile.overlapLow) {
-    return "This reply shifts away from the earlier wording";
+    return "This reply uses different wording than the earlier point";
   }
   if (profile.hedgeUp || profile.vagueUp) {
-    return "Something changed in the tone here";
+    return "The wording changes here";
   }
-  return "This message reads differently the second time";
+  return "This message has a small wording difference";
 }
 
 function buildWeakSignalHeadline(weakSignal) {
@@ -470,7 +470,7 @@ function buildWeakSignalResult({
     shareText: weakSignal.highLexicalSimilarity
       ? "Tone appears consistent here"
       : "No strong shift detected",
-    suggestion: "Try a longer exchange for a clearer signal.",
+    suggestion: "Add more permissioned context only if a broader review would help.",
     signalBundle: {
       pattern: "No strong shift detected in this sample.",
       what_changed: buildWeakSignalHighlights(weakSignal),
@@ -506,8 +506,8 @@ function buildWeakSignalResult({
         },
       },
     },
-    ctaPrimary: "Try another message",
-    ctaSecondary: "Paste a different conversation",
+    ctaPrimary: "Clear input",
+    ctaSecondary: "Use another permissioned example",
   };
 
   return sanitizeLocalAnalysisResult(result);
@@ -528,6 +528,7 @@ export function selectHeroHeadline({ analysisText = "", hasResult = false } = {}
 
 export function buildAnalysisComposerState({
   analysisText = "",
+  consent = false,
   loading = false,
   uploadInProgress = false,
   analysisInProgress = false,
@@ -540,11 +541,13 @@ export function buildAnalysisComposerState({
     inputVisible: true,
     multiline: true,
     placeholder: "Paste a message or short conversation",
-    ctaLabel: "See what changed",
+    ctaLabel: "Review observable cues",
     loadingLabel: "Running analysis...",
+    consentLabel:
+      "Only analyze synthetic text or messages you have permission to review. Avoid sensitive personal details.",
     uploadVisible: true,
     analyzeEnabled:
-      hasContent && !loading && !uploadInProgress && !analysisInProgress && !paywallRequired,
+      hasContent && consent && !loading && !uploadInProgress && !analysisInProgress && !paywallRequired,
     uploadEnabled: !loading && !uploadInProgress && !analysisInProgress,
   };
 }

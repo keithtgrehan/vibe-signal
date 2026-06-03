@@ -138,9 +138,10 @@ function HomeScreen({ setScreen, setMode }) {
       <Header onHome={() => setScreen("home")} onLegal={() => setScreen("legal")} />
       <View style={styles.hero}>
         <Text style={styles.eyebrow}>Pattern-based review</Text>
-        <Text style={styles.heroTitle}>Something Feels Different</Text>
+        <Text style={styles.heroTitle}>Understand message patterns without guessing motives.</Text>
         <Text style={styles.heroSubtitle}>
-          Check observable communication cues against the current backend contracts.
+          Review observable cues, evidence phrases, limits, and safer next steps with synthetic
+          or permissioned text.
         </Text>
         <View style={styles.heroActions}>
           <PressableText
@@ -148,7 +149,7 @@ function HomeScreen({ setScreen, setMode }) {
             textStyle={styles.primaryButtonText}
             onPress={() => start("match")}
           >
-            Check communication fit
+            Try a synthetic example
           </PressableText>
           <PressableText
             style={styles.secondaryButton}
@@ -167,13 +168,13 @@ function HomeScreen({ setScreen, setMode }) {
         <ModeCard
           label="Communication Fit"
           marker="M"
-          body="Score, fit band, positive factors, risk factors, evidence phrases, and cautious explanation."
+          body="Pattern band, helpful cues, friction cues, evidence phrases, limits, and next steps."
           onPress={() => start("match")}
         />
         <ModeCard
           label="Cue Evidence"
           marker="E"
-          body="Current cue taxonomy evidence rows from the deterministic `/api/analyze` route."
+          body="Current cue taxonomy rows with safe phrases and cautious explanations."
           onPress={() => start("evidence")}
         />
         <ModeCard
@@ -195,7 +196,7 @@ function ModeCard({ label, marker, body, onPress }) {
       </View>
       <Text style={styles.modeLabel}>{label}</Text>
       <Text style={styles.modeBody}>{body}</Text>
-      <Text style={styles.modeAction}>Look closer</Text>
+      <Text style={styles.modeAction}>Review cues</Text>
     </Pressable>
   );
 }
@@ -268,8 +269,8 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
       </PressableText>
 
       <View style={styles.card}>
-        <Text style={styles.eyebrow}>Backend route</Text>
-        <Text style={styles.screenTitle}>Look Again</Text>
+        <Text style={styles.eyebrow}>Pattern review</Text>
+        <Text style={styles.screenTitle}>Review observable wording cues</Text>
         <Text style={styles.helperText}>{formatBackendUrlStatus(apiUrl)}</Text>
 
         <View style={styles.segmented}>
@@ -310,9 +311,23 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
           <Text style={styles.disclosureTitle}>Before you analyze</Text>
           <Text style={styles.disclosureText}>
             Vibe Signal is communication-support only. Outputs are pattern-based suggestions, not
-            truth claims. Do not submit sensitive personal data, secrets, medical data, legal
-            documents, financial data, or third-party private messages without permission.
+            decisions about another person. Only submit messages you have permission to analyze.
+            Do not include names, phone numbers, addresses, minors, medical/legal/financial/
+            workplace-sensitive content, or highly sensitive third-party content.
           </Text>
+        </View>
+
+        <View style={styles.resultGrid}>
+          <FactorList title="Can tell you" items={[
+            "Observable wording patterns.",
+            "Whether enough visible evidence is present.",
+            "Lower-pressure next-step options.",
+          ]} empty="" />
+          <FactorList title="Cannot tell you" items={[
+            "Private feelings or motives.",
+            "Deception verdicts or private context.",
+            "Clinical, identity, or relationship-style labels.",
+          ]} empty="" />
         </View>
 
         <Pressable
@@ -336,7 +351,7 @@ function AnalyzeScreen({ mode, setMode, setResult, setScreen }) {
           textStyle={styles.primaryButtonText}
           onPress={handleSubmit}
         >
-          {loading ? "Checking..." : mode === "match" ? "Check fit" : "Surface cues"}
+          {loading ? "Checking..." : mode === "match" ? "Review pattern band" : "Surface cues"}
         </PressableText>
 
         {loading ? <ActivityIndicator color={COLORS.primary} /> : null}
@@ -428,42 +443,77 @@ function MatchResult({ result, setScreen, setMode }) {
     <>
       <View style={styles.resultHero}>
         <View style={styles.scorePanel}>
-          <Text style={styles.scoreLabel}>Compatibility score</Text>
-          <Text style={styles.scoreValue}>{viewModel.compatibilityScoreLabel}</Text>
+          <Text style={styles.scoreLabel}>Communication pattern band</Text>
+          <Text style={styles.scoreValue}>{viewModel.bandLabel}</Text>
+          <Text style={styles.helperText}>
+            Signal strength: {viewModel.signalStrength}. {viewModel.confidenceLabel}.
+          </Text>
+          <Text style={styles.helperText}>
+            API detail: {viewModel.isLowSignal ? "not shown for low signal" : viewModel.compatibilityScoreLabel}
+          </Text>
           <Text style={styles.bandPill}>{viewModel.bandLabel}</Text>
         </View>
         <Text style={styles.resultExplanation}>{viewModel.explanation}</Text>
         <Text style={styles.disclosureText}>{viewModel.disclosure}</Text>
       </View>
 
+      {viewModel.isLowSignal ? (
+        <View style={styles.lowSignalCard}>
+          <Text style={styles.sectionTitle}>Low signal</Text>
+          <Text style={styles.helperText}>
+            Not enough visible evidence was returned for a normal pattern review. No action is
+            required; add more permissioned context only if that would help.
+          </Text>
+          {viewModel.confidenceReasons.map((reason) => (
+            <Text key={reason} style={styles.factorText}>• {reason}</Text>
+          ))}
+        </View>
+      ) : null}
+
+      <View style={styles.resultGrid}>
+        <FactorList title="What this can tell you" items={viewModel.canTell} empty="" />
+        <FactorList title="What this cannot tell you" items={viewModel.cannotInfer} empty="" />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Observed cue phrases</Text>
+        {(viewModel.evidenceDetails.length
+          ? viewModel.evidenceDetails
+          : [{ id: "empty", family: "low signal", phrase: viewModel.emptyEvidenceLabel, repair: "" }]
+        ).map((row) => (
+          <View key={row.id} style={styles.evidenceDetail}>
+            <Text style={styles.evidenceFamily}>{row.family}</Text>
+            <Text style={styles.evidencePhrase}>{row.phrase}</Text>
+            {!!row.repair ? <Text style={styles.helperText}>{row.repair}</Text> : null}
+          </View>
+        ))}
+      </View>
+
       <View style={styles.resultGrid}>
         <FactorList
-          title="Positive factors"
+          title="Helpful cues"
           items={viewModel.positiveFactors}
           empty={viewModel.emptyPositiveLabel}
         />
         <FactorList
-          title="Risk factors"
+          title="Friction cues"
           items={viewModel.riskFactors}
           empty={viewModel.emptyRiskLabel}
         />
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Evidence safe phrases</Text>
-        {(viewModel.evidencePhrases.length
-          ? viewModel.evidencePhrases
-          : [viewModel.emptyEvidenceLabel]
-        ).map((phrase) => (
-          <Text key={phrase} style={styles.evidencePhrase}>
-            {phrase}
+        <Text style={styles.sectionTitle}>Possible next steps</Text>
+        {viewModel.safeNextSteps.map((step) => (
+          <Text key={step} style={styles.factorText}>
+            • {step}
           </Text>
         ))}
       </View>
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Feedback</Text>
-        <Text style={styles.helperText}>Optional metadata-only feedback for this result.</Text>
+        <Text style={styles.helperText}>Optional one-time metadata feedback for this result.</Text>
         <Pressable
           style={({ pressed }) => [styles.checkboxRow, pressed && styles.pressed]}
           onPress={() => setFeedbackConsent((current) => !current)}
@@ -480,7 +530,7 @@ function MatchResult({ result, setScreen, setMode }) {
             textStyle={styles.secondaryButtonText}
             onPress={() => sendFeedback(1)}
           >
-            {feedbackLoading ? "Sending..." : "Useful"}
+            {feedbackLoading ? "Sending..." : "Useful for review"}
           </PressableText>
           <PressableText
             disabled={feedbackLoading || submittedFeedbackRatings.includes(0)}
@@ -488,7 +538,7 @@ function MatchResult({ result, setScreen, setMode }) {
             textStyle={styles.secondaryButtonText}
             onPress={() => sendFeedback(0)}
           >
-            {feedbackLoading ? "Sending..." : "Not useful"}
+            {feedbackLoading ? "Sending..." : "Not useful for review"}
           </PressableText>
         </View>
         {feedbackStatus ? <Text style={styles.statusText}>{feedbackStatus}</Text> : null}
@@ -503,7 +553,7 @@ function MatchResult({ result, setScreen, setMode }) {
           setScreen("analyze");
         }}
       >
-        Analyze another
+        Review another synthetic or permissioned example
       </PressableText>
     </>
   );
@@ -533,7 +583,7 @@ function EvidenceResult({ result, setScreen, setMode }) {
           cue_id: "no_cue",
           cue_family: "cue",
           safe_phrase: "No deterministic cue returned for this text.",
-          explanation: "Try a longer synthetic exchange for more surface area.",
+          explanation: "No action is required; add permissioned context only if a broader pattern review would help.",
         },
       ];
 
@@ -546,7 +596,7 @@ function EvidenceResult({ result, setScreen, setMode }) {
         </Text>
         <Text style={styles.disclosureText}>
           Evidence rows come from the current cue taxonomy and include safe phrases, explanations,
-          interpretation limits, and text hashes.
+          interpretation limits, and bounded display fields.
         </Text>
       </View>
 
@@ -566,8 +616,8 @@ function EvidenceResult({ result, setScreen, setMode }) {
 
       <View style={styles.card}>
         <Text style={styles.disclosureText}>
-          These results do not infer true emotion, deception, personality, identity, health, or
-          relationship outcomes.
+          These results are observable wording cues only. They do not decide motives, identity,
+          health, or outcomes.
         </Text>
       </View>
 
@@ -579,7 +629,7 @@ function EvidenceResult({ result, setScreen, setMode }) {
           setScreen("analyze");
         }}
       >
-        Analyze another
+        Review another synthetic or permissioned example
       </PressableText>
     </>
   );
@@ -1042,8 +1092,8 @@ const styles = StyleSheet.create({
   },
   scoreValue: {
     color: COLORS.foreground,
-    fontSize: 40,
-    lineHeight: 46,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: "900",
     letterSpacing: 0,
   },
@@ -1102,6 +1152,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 13,
     lineHeight: 20,
+  },
+  evidenceDetail: {
+    gap: 8,
+  },
+  lowSignalCard: {
+    borderWidth: 1,
+    borderColor: "rgba(255, 184, 77, 0.34)",
+    backgroundColor: "rgba(255, 184, 77, 0.08)",
+    borderRadius: 8,
+    padding: 15,
+    gap: 9,
   },
   buttonRow: {
     flexDirection: "row",
