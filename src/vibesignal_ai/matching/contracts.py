@@ -13,7 +13,9 @@ ALLOWED_AUTHORS = {"self", "other", "unknown"}
 ALLOWED_MESSAGE_LOAD = {"low", "medium", "high"}
 ALLOWED_BANDS = {"low", "mixed", "moderate", "strong"}
 ALLOWED_CONFIDENCE_LEVELS = {"low", "medium", "high"}
+ALLOWED_SIGNAL_STRENGTHS = {"strong", "medium", "low", "mixed", "insufficient"}
 ALLOWED_REDLINE_STATUS = {"allow", "block"}
+ALLOWED_MATCH_REQUEST_FIELDS = {"conversation_id", "messages", "user_preferences"}
 BLOCKED_INTERPRETATIONS = [
     "deception",
     "hidden_intent",
@@ -25,6 +27,7 @@ BLOCKED_INTERPRETATIONS = [
     "manipulation",
     "emotional_truth",
 ]
+OPTIONAL_RESULT_ARRAY_FIELDS = ("cannot_infer", "safe_next_steps")
 RESULT_ARRAY_FIELDS = (
     "top_alignment_factors",
     "top_friction_factors",
@@ -117,6 +120,10 @@ def validate_match_request(payload: Any) -> list[str]:
         if "max_message_load" in preferences and preferences["max_message_load"] not in ALLOWED_MESSAGE_LOAD:
             errors.append(f"user_preferences.max_message_load must be one of {sorted(ALLOWED_MESSAGE_LOAD)}")
 
+    unknown_fields = sorted(set(payload) - ALLOWED_MATCH_REQUEST_FIELDS)
+    if unknown_fields:
+        errors.append(f"match request contains unsupported field(s): {', '.join(unknown_fields)}")
+
     return errors
 
 
@@ -155,8 +162,6 @@ def normalize_match_request(payload: dict[str, Any]) -> dict[str, Any]:
         "messages": messages,
         "user_preferences": normalized_preferences,
     }
-    if payload.get("debug_summary_override"):
-        result["debug_summary_override"] = str(payload["debug_summary_override"])
     return result
 
 
@@ -211,6 +216,10 @@ def validate_match_result(payload: Any) -> list[str]:
         errors.append("conversation_id must be a non-empty string")
     if payload.get("compatibility_band") not in ALLOWED_BANDS:
         errors.append(f"compatibility_band must be one of {sorted(ALLOWED_BANDS)}")
+    if "signal_strength" in payload and payload.get("signal_strength") not in ALLOWED_SIGNAL_STRENGTHS:
+        errors.append(f"signal_strength must be one of {sorted(ALLOWED_SIGNAL_STRENGTHS)}")
+    if "result_state" in payload and payload.get("result_state") not in {"ready", "low_signal"}:
+        errors.append("result_state must be ready or low_signal")
     score = payload.get("score")
     if not isinstance(score, (int, float)) or isinstance(score, bool) or not 0.0 <= float(score) <= 1.0:
         errors.append("score must be a number between 0.0 and 1.0")
@@ -229,6 +238,9 @@ def validate_match_result(payload: Any) -> list[str]:
 
     for field in RESULT_ARRAY_FIELDS:
         if not isinstance(payload.get(field), list):
+            errors.append(f"{field} must be a list")
+    for field in OPTIONAL_RESULT_ARRAY_FIELDS:
+        if field in payload and not isinstance(payload.get(field), list):
             errors.append(f"{field} must be a list")
 
     for field in (

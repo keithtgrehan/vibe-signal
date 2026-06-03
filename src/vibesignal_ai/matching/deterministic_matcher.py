@@ -7,7 +7,7 @@ from typing import Any
 
 from .confidence import build_confidence
 from .contracts import BLOCKED_INTERPRETATIONS, normalize_match_request, validate_match_request, validate_match_result
-from .explain import build_factor_lists, build_summary, compact_evidence
+from .explain import LOW_SIGNAL_EXPLANATION, LOW_SIGNAL_SAFE_SUMMARY, build_factor_lists, build_summary, compact_evidence
 from .features import MatchingFeatures, extract_matching_features
 
 
@@ -93,6 +93,73 @@ def _match_id(conversation_id: str, messages: list[dict[str, Any]]) -> str:
     return "vibe_match_" + digest.hexdigest()[:16]
 
 
+USER_FACING_CANNOT_INFER = [
+    "private feelings or attraction",
+    "hidden motives or future relationship outcomes",
+    "deception verdicts or private context not present in the text",
+    "clinical, neurodevelopmental, personality, relationship-style, or identity labels",
+    "whether a reply is the right decision for you",
+]
+
+
+def _is_low_signal(messages: list[dict[str, Any]], features: MatchingFeatures, evidence: list[dict[str, Any]], confidence: dict[str, Any]) -> bool:
+    return (
+        len(messages) < 2
+        or features.total_word_count < 10
+        or len(evidence) == 0
+        or (confidence.get("level") == "low" and len(evidence) < 2)
+    )
+
+
+def _signal_strength(
+    *,
+    result_state: str,
+    band: str,
+    confidence: dict[str, Any],
+    positives: dict[str, float],
+    negatives: dict[str, float],
+    evidence: list[dict[str, Any]],
+) -> str:
+    if result_state == "low_signal":
+        return "insufficient"
+    has_positive = any(value > 0 for value in positives.values())
+    has_negative = any(value > 0 for value in negatives.values())
+    if has_positive and has_negative:
+        return "mixed"
+    if confidence.get("level") == "low" or len(evidence) < 2 or band in {"low", "mixed"}:
+        return "low"
+    if confidence.get("level") == "high" and len(evidence) >= 5:
+        return "strong"
+    return "medium"
+
+
+def _safe_next_steps(result_state: str, counts: dict[str, int]) -> list[str]:
+    if result_state == "low_signal":
+        return [
+            "No action is required from this result.",
+            "Use a synthetic example or add more permissioned context only if a broader pattern review would help.",
+        ]
+    if counts.get("boundary_pressure", 0) or counts.get("pressure", 0):
+        return [
+            "Pause before replying if the exchange feels pressured.",
+            "Use one boundary-respecting sentence that leaves room for no or later.",
+        ]
+    if counts.get("unclear_ask", 0) or counts.get("ambiguity", 0) or counts.get("answer_evasion_pattern", 0):
+        return [
+            "Clarify the ask in one sentence.",
+            "Offer an easy pause option instead of adding more context.",
+        ]
+    if counts.get("overloaded_message", 0) or counts.get("cognitive_load", 0):
+        return [
+            "Split the message into one ask and one context sentence.",
+            "Move extra details to a later message only if they are needed.",
+        ]
+    return [
+        "Use the evidence phrases as a reflection aid, not as a verdict.",
+        "If you reply, keep the next step specific and boundary-respecting.",
+    ]
+
+
 def match_conversation(payload: dict[str, Any]) -> dict[str, Any]:
     """Run deterministic matching and return a safe communication-fit result."""
 
@@ -109,21 +176,40 @@ def match_conversation(payload: dict[str, Any]) -> dict[str, Any]:
     score = clamp_score(raw_score)
     band = band_for_score(score)
     alignment, friction = build_factor_lists(positives, dict(features.cue_counts))
+    evidence = compact_evidence(features.all_evidence)
+    confidence = build_confidence(messages, features)
+    result_state = "low_signal" if _is_low_signal(messages, features, evidence, confidence) else "ready"
+    if result_state == "low_signal":
+        score = 0.5
+        band = "mixed"
+        alignment = ["Not enough evidence-backed wording is visible for a normal fit estimate."]
+        friction = ["No friction cue should be treated as meaningful from this short or sparse text."]
+    signal_strength = _signal_strength(
+        result_state=result_state,
+        band=band,
+        confidence=confidence,
+        positives=positives,
+        negatives=negatives,
+        evidence=evidence,
+    )
     safe_summary, redline_status, safe_explanation = build_summary(
         band=band,
         score=score,
         alignment=alignment,
         friction=friction,
+        result_state=result_state,
+        signal_strength=signal_strength,
         override=request.get("debug_summary_override"),
     )
 
-    evidence = compact_evidence(features.all_evidence)
     result = {
         "match_id": _match_id(conversation_id, messages),
         "conversation_id": conversation_id,
         "compatibility_band": band,
         "score": score,
-        "confidence": build_confidence(messages, features),
+        "confidence": confidence,
+        "result_state": result_state,
+        "signal_strength": signal_strength,
         "top_alignment_factors": alignment,
         "top_friction_factors": friction,
         "positive_factors": alignment,
@@ -136,6 +222,9 @@ def match_conversation(payload: dict[str, Any]) -> dict[str, Any]:
         "evidence": evidence,
         "safe_summary": safe_summary,
         "safe_explanation": safe_explanation,
+        "cannot_infer": USER_FACING_CANNOT_INFER,
+        "safe_next_steps": _safe_next_steps(result_state, dict(features.cue_counts)),
+        "low_signal_fallback": result_state == "low_signal",
         "redline_status": redline_status,
         "blocked_interpretations": BLOCKED_INTERPRETATIONS,
         "score_components": {

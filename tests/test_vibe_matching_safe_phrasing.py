@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 
+import pytest
+
 from vibesignal_ai.matching import match_conversation
 from vibesignal_ai.safety.redline_output_blocker import check_output_text
 from vibesignal_ai.safety.validator import validate_payload
@@ -49,18 +51,15 @@ def test_matching_output_uses_observable_pattern_language_only() -> None:
     assert "observable communication-pattern compatibility" in result["safe_summary"]
 
 
-def test_matcher_replaces_redline_summary_if_unsafe_text_is_provided() -> None:
-    result = match_conversation(
-        {
-            "conversation_id": "synthetic_safe_replacement",
-            "messages": [
-                {"id": "m1", "author": "self", "text": "Can you confirm Friday?"},
-                {"id": "m2", "author": "other", "text": "Maybe later."},
-            ],
-            "debug_summary_override": "They are lying.",
-        }
-    )
-
-    assert result["redline_status"] == "block"
-    assert result["safe_summary"] == "This match result describes observable communication patterns only."
-    assert check_output_text(result["safe_summary"])["status"] == "allow"
+def test_matcher_rejects_public_debug_summary_override() -> None:
+    with pytest.raises(ValueError, match="unsupported field"):
+        match_conversation(
+            {
+                "conversation_id": "synthetic_safe_replacement",
+                "messages": [
+                    {"id": "m1", "author": "self", "text": "Can you confirm Friday?"},
+                    {"id": "m2", "author": "other", "text": "Maybe later."},
+                ],
+                "debug_summary_override": "They lied.",
+            }
+        )

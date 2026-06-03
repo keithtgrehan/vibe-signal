@@ -27,7 +27,8 @@ cues:
     cue_family: specificity
     description: Specific date, time, deadline, or concrete schedule detail.
     patterns:
-      - "\\b(?:\\d{1,2}(?::\\d{2})?\\s?(?:am|pm)?|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow|before|by)\\b"
+      - "\\b(?:\\d{1,2}(?::\\d{2})?\\s?(?:am|pm)?|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow)\\b"
+      - "\\b(?:before|by)\\s+(?:\\d{1,2}(?::\\d{2})?\\s?(?:am|pm)?|monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tonight|tomorrow|lunch|dinner|noon|midnight|end of day|eod)\\b"
     reducers: []
     confidence: 0.72
     explanation: "Rule matched a concrete time, date, or deadline marker."
@@ -222,8 +223,8 @@ cues:
     cue_family: consent_clarity
     description: Explicit consent, permission, or opt-out wording.
     patterns:
-      - "\\b(?:yes|i consent|i'm okay with|i am okay with|only if you want|you can say no|do you consent|is that okay)\\b"
-      - "\\b(?:not sure|maybe|i guess|only if|stop|do not|don't)\\b"
+      - "\\b(?:i consent|i'm okay with|i am okay with|only if you want|you can say no|do you consent|is that okay|is this okay|are you okay with)\\b"
+      - "\\b(?:you can stop|we can stop|can stop anytime|stop anytime|please stop|do not continue|don't continue|it is okay to say no|it's okay to say no)\\b"
     reducers: []
     confidence: 0.73
     explanation: "Rule matched consent, permission, or opt-out wording."
