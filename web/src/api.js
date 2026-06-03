@@ -1,5 +1,20 @@
 const DEFAULT_API_URL = "https://vibe-signal.onrender.com";
-const REQUEST_TIMEOUT_MS = 15000;
+const REQUEST_TIMEOUT_MS = 30000;
+const MAX_TRANSIENT_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 500;
+
+export const API_RETRYING_BACKEND_MESSAGE = "The backend may be waking up. Trying once more...";
+
+const USER_FACING_ERROR_MESSAGES = {
+  configuration_error:
+    "The backend URL is misconfigured. Set VITE_API_BASE_URL to a clean http(s) backend origin.",
+  backend_waking: API_RETRYING_BACKEND_MESSAGE,
+  timeout: "The backend did not respond in time. Please try again in a moment.",
+  cors_or_network: "The app could not reach the backend. Check deployment configuration.",
+  backend_error: "The backend could not complete the request. Please try again in a moment.",
+  validation_error:
+    "The request could not be analyzed. Please try the synthetic example or shorten the text.",
+};
 
 function normalizeText(value) {
   return String(value || "").trim();
@@ -52,8 +67,8 @@ export function parseApiBaseUrl(value) {
 
 export function getApiBaseUrlStatus(env = {}) {
   const candidate =
-    normalizeText(env.VITE_API_URL) ||
     normalizeText(env.VITE_API_BASE_URL) ||
+    normalizeText(env.VITE_API_URL) ||
     normalizeText(env.EXPO_PUBLIC_API_URL) ||
     DEFAULT_API_URL;
   return parseApiBaseUrl(candidate);
@@ -120,59 +135,99 @@ function buildFeedbackEventId(matchId, feedbackTag) {
   return `evt_feedback_${safeMatchId || "unknown"}_${feedbackTag}`;
 }
 
-function buildSafeRequestError(path, status) {
-  const routeLabel =
-    path === "/api/match"
-      ? "The match request"
-      : path === "/api/analyze"
-        ? "The cue-evidence request"
-        : path === "/api/feedback"
-          ? "Feedback metadata"
-          : path.startsWith("/legal/")
-            ? "The legal draft"
-            : "The backend request";
-  const statusLabel = status ? ` Status ${status}.` : "";
-  return new Error(
-    `${routeLabel} could not be completed by the backend.${statusLabel} Check the backend URL and CORS configuration, then try again with synthetic or permissioned text.`
+export class ApiRequestError extends Error {
+  constructor(classification, message, details = {}) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.classification = classification;
+    this.status = details.status;
+  }
+}
+
+function buildApiRequestError(classification, details = {}) {
+  return new ApiRequestError(
+    classification,
+    USER_FACING_ERROR_MESSAGES[classification] || USER_FACING_ERROR_MESSAGES.backend_error,
+    details
   );
 }
 
-async function requestJson(path, options = {}) {
-  if (!API_CONFIG.ok) {
-    throw new Error(
-      "The backend URL is misconfigured. Set VITE_API_BASE_URL to a clean http(s) backend origin."
-    );
+function classifyHttpStatus(status) {
+  if (status === 400 || status === 422) {
+    return "validation_error";
   }
+  return "backend_error";
+}
 
+function classifyFetchFailure(error) {
+  if (error?.name === "AbortError") {
+    return "timeout";
+  }
+  return "cors_or_network";
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    globalThis.setTimeout(resolve, ms);
+  });
+}
+
+async function fetchWithTimeout(path, options) {
   const controller = new AbortController();
   const timer = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  let response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
+    return await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       signal: controller.signal,
       headers: {
-        "content-type": "application/json",
+        "Content-Type": "application/json",
         ...(options.headers || {}),
       },
     });
-  } catch (error) {
-    if (error?.name === "AbortError") {
-      throw new Error("The backend request timed out. Check the backend URL and CORS configuration.");
-    }
-    throw new Error("The backend route could not be reached. Check the backend URL and CORS configuration.");
   } finally {
     globalThis.clearTimeout(timer);
   }
-
-  if (!response.ok) {
-    throw buildSafeRequestError(path, response.status);
-  }
-
-  return response.json();
 }
 
-export async function submitMatch(conversationText) {
+async function requestJson(path, options = {}, clientOptions = {}) {
+  if (!API_CONFIG.ok) {
+    throw buildApiRequestError("configuration_error");
+  }
+
+  let lastTransientError = null;
+  for (let attempt = 1; attempt <= MAX_TRANSIENT_ATTEMPTS; attempt += 1) {
+    let response;
+    try {
+      response = await fetchWithTimeout(path, options);
+    } catch (error) {
+      const classification = classifyFetchFailure(error);
+      lastTransientError = buildApiRequestError(classification);
+      if (attempt < MAX_TRANSIENT_ATTEMPTS) {
+        clientOptions.onRetry?.({
+          classification: "backend_waking",
+          message: USER_FACING_ERROR_MESSAGES.backend_waking,
+        });
+        await sleep(RETRY_DELAY_MS);
+        continue;
+      }
+      throw lastTransientError;
+    }
+
+    if (!response.ok) {
+      throw buildApiRequestError(classifyHttpStatus(response.status), { status: response.status });
+    }
+
+    try {
+      return await response.json();
+    } catch (_error) {
+      throw buildApiRequestError("backend_error");
+    }
+  }
+
+  throw lastTransientError || buildApiRequestError("backend_error");
+}
+
+export async function submitMatch(conversationText, clientOptions = {}) {
   const messages = buildMessagesFromText(conversationText);
   if (!messages.length) {
     throw new Error("Add at least one line of conversation text.");
@@ -190,10 +245,10 @@ export async function submitMatch(conversationText) {
         max_message_load: "medium",
       },
     }),
-  });
+  }, clientOptions);
 }
 
-export async function submitAnalyze(conversationText) {
+export async function submitAnalyze(conversationText, clientOptions = {}) {
   const messages = buildMessagesFromText(conversationText);
   if (!messages.length) {
     throw new Error("Add at least one line of conversation text.");
@@ -205,10 +260,10 @@ export async function submitAnalyze(conversationText) {
       conversation_id: buildConversationId("web_analysis"),
       messages,
     }),
-  });
+  }, clientOptions);
 }
 
-export async function submitFeedback({ matchId, rating, feedbackTag, consent }) {
+export async function submitFeedback({ matchId, rating, feedbackTag, consent }, clientOptions = {}) {
   const safeMatchId = normalizeText(matchId);
   const safeTag = safeFeedbackTag(feedbackTag, rating);
   const normalizedRating = safeTag === "useful" ? 1 : 0;
@@ -222,11 +277,11 @@ export async function submitFeedback({ matchId, rating, feedbackTag, consent }) 
       comment: "",
       consent_to_store_feedback: consent === true,
     }),
-  });
+  }, clientOptions);
 }
 
-export async function fetchLegalPage(slug) {
+export async function fetchLegalPage(slug, clientOptions = {}) {
   return requestJson(`/legal/${slug}`, {
     method: "GET",
-  });
+  }, clientOptions);
 }

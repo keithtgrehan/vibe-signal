@@ -216,3 +216,17 @@ test("major controls expose focus and live-state affordances", () => {
   assert.match(stylesText, /:focus-visible/);
   assert.match(stylesText, /feedback-option-selected/);
 });
+
+test("analyze form keeps synthetic CTA, consent gate, and safe backend error copy", () => {
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  const apiText = readFileSync(resolve(ROOT, "src/api.js"), "utf8");
+
+  assert.match(appText, /Load synthetic text/);
+  assert.match(appText, /Confirm permission before private text analysis\./);
+  assert.match(appText, /I understand and have permission to analyze this text\./);
+  assert.match(appText, /onRetry/);
+  assert.match(appText, /API_RETRYING_BACKEND_MESSAGE/);
+  assert.match(apiText, /The backend may be waking up\. Trying once more\.\.\./);
+  assert.match(appText, /requestError\?\.message/);
+  assert.equal(appText.includes("The backend request timed out. Check the backend URL and CORS configuration."), false);
+});
