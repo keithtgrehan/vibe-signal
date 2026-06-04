@@ -147,11 +147,31 @@ def test_configured_cors_allows_only_exact_origins() -> None:
     assert "access-control-allow-origin" not in blocked.headers
 
 
-def test_configured_cors_allows_vercel_and_local_web_origins() -> None:
+def test_backend_settings_accepts_exact_replit_ab_origin_from_env() -> None:
+    settings = load_backend_settings(
+        {
+            "VIBE_BACKEND_ALLOWED_ORIGINS": (
+                "https://vibe-signal.vercel.app,"
+                "https://vibe-signal-ab.replit.app,"
+                "http://localhost:5173"
+            ),
+        }
+    )
+
+    assert settings.allowed_origins == (
+        "https://vibe-signal.vercel.app",
+        "https://vibe-signal-ab.replit.app",
+        "http://localhost:5173",
+    )
+    assert settings.config_warnings == ()
+
+
+def test_configured_cors_allows_vercel_replit_and_local_web_origins() -> None:
     configured_app = create_app(
         BackendSettings(
             allowed_origins=(
                 "https://vibe-signal.vercel.app",
+                "https://vibe-signal-ab.replit.app",
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
             ),
@@ -163,6 +183,7 @@ def test_configured_cors_allows_vercel_and_local_web_origins() -> None:
 
     for origin in (
         "https://vibe-signal.vercel.app",
+        "https://vibe-signal-ab.replit.app",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ):
@@ -177,3 +198,18 @@ def test_configured_cors_allows_vercel_and_local_web_origins() -> None:
 
         assert response.status_code == 200
         assert response.headers["access-control-allow-origin"] == origin
+
+    for origin in (
+        "https://vibe-signal-ab.replit.dev",
+        "https://other-project.replit.app",
+    ):
+        response = client.options(
+            "/api/analyze",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+
+        assert "access-control-allow-origin" not in response.headers
