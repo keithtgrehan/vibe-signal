@@ -113,6 +113,10 @@ test("submitAnalyze retries one transient network failure then returns safe resu
 
     assert.equal(calls.length, 2);
     assert.equal(result.analysis_mode, "deterministic_local_only");
+    assert.equal(Object.hasOwn(calls[1], "goal"), false);
+    assert.equal(Object.hasOwn(calls[1], "context"), false);
+    assert.equal(Object.hasOwn(calls[1], "analysis_style"), false);
+    assert.equal(Object.hasOwn(calls[1], "style"), false);
     assert.deepEqual(retryStates, [
       {
         classification: "backend_waking",

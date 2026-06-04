@@ -75,9 +75,8 @@ export function buildLowSignalFallback(text = "") {
     resultState: "low_signal",
     signalStrength: "insufficient",
     title: "Not enough context to read safely.",
-    body:
-      "This message is too short or context-light. Vibe Signal can help with wording patterns, but this would be over-reading it.",
-    tryItems: ["Add the previous message", "Ask for a clearer version", "Try a synthetic example"],
+    body: "This message is too short or context-light. Add context or try a synthetic demo.",
+    tryItems: ["Add the previous message", "Ask for a clearer version", "Try a synthetic demo"],
     mainRead: "Not enough context to read safely.",
     signalStrengthLabel: signalStrengthLabel("insufficient"),
     evidencePhrases: [],
@@ -86,7 +85,7 @@ export function buildLowSignalFallback(text = "") {
     patternExplanation:
       "There is not enough observable wording to separate a pattern from ordinary short-message noise.",
     cannotInferText: DEFAULT_CANNOT_INFER,
-    safeNextStep: "Add the previous message or try a synthetic example.",
+    safeNextStep: "Add the previous message or try a synthetic demo.",
     canTell: CAN_HELP_WITH,
     cannotTell: CANNOT_TELL,
   };
