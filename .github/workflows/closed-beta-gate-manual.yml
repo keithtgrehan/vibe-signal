@@ -1,0 +1,35 @@
+name: Closed Beta Gate Manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_status:
+        description: "Deploy metadata status."
+        type: choice
+        options:
+          - current
+          - stale
+          - unverified
+        default: "unverified"
+        required: true
+
+jobs:
+  closed-beta-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
+      - name: Run closed-beta gate
+        run: DEPLOY_STATUS="${{ github.event.inputs.deploy_status }}" bash scripts/closed_beta_gate_all.sh
+      - name: Upload gate report
+        uses: actions/upload-artifact@v4
+        with:
+          name: closed-beta-gate-report
+          path: reports/automation/closed_beta_gate_report.md

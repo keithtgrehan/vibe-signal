@@ -18,6 +18,7 @@ checkpoints/
 training_runs/
 reports/vibe_training/raw/
 reports/vibe_training/generated/
+reports/automation/
 
 .expo/
 mobile/.expo/

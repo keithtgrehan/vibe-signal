@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a Vibe Signal bug using synthetic examples only.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use synthetic examples only. Do not paste private chats, tester messages, secrets, or raw logs. Frame behavior around observable wording only.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: synthetic_example
+    attributes:
+      label: Synthetic example
+      description: Provide a short synthetic example if needed. Do not paste private messages.
+      placeholder: "self: Are we still on for Friday?\nother: maybe later, not sure yet"
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checklist
+      options:
+        - label: This report avoids cheating, hidden-intent, attraction, lie-detection, diagnosis, therapy, attachment-style, neurotype, and manipulation claims.
+          required: true
+        - label: This report uses observable wording only.
+          required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation tried
+      description: Commands or manual checks already tried, if any.

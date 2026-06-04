@@ -1,0 +1,46 @@
+name: UI bug
+description: Report a web or mobile UI issue.
+title: "[UI]: "
+labels: ["ui"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Screenshots must not include private chats. Use synthetic examples only.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options: ["Web", "Mobile", "Both", "Docs/screenshots"]
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: Issue
+      description: Describe the UI problem and expected behavior.
+    validations:
+      required: true
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checklist
+      options:
+        - label: Consent gate remains intact.
+          required: true
+        - label: Observable wording only.
+          required: true

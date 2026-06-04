@@ -1,0 +1,46 @@
+name: Engine false positive
+description: Report a synthetic cue false positive.
+title: "[Engine false positive]: "
+labels: ["engine", "false-positive"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use synthetic examples only. Do not paste private chats. Report observable wording cues only.
+  - type: input
+    id: cue
+    attributes:
+      label: Cue
+      description: Which cue fired unexpectedly?
+    validations:
+      required: true
+  - type: textarea
+    id: synthetic_example
+    attributes:
+      label: Synthetic example
+      description: Synthetic input and expected observable cue behavior.
+    validations:
+      required: true
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checklist
+      options:
+        - label: No unsafe relationship claims.
+          required: true
+        - label: No human-reviewed accuracy claim.
+          required: true

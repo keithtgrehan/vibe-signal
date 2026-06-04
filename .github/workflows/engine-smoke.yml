@@ -1,0 +1,67 @@
+name: Engine Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      messages:
+        description: "Synthetic message count. Use 10000 only for intentional manual full eval."
+        default: "100"
+        required: true
+      splits:
+        description: "Synthetic split spec."
+        default: "dev=60,hard_negative=20,heldout=10,red_team=10"
+        required: true
+
+jobs:
+  synthetic-engine-smoke:
+    runs-on: ubuntu-latest
+    env:
+      MESSAGE_COUNT: ${{ github.event.inputs.messages || '100' }}
+      SPLITS: ${{ github.event.inputs.splits || 'dev=60,hard_negative=20,heldout=10,red_team=10' }}
+      SYNTHETIC_OUT: /tmp/vibe-signal-synthetic
+      ENGINE_REPORTS: /tmp/vibe-signal-engine-eval
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
+      - name: Generate synthetic fixtures and local regression
+        run: |
+          python tools/generate_synthetic_whatsapp_fixtures.py \
+            --messages "$MESSAGE_COUNT" \
+            --splits "$SPLITS" \
+            --out-dir "$SYNTHETIC_OUT" \
+            --engine-report-dir "$ENGINE_REPORTS"
+      - name: Bootstrap metrics
+        run: |
+          python tools/evaluate_reviewed_cue_labels.py \
+            --bootstrap \
+            --all-splits \
+            --synthetic-root "$SYNTHETIC_OUT" \
+            --split-results-root "$ENGINE_REPORTS/splits" \
+            --split-report-out "$ENGINE_REPORTS/bootstrap_metrics_by_split.md" \
+            --per-cue-out "$ENGINE_REPORTS/bootstrap_metrics_by_cue.json" \
+            --per-scenario-out "$ENGINE_REPORTS/bootstrap_metrics_by_scenario.json" \
+            --metrics-out "$ENGINE_REPORTS/bootstrap_metrics.json"
+      - name: Confusion groups
+        run: |
+          python tools/analyze_cue_confusion_groups.py \
+            --all-splits \
+            --split-results-root "$ENGINE_REPORTS/splits" \
+            --report-out "$ENGINE_REPORTS/cue_confusion_groups.md" \
+            --summary-out "$ENGINE_REPORTS/cue_confusion_groups.json"
+      - name: False-positive analysis
+        run: |
+          python tools/analyze_cue_false_positives.py \
+            --all-splits \
+            --split-results-root "$ENGINE_REPORTS/splits" \
+            --report-out "$ENGINE_REPORTS/false_positive_analysis.md" \
+            --backlog-out "$ENGINE_REPORTS/next_engine_improvement_backlog.md"

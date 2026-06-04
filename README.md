@@ -196,6 +196,30 @@ python scripts/check_no_raw_content_leaks.py
 python scripts/check_vibe_restricted_artifacts.py --staged
 ```
 
+## Automation And Agent Workflows
+
+One-command local wrappers:
+
+```bash
+bash scripts/dev_check_all.sh
+bash scripts/engine_eval_all.sh
+bash scripts/prod_smoke_all.sh
+bash scripts/closed_beta_gate_all.sh
+bash scripts/recruiter_readiness_check.sh
+bash scripts/agent_control_room_check.sh
+```
+
+GitHub Actions cover backend, web, mobile, safety, engine smoke, and recruiter-readiness checks on PRs. Production smoke and closed-beta gates are manual workflows so production load and tester-invite decisions stay bounded.
+
+Reusable agent prompts live in [docs/agents](docs/agents). List or print them with:
+
+```bash
+python scripts/print_agent_prompt.py --list
+python scripts/print_agent_prompt.py controller
+```
+
+The engine automation uses synthetic regression and bootstrap-only metrics. It does not claim human-reviewed accuracy, model quality, production readiness, legal/privacy approval, or App Store release.
+
 ## CORS For Local Browser QA
 
 Browser-based local QA against the current Render/FastAPI backend needs exact CORS origins configured in Render:
