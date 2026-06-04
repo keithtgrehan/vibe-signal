@@ -83,6 +83,7 @@ SAFE_PREFIXES = (
     "schemas/",
     "tests/fixtures/",
     "data/synthetic/whatsapp/",
+    "data/synthetic/private_inspired/",
     "reports/synthetic_whatsapp/",
     "data/vibe_gold/example_",
     "data/review/.gitkeep",

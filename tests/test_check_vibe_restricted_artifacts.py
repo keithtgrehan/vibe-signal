@@ -81,6 +81,7 @@ def test_allows_safe_metadata_docs_configs_schemas_and_fixtures() -> None:
         "schemas/provider_outputs.schema.json",
         "tests/fixtures/whatsapp/example.json",
         "data/vibe_gold/example_gold_labels.jsonl",
+        "data/synthetic/private_inspired/dynamics_fixtures.jsonl",
         "data/review/.gitkeep",
         "reports/.gitkeep",
     )
