@@ -3,15 +3,13 @@ name: Closed Beta Gate Manual
 on:
   workflow_dispatch:
     inputs:
-      deploy_status:
-        description: "Deploy metadata status."
-        type: choice
-        options:
-          - current
-          - stale
-          - unverified
-        default: "unverified"
+      base_url:
+        description: "Backend base URL."
+        default: "https://vibe-signal.onrender.com"
         required: true
+      expected_git_commit:
+        description: "Optional expected backend git commit for deployed-version proof."
+        required: false
 
 jobs:
   closed-beta-gate:
@@ -27,7 +25,10 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -e .
       - name: Run closed-beta gate
-        run: DEPLOY_STATUS="${{ github.event.inputs.deploy_status }}" bash scripts/closed_beta_gate_all.sh
+        env:
+          EXPECTED_GIT_COMMIT: ${{ github.event.inputs.expected_git_commit }}
+          CLOSED_BETA_GATE_REPORT_OUT: reports/automation/closed_beta_gate_report.md
+        run: bash scripts/closed_beta_gate_all.sh "${{ github.event.inputs.base_url }}"
       - name: Upload gate report
         uses: actions/upload-artifact@v4
         with:
