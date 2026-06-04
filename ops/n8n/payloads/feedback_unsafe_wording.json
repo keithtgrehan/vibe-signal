@@ -1,0 +1,11 @@
+{
+  "source": "web_beta",
+  "event_type": "feedback",
+  "result_id": "synthetic_002",
+  "cue_type": "pressure",
+  "feedback_category": "unsafe_wording",
+  "severity": "high",
+  "notes": "Output sounded too certain.",
+  "flagged_phrase": "certainty_claim",
+  "raw_message_present": false
+}

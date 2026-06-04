@@ -1,0 +1,122 @@
+{
+  "name": "Vibe Signal Beta Ops Control Room",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vibe-signal-beta-ops",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "Webhook_Beta_Feedback",
+      "name": "Webhook - Beta Feedback Event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "vibe-signal-beta-ops-demo"
+    },
+    {
+      "parameters": {
+        "jsCode": "const forbiddenRawFields = ['raw_message','message','message_text','private_text','chat_text','transcript','screenshot','conversation','raw_chat','raw_text'];\nconst forbiddenPhrases = ['they like you','hidden intent','they are lying','this proves','diagnose','manipulate','make them respond','win them back'];\nconst input = $json.body || $json;\nconst clean = {};\nlet rawTextRemoved = false;\nfor (const [key, value] of Object.entries(input)) {\n  if (forbiddenRawFields.includes(key)) {\n    rawTextRemoved = true;\n    continue;\n  }\n  clean[key] = value;\n}\nconst textForReview = JSON.stringify(clean).toLowerCase();\nconst blockedPhraseHit = forbiddenPhrases.find((phrase) => textForReview.includes(phrase)) || null;\nlet route = 'product_feedback';\nif (blockedPhraseHit || clean.feedback_category === 'unsafe_wording' || clean.severity === 'high') route = 'safety_review';\nelse if (clean.event_type === 'backend_failure') route = 'reliability_queue';\nelse if (clean.feedback_category === 'bug') route = 'bug_queue';\nreturn [{ json: { ...clean, route, raw_text_removed: rawTextRemoved || clean.raw_message_present === false, blocked_phrase_hit: blockedPhraseHit, processed_at: new Date().toISOString() } }];"
+      },
+      "id": "Code_Sanitize_And_Route",
+      "name": "Code - Sanitize + Route",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://vibe-signal.onrender.com/healthz",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "HTTP_Backend_Healthz",
+      "name": "HTTP - Vibe Signal Healthz",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $('Code - Sanitize + Route').first().json;\nconst health = $json || {};\nreturn [{ json: { timestamp: event.processed_at, source: event.source || null, event_type: event.event_type || null, result_id: event.result_id || null, cue_type: event.cue_type || null, feedback_category: event.feedback_category || null, severity: event.severity || null, route: event.route || 'product_feedback', raw_text_removed: event.raw_text_removed === true, backend_status: health.ok === true ? 'ok' : 'unknown_or_failed', notes: event.notes || null, blocked_phrase_hit: event.blocked_phrase_hit || null } }];"
+      },
+      "id": "Code_Metadata_Row",
+      "name": "Code - Build Metadata Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, route: $json.route, result_id: $json.result_id, raw_text_removed: $json.raw_text_removed, backend_status: $json.backend_status } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "Respond_To_Webhook",
+      "name": "Respond - Clean Demo Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1360, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Beta Feedback Event": {
+      "main": [
+        [
+          {
+            "node": "Code - Sanitize + Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Sanitize + Route": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Vibe Signal Healthz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Vibe Signal Healthz": {
+      "main": [
+        [
+          {
+            "node": "Code - Build Metadata Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Build Metadata Row": {
+      "main": [
+        [
+          {
+            "node": "Respond - Clean Demo Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "vibe-signal-n8n-demo-v1",
+  "triggerCount": 0,
+  "tags": []
+}
