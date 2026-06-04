@@ -79,6 +79,56 @@ test("submitFeedback sends bounded metadata without raw message text", async () 
   assert.equal(calls[0].consent_to_store_feedback, true);
   assert.equal(Object.hasOwn(calls[0], "raw_message_text"), false);
   assert.equal(Object.hasOwn(calls[0], "source_text"), false);
+  assert.equal(Object.hasOwn(calls[0], "evidence_text"), false);
+  assert.equal(Object.hasOwn(calls[0], "draft_reply_text"), false);
+});
+
+test("submitFeedback can include bounded cue metadata without raw evidence or draft text", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (_url, options) => {
+    calls.push(JSON.parse(options.body));
+    return {
+      ok: true,
+      json: async () => ({ status: "accepted" }),
+    };
+  };
+
+  try {
+    await submitFeedback({
+      matchId: "vibe_match_123",
+      feedbackTag: "cue_fits",
+      rating: 1,
+      consent: true,
+      cueId: "unclear_1",
+      cueFamily: "vague_timing",
+      evidenceQuality: "strong",
+      goalId: "unclear",
+      contextId: "work",
+      styleId: "careful",
+      lowSignal: false,
+      synthetic: true,
+      clientEventId: "evt_feedback_vibe_match_123_cue_fits_unclear_1",
+      clientTimestamp: 1712652000000,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].feedback_event_id, "evt_feedback_vibe_match_123_cue_fits_unclear_1");
+  assert.equal(calls[0].rating, 1);
+  assert.equal(calls[0].cue_id, "unclear_1");
+  assert.equal(calls[0].cue_family, "vague_timing");
+  assert.equal(calls[0].evidence_quality, "strong");
+  assert.equal(calls[0].goal_id, "unclear");
+  assert.equal(calls[0].context_id, "work");
+  assert.equal(calls[0].analysis_style_id, "careful");
+  assert.equal(calls[0].low_signal, false);
+  assert.equal(calls[0].synthetic, true);
+  assert.equal(Object.hasOwn(calls[0], "raw_message_text"), false);
+  assert.equal(Object.hasOwn(calls[0], "evidence_text"), false);
+  assert.equal(Object.hasOwn(calls[0], "draft_reply_text"), false);
 });
 
 test("submitAnalyze retries one transient network failure then returns safe result", async () => {
@@ -117,6 +167,9 @@ test("submitAnalyze retries one transient network failure then returns safe resu
     assert.equal(Object.hasOwn(calls[1], "context"), false);
     assert.equal(Object.hasOwn(calls[1], "analysis_style"), false);
     assert.equal(Object.hasOwn(calls[1], "style"), false);
+    assert.equal(Object.hasOwn(calls[1], "comparison"), false);
+    assert.equal(Object.hasOwn(calls[1], "earlier_text"), false);
+    assert.equal(Object.hasOwn(calls[1], "later_text"), false);
     assert.deepEqual(retryStates, [
       {
         classification: "backend_waking",

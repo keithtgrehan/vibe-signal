@@ -13,6 +13,7 @@ SAFE_EVENT_ID_RE = re.compile(
     r"|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 )
 SAFE_TIMESTAMP_RE = re.compile(r"^[0-9]{10,17}(?:\.[0-9]{1,6})?$")
+SAFE_METADATA_TOKEN_RE = re.compile(r"[^A-Za-z0-9_.:-]+")
 ALLOWED_MONITORING_EVENT_TYPES = {
     "analysis_started",
     "analysis_succeeded",
@@ -43,6 +44,11 @@ def _safe_client_timestamp(value: Any) -> str:
     return ""
 
 
+def _safe_metadata_token(value: Any, max_length: int = 48) -> str:
+    candidate = SAFE_METADATA_TOKEN_RE.sub("_", str(value or "").strip())
+    return candidate[:max_length]
+
+
 def _safe_monitoring_event_type(value: Any) -> str:
     candidate = str(value or "").strip()
     if candidate in ALLOWED_MONITORING_EVENT_TYPES:
@@ -61,8 +67,18 @@ def store_feedback_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     row = {
         "feedback_id": f"feedback_{len(FEEDBACK_ROWS) + 1:06d}",
         "feedback_event_id": feedback_event_id,
-        "match_id": str(payload.get("match_id", "")),
+        "match_id": _safe_metadata_token(payload.get("match_id"), 64),
         "rating": payload.get("rating"),
+        "feedback_tag": _safe_metadata_token(payload.get("feedback_tag"), 32),
+        "cue_id": _safe_metadata_token(payload.get("cue_id"), 48),
+        "cue_family": _safe_metadata_token(payload.get("cue_family"), 48),
+        "evidence_quality": _safe_metadata_token(payload.get("evidence_quality"), 24),
+        "goal_id": _safe_metadata_token(payload.get("goal_id"), 32),
+        "context_id": _safe_metadata_token(payload.get("context_id"), 32),
+        "analysis_style_id": _safe_metadata_token(payload.get("analysis_style_id"), 32),
+        "low_signal": payload.get("low_signal") is True,
+        "synthetic": payload.get("synthetic") is True,
+        "client_timestamp": _safe_client_timestamp(payload.get("client_timestamp")),
         "comment_length": len(comment),
         "stored_at_unix": round(time(), 3),
     }
