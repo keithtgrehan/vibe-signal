@@ -1,18 +1,79 @@
 export const HERO_COPY = {
   title: "Understand message patterns without guessing motives.",
   subtitle:
-    "Vibe Signal highlights observable cues like clarity, ambiguity, pressure, reassurance, and repair opportunities — with evidence, limits, and safe next steps.",
-  primaryCta: "Try a synthetic example",
-  secondaryCta: "See how it works",
-  trustNote: "Use synthetic text first, or only messages you have permission to analyze.",
+    "Try a synthetic demo or paste permissioned text. Vibe Signal shows observable cues, evidence, limits, and a safer next step.",
+  primaryCta: "Run a safe demo",
+  secondaryCta: "Analyze permissioned text",
+  trustNote: "Observable wording only. No mind-reading or relationship verdicts.",
 };
 
 export const TRUST_STRIP_ITEMS = [
-  "Evidence-first outputs",
-  "No hidden-intent claims",
-  "Synthetic demo available",
-  "Privacy-conscious beta design",
-  "Built for clarity, not manipulation",
+  "Synthetic demo first",
+  "Evidence before interpretation",
+  "Permissioned text only",
+  "Limits stay visible",
+  "Metadata-only feedback",
+];
+
+export const GOAL_OPTIONS = [
+  {
+    id: "unclear",
+    label: "Understand what feels unclear",
+    helper: "Focus the UI on ambiguity, vague timing, and missing decision points.",
+    nextStep:
+      "Ask for the specific point that feels unclear, without guessing the reason behind it.",
+  },
+  {
+    id: "reduce_pressure",
+    label: "Reduce pressure in my reply",
+    helper: "Emphasize lower-pressure wording and room to pause.",
+    nextStep: "Draft one lower-pressure reply and make later or no acceptable.",
+  },
+  {
+    id: "direct_ask",
+    label: "Find the direct ask",
+    helper: "Pull the visible ask or decision point forward.",
+    nextStep: "Name the direct ask in one sentence before replying.",
+  },
+  {
+    id: "over_reading",
+    label: "Check if I am over-reading",
+    helper: "Keep limits prominent before any interpretation.",
+    nextStep: "Compare the quote with the limits before deciding what it means.",
+  },
+  {
+    id: "clearer_response",
+    label: "Prepare a clearer response",
+    helper: "Turn the read into one concrete, safer next step.",
+    nextStep: "Write a short response that asks for one concrete next step.",
+  },
+];
+
+export const CONTEXT_OPTIONS = [
+  { id: "general", label: "General" },
+  { id: "relationship", label: "Relationship" },
+  { id: "work", label: "Work" },
+  { id: "friends_family", label: "Friends/family" },
+  { id: "difficult", label: "Difficult conversation" },
+  { id: "unsure", label: "Unsure" },
+];
+
+export const ANALYSIS_STYLE_OPTIONS = [
+  {
+    id: "quick",
+    label: "Quick read",
+    description: "Fast summary with key evidence and one next step.",
+  },
+  {
+    id: "evidence",
+    label: "Evidence-first",
+    description: "Quoted cues, pattern labels, limits, and repair options.",
+  },
+  {
+    id: "careful",
+    label: "Careful",
+    description: "More cautious. Best for sensitive or unclear messages.",
+  },
 ];
 
 export const CAN_HELP_WITH = [
