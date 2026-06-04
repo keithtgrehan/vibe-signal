@@ -10,14 +10,24 @@ Run after deploy or when debugging hosted backend flow:
 bash scripts/prod_smoke_all.sh https://vibe-signal.onrender.com
 ```
 
-This uses synthetic payloads only and verifies bounded metadata endpoints. It does not run the full 10k suite against production.
+This uses synthetic payloads only and verifies bounded metadata endpoints. By default, the wrapper passes the current `git rev-parse HEAD` value into deployed-version verification. If the script is run outside a git checkout, it still runs but deployed-version proof may remain `unverified`.
+
+Production smoke success is not the same as deployed commit proof. The deployed backend must expose a safe `/api/status.git_commit` value that matches the expected SHA for deploy status to be `current`.
 
 ## Closed-Beta Gate
 
 Run for release-candidate review:
 
 ```bash
-DEPLOY_STATUS=current bash scripts/closed_beta_gate_all.sh
+bash scripts/closed_beta_gate_all.sh
+```
+
+The wrapper verifies deployed metadata directly and passes `current`, `stale`, or `unverified` into the closed-beta gate report. It does not treat production smoke success alone as deployed-version proof.
+
+By default, wrapper-generated reports are written under ignored automation output paths such as `reports/automation/latest/`. To intentionally refresh tracked gate evidence, run:
+
+```bash
+WRITE_REPORT=1 bash scripts/closed_beta_gate_all.sh
 ```
 
 The result is evidence for a human decision. It does not approve tester invites.
