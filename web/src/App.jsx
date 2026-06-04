@@ -14,10 +14,15 @@ import {
   submitFeedback,
 } from "./api.js";
 import {
-  HERO_COPY,
   HOW_IT_WORKS_STEPS,
   SYNTHETIC_DEMOS,
 } from "./trustContent.js";
+import {
+  buildVariantSections,
+  DEFAULT_VARIANT,
+  getVariant,
+  resolveVariant,
+} from "./variants.js";
 import { buildFeedbackMetadata } from "./guidedInteraction.js";
 import {
   buildLowSignalFallback,
@@ -61,7 +66,40 @@ function scrollToId(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function TopNav({ onRunDemo, onPrivacy }) {
+function getBrowserVariantKey() {
+  if (typeof window === "undefined") {
+    return DEFAULT_VARIANT;
+  }
+  return resolveVariant(window.location.search, window.localStorage);
+}
+
+function useResolvedVariant() {
+  const [variantKey, setVariantKey] = useState(getBrowserVariantKey);
+  const variant = useMemo(() => getVariant(variantKey), [variantKey]);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.dataset.variant = variant.key;
+    }
+  }, [variant.key]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    function syncVariantFromUrl() {
+      setVariantKey(resolveVariant(window.location.search, window.localStorage));
+    }
+
+    window.addEventListener("popstate", syncVariantFromUrl);
+    return () => window.removeEventListener("popstate", syncVariantFromUrl);
+  }, []);
+
+  return variant;
+}
+
+function TopNav({ onRunDemo, onPrivacy, variant }) {
   return (
     <header className="top-nav">
       <button className="brand-lockup" type="button" onClick={() => scrollToId("top")}>
@@ -74,41 +112,41 @@ function TopNav({ onRunDemo, onPrivacy }) {
         <button type="button" onClick={() => scrollToId("demo")}>Demo</button>
         <button type="button" onClick={() => scrollToId("how-it-works")}>How it works</button>
         <button type="button" onClick={onPrivacy}>Privacy</button>
-        <Button className="nav-cta" onClick={onRunDemo}>Run demo</Button>
+        <Button className="nav-cta" onClick={onRunDemo}>{variant.hero.navCta}</Button>
       </nav>
     </header>
   );
 }
 
-function Hero({ onRunDemo }) {
+function Hero({ onRunDemo, variant }) {
   return (
     <section className="hero" id="top" aria-labelledby="hero-title">
       <div className="hero-copy">
-        <h1 id="hero-title">{HERO_COPY.title}</h1>
-        <p>{HERO_COPY.subtitle}</p>
+        <h1 id="hero-title">{variant.hero.title}</h1>
+        <p>{variant.hero.subtitle}</p>
         <div className="hero-actions" aria-label="Primary actions">
           <Button onClick={onRunDemo}>
-            {HERO_COPY.primaryCta}
+            {variant.hero.primaryCta}
             <ArrowRight size={17} />
           </Button>
           <Button tone="secondary" onClick={() => scrollToId("analyze")}>
-            {HERO_COPY.secondaryCta}
+            {variant.hero.secondaryCta}
           </Button>
         </div>
-        <p className="trust-line">{HERO_COPY.trustNote}</p>
+        <p className="trust-line">{variant.hero.trustNote}</p>
       </div>
     </section>
   );
 }
 
-function FeaturedDemo({ onRunDemo }) {
+function FeaturedDemo({ onRunDemo, variant }) {
   const demo = SYNTHETIC_DEMOS.find((item) => item.id === FEATURED_DEMO_ID) || SYNTHETIC_DEMOS[0];
   const extraDemos = SYNTHETIC_DEMOS.filter((item) => item.id !== demo.id);
 
   return (
     <section className="demo-card" aria-labelledby="demo-title">
-      <div className="section-kicker">Synthetic example</div>
-      <h2 id="demo-title">{demo.title}</h2>
+      <div className="section-kicker">{variant.demo.kicker}</div>
+      <h2 id="demo-title">{variant.demo.title || demo.title}</h2>
       <div className="message-sample" aria-label="Synthetic example text">
         {demo.exchange.split("\n").map((line) => (
           <p key={line}>{line}</p>
@@ -116,10 +154,10 @@ function FeaturedDemo({ onRunDemo }) {
       </div>
       <p>{demo.highlight}</p>
       <Button onClick={() => onRunDemo(demo.id)}>
-        Run this demo
+        {variant.demo.cta}
         <ArrowRight size={17} />
       </Button>
-      <p className="quiet-copy">No private chats stored for this demo.</p>
+      <p className="quiet-copy">{variant.demo.storedCopy}</p>
       <details className="example-disclosure">
         <summary>
           Show more examples
@@ -135,25 +173,25 @@ function FeaturedDemo({ onRunDemo }) {
   );
 }
 
-function EmptyResult({ onRunDemo }) {
+function EmptyResult({ onRunDemo, variant }) {
   return (
     <section className="result-card empty-result" aria-label="Result preview">
-      <p className="section-kicker">Result preview</p>
-      <h2>Run a demo to see what stands out.</h2>
+      <p className="section-kicker">{variant.emptyResult.kicker}</p>
+      <h2>{variant.emptyResult.title}</h2>
       <div className="result-section">
-        <h3>What stands out</h3>
-        <p>A short read appears here after the demo runs.</p>
+        <h3>{variant.resultLabels.standsOut}</h3>
+        <p>{variant.emptyResult.standsOutPreview}</p>
       </div>
       <div className="result-section">
-        <h3>Evidence</h3>
-        <p>The exact words that triggered it appear before any interpretation.</p>
+        <h3>{variant.resultLabels.evidence}</h3>
+        <p>{variant.emptyResult.evidencePreview}</p>
       </div>
       <div className="result-section">
-        <h3>Safer reply</h3>
-        <p>A clearer next step appears here.</p>
+        <h3>{variant.resultLabels.saferReply}</h3>
+        <p>{variant.emptyResult.saferReplyPreview}</p>
       </div>
       <Button onClick={onRunDemo}>
-        Run a demo
+        {variant.emptyResult.cta}
         <ArrowRight size={17} />
       </Button>
     </section>
@@ -176,7 +214,7 @@ function EvidenceList({ rows }) {
   );
 }
 
-function ResultCard({ result, onRunDemo }) {
+function ResultCard({ result, onRunDemo, variant }) {
   const view = useMemo(() => (result ? buildTrustFirstResultView(result) : null), [result]);
   const [feedbackConsent, setFeedbackConsent] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState("");
@@ -184,11 +222,11 @@ function ResultCard({ result, onRunDemo }) {
   const [submittedFeedback, setSubmittedFeedback] = useState([]);
 
   if (!view) {
-    return <EmptyResult onRunDemo={onRunDemo} />;
+    return <EmptyResult onRunDemo={onRunDemo} variant={variant} />;
   }
 
-  const safeNextStep = view.safeNextStep || "Ask one clear follow-up and leave room for a later answer.";
-  const interpretation = view.interpretation || view.patternExplanation || view.body;
+  const sections = buildVariantSections(view, variant.key);
+  const sectionById = Object.fromEntries(sections.map((section) => [section.id, section]));
 
   async function sendFeedback(option) {
     const feedbackKey = `${option.id}:result`;
@@ -238,25 +276,25 @@ function ResultCard({ result, onRunDemo }) {
     <section className="result-card" aria-label="Vibe Signal result">
       <p className="section-kicker">{view.synthetic ? "Synthetic result" : "Result"}</p>
       <div className="result-section result-primary">
-        <h2>What stands out</h2>
-        <p>{view.isLowSignal ? view.body : view.mainRead}</p>
+        <h2>{sectionById.standsOut.label}</h2>
+        <p>{sectionById.standsOut.text}</p>
       </div>
       <div className="result-section">
-        <h3>Evidence</h3>
-        <EvidenceList rows={view.evidenceDetails} />
+        <h3>{sectionById.evidence.label}</h3>
+        <EvidenceList rows={sectionById.evidence.rows} />
       </div>
       <div className="result-section">
-        <h3>What it could mean</h3>
-        <p>{view.isLowSignal ? "There is not enough wording to read safely yet." : interpretation}</p>
+        <h3>{sectionById.couldMean.label}</h3>
+        <p>{sectionById.couldMean.text}</p>
       </div>
       <div className="result-section safer-reply">
-        <h3>Safer reply</h3>
-        <p>{safeNextStep}</p>
-        <small>You stay in control of the reply. Edit before sending.</small>
+        <h3>{sectionById.saferReply.label}</h3>
+        <p>{sectionById.saferReply.text}</p>
+        <small>{sectionById.saferReply.helper}</small>
       </div>
       <div className="result-section limits">
-        <h3>Limits</h3>
-        <p>{view.cannotInferText}</p>
+        <h3>{sectionById.limits.label}</h3>
+        <p>{sectionById.limits.text}</p>
       </div>
       <section className="feedback-panel" aria-labelledby="feedback-title">
         <div>
@@ -291,15 +329,15 @@ function ResultCard({ result, onRunDemo }) {
   );
 }
 
-function AnalyzeText({ text, setText, consent, setConsent, loading, error, status, onSubmit }) {
+function AnalyzeText({ text, setText, consent, setConsent, loading, error, status, onSubmit, variant }) {
   const canSubmit = normalizeText(text) && consent && !loading;
 
   return (
     <section className="analyze-section" id="analyze" aria-labelledby="analyze-title">
       <div className="section-heading">
-        <p className="section-kicker">Try your text</p>
-        <h2 id="analyze-title">Analyze text</h2>
-        <p>Paste a short exchange and keep the result grounded in the words shown.</p>
+        <p className="section-kicker">{variant.analyze.kicker}</p>
+        <h2 id="analyze-title">{variant.analyze.title}</h2>
+        <p>{variant.analyze.intro}</p>
       </div>
       <label className="field-label" htmlFor="conversation">Message text</label>
       <textarea
@@ -329,7 +367,7 @@ function AnalyzeText({ text, setText, consent, setConsent, loading, error, statu
       <div className="form-footer">
         <span aria-live="polite">{status}</span>
         <Button disabled={!canSubmit} onClick={onSubmit}>
-          {loading ? "Analyzing..." : "Analyze"}
+          {loading ? "Analyzing..." : variant.analyze.cta}
         </Button>
       </div>
     </section>
@@ -369,7 +407,7 @@ function TrustFooter({ onPrivacy }) {
   );
 }
 
-function Home({ navDemoRequest, setView }) {
+function Home({ navDemoRequest, setView, variant }) {
   const [text, setText] = useState("");
   const [consent, setConsent] = useState(false);
   const [result, setResult] = useState(null);
@@ -439,10 +477,10 @@ function Home({ navDemoRequest, setView }) {
 
   return (
     <main className="page">
-      <Hero onRunDemo={() => runSyntheticDemo()} />
+      <Hero onRunDemo={() => runSyntheticDemo()} variant={variant} />
       <section className="demo-result-grid" id="demo" aria-label="Demo and result">
-        <FeaturedDemo onRunDemo={runSyntheticDemo} />
-        <ResultCard result={result} onRunDemo={() => runSyntheticDemo()} />
+        <FeaturedDemo onRunDemo={runSyntheticDemo} variant={variant} />
+        <ResultCard result={result} onRunDemo={() => runSyntheticDemo()} variant={variant} />
       </section>
       <AnalyzeText
         consent={consent}
@@ -456,6 +494,7 @@ function Home({ navDemoRequest, setView }) {
         }}
         status={status}
         text={text}
+        variant={variant}
       />
       <HowItWorks />
       <TrustFooter onPrivacy={() => setView("legal")} />
@@ -528,6 +567,7 @@ function Legal({ setView }) {
 export default function App() {
   const [view, setView] = useState("home");
   const [navDemoRequest, setNavDemoRequest] = useState(0);
+  const variant = useResolvedVariant();
 
   function runDemoFromNav() {
     setView("home");
@@ -535,12 +575,13 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-variant={variant.key}>
       <TopNav
         onPrivacy={() => setView("legal")}
         onRunDemo={runDemoFromNav}
+        variant={variant}
       />
-      {view === "home" ? <Home navDemoRequest={navDemoRequest} setView={setView} /> : null}
+      {view === "home" ? <Home navDemoRequest={navDemoRequest} setView={setView} variant={variant} /> : null}
       {view === "legal" ? <Legal setView={setView} /> : null}
     </div>
   );

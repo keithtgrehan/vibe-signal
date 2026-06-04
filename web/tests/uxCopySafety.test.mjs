@@ -10,6 +10,7 @@ const USER_FACING_FILES = [
   "src/resultViewModel.js",
   "src/styles.css",
   "src/trustContent.js",
+  "src/variants.js",
   "index.html",
 ];
 

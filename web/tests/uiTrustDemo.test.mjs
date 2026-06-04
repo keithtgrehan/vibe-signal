@@ -19,6 +19,7 @@ import {
   buildTrustFirstResultView,
   FEEDBACK_OPTIONS,
 } from "../src/resultViewModel.js";
+import { buildVariantSections, VARIANTS } from "../src/variants.js";
 
 const ROOT = resolve(import.meta.dirname, "..");
 
@@ -36,12 +37,14 @@ test("landing hero exposes the minimal human product promise and clear demo CTA"
   assert.equal(HERO_COPY.primaryCta, "Run a demo");
   assert.equal(HERO_COPY.secondaryCta, "Analyze text");
   assert.equal(HERO_COPY.trustNote, "No mind-reading. No relationship verdicts. Just observable wording.");
+  assert.equal(VARIANTS.a.hero.title, HERO_COPY.title);
+  assert.equal(VARIANTS.a.hero.navCta, "Run demo");
 
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
   assert.match(appText, /Demo/);
   assert.match(appText, /How it works/);
   assert.match(appText, /Privacy/);
-  assert.match(appText, /Run demo/);
+  assert.match(appText, /variant\.hero\.navCta/);
 });
 
 test("home page follows the chosen minimal information architecture", () => {
@@ -105,12 +108,13 @@ test("result view remains evidence-first with the required result-card structure
   );
   assert.equal(view.cannotInferText, "This does not tell you what they feel or intend.");
 
-  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
-  assert.match(appText, /What stands out/);
-  assert.match(appText, /Evidence/);
-  assert.match(appText, /What it could mean/);
-  assert.match(appText, /Safer reply/);
-  assert.match(appText, /Limits/);
+  assert.deepEqual(buildVariantSections(view, "a").map((section) => section.label), [
+    "What stands out",
+    "Evidence",
+    "What it could mean",
+    "Safer reply",
+    "Limits",
+  ]);
 });
 
 test("analyze flow keeps consent required before pasted text analysis", () => {

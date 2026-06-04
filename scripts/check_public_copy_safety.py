@@ -21,6 +21,7 @@ DEFAULT_SCAN_PATHS = (
     "web/src/api.js",
     "web/src/resultViewModel.js",
     "web/src/trustContent.js",
+    "web/src/variants.js",
     "web/index.html",
     "web/public/opengraph.svg",
     "mobile/src/screens/VibeSignalApp.js",
