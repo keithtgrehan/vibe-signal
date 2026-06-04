@@ -8,7 +8,9 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import {
+  API_BACKEND_CONNECTION_ERROR_MESSAGE,
   API_RETRYING_BACKEND_MESSAGE,
+  ApiRequestError,
   fetchLegalPage,
   submitAnalyze,
   submitFeedback,
@@ -468,8 +470,12 @@ function Home({ navDemoRequest, setView, variant }) {
       setResult(payload);
       setError("");
       window.setTimeout(() => scrollToId("demo"), 0);
-    } catch (_requestError) {
-      setError("The backend may be waking up. Please try again in a moment.");
+    } catch (requestError) {
+      setError(
+        requestError instanceof ApiRequestError
+          ? requestError.message
+          : API_BACKEND_CONNECTION_ERROR_MESSAGE
+      );
     } finally {
       setLoading(false);
     }

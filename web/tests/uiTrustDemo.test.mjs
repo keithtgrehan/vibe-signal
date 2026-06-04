@@ -126,7 +126,7 @@ test("analyze flow keeps consent required before pasted text analysis", () => {
   assert.match(appText, /Avoid sensitive, legal, medical, workplace, or third-party private content/);
   assert.match(appText, /onRetry/);
   assert.match(appText, /API_RETRYING_BACKEND_MESSAGE/);
-  assert.match(appText, /The backend may be waking up\. Please try again in a moment\./);
+  assert.match(appText, /API_BACKEND_CONNECTION_ERROR_MESSAGE/);
 });
 
 test("feedback stays result-metadata only and avoids raw text fields", () => {

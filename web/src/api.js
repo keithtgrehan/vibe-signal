@@ -2,15 +2,18 @@ const DEFAULT_API_URL = "https://vibe-signal.onrender.com";
 const REQUEST_TIMEOUT_MS = 30000;
 const MAX_TRANSIENT_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 500;
+const REPLIT_FRONTEND_HOST_RE = /(^|\.)replit\.(app|dev)$/i;
 
 export const API_RETRYING_BACKEND_MESSAGE = "The backend may be waking up. Trying once more...";
+export const API_BACKEND_CONNECTION_ERROR_MESSAGE =
+  "Could not reach the analysis backend. If this is the Replit test link, the backend connection may need to be enabled.";
 
 const USER_FACING_ERROR_MESSAGES = {
   configuration_error:
     "The backend URL is misconfigured. Set VITE_API_BASE_URL to a clean http(s) backend origin.",
   backend_waking: API_RETRYING_BACKEND_MESSAGE,
   timeout: "The backend did not respond in time. Please try again in a moment.",
-  cors_or_network: "The app could not reach the backend. Check deployment configuration.",
+  cors_or_network: API_BACKEND_CONNECTION_ERROR_MESSAGE,
   backend_error: "The backend could not complete the request. Please try again in a moment.",
   validation_error:
     "The request could not be analyzed. Please try the synthetic example or shorten the text.",
@@ -71,7 +74,15 @@ export function getApiBaseUrlStatus(env = {}) {
     normalizeText(env.VITE_API_URL) ||
     normalizeText(env.EXPO_PUBLIC_API_URL) ||
     DEFAULT_API_URL;
-  return parseApiBaseUrl(candidate);
+  const status = parseApiBaseUrl(candidate);
+  if (status.ok && REPLIT_FRONTEND_HOST_RE.test(status.host)) {
+    return {
+      ...parseApiBaseUrl(DEFAULT_API_URL),
+      status: "replit_frontend_api_url_replaced",
+      rejectedHost: status.host,
+    };
+  }
+  return status;
 }
 
 export function resolveApiBaseUrl(env = {}) {

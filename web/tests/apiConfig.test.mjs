@@ -32,6 +32,19 @@ test("resolveApiBaseUrl falls back to the Render backend when no env override is
   assert.equal(resolveApiBaseUrl({}), "https://vibe-signal.onrender.com");
 });
 
+test("resolveApiBaseUrl rejects Replit frontend hosts as backend URLs", () => {
+  for (const value of [
+    "https://vibe-signal-ab.replit.app",
+    "https://b802151d-0262-4a7f-bb05-df6eea0b801a-00-1dwzdgdid4cmq.riker.replit.dev",
+  ]) {
+    const status = getApiBaseUrlStatus({ VITE_API_BASE_URL: value });
+
+    assert.equal(status.ok, true);
+    assert.equal(status.status, "replit_frontend_api_url_replaced");
+    assert.equal(status.apiUrl, "https://vibe-signal.onrender.com");
+  }
+});
+
 test("web API config rejects non-origin backend URLs", () => {
   const unsafeValues = [
     "javascript:alert(1)",
@@ -216,7 +229,10 @@ test("submitAnalyze classifies CORS or network failures without raw details", as
       () => submitAnalyze("self: Friday?\nother: maybe later"),
       (error) => {
         assert.equal(error.classification, "cors_or_network");
-        assert.equal(error.message, "The app could not reach the backend. Check deployment configuration.");
+        assert.equal(
+          error.message,
+          "Could not reach the analysis backend. If this is the Replit test link, the backend connection may need to be enabled."
+        );
         assert.equal(String(error).includes("raw-secret"), false);
         return true;
       }
