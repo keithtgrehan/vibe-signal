@@ -22,7 +22,11 @@ if require_file "scripts/check_no_raw_content_leaks.py"; then
 fi
 
 section "README/repo-tour key phrases"
-run_required "README has safe product framing" rg -n "observable|synthetic|closed-beta|not production|human-reviewed" README.md docs/recruiter_readiness/project_summary.md docs/recruiter_readiness/repo_tour.md
+if has_command rg; then
+  run_required "README has safe product framing" rg -n "observable|synthetic|closed-beta|not production|human-reviewed" README.md docs/recruiter_readiness/project_summary.md docs/recruiter_readiness/repo_tour.md
+else
+  run_required "README has safe product framing" grep -R -n -E "observable|synthetic|closed-beta|not production|human-reviewed" README.md docs/recruiter_readiness/project_summary.md docs/recruiter_readiness/repo_tour.md
+fi
 
 section "Overclaim scan"
 run_required "No unallowlisted public-copy overclaims" "$PYTHON_BIN" scripts/check_public_copy_safety.py
