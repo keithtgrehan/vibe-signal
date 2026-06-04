@@ -1,0 +1,43 @@
+name: Legal/privacy review
+description: Track legal or privacy review tasks.
+title: "[Legal/privacy]: "
+labels: ["legal", "privacy"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template does not provide legal advice or approval. Do not paste private chats, secrets, or raw logs.
+  - type: textarea
+    id: scope
+    attributes:
+      label: Review scope
+    validations:
+      required: true
+  - type: textarea
+    id: docs
+    attributes:
+      label: Relevant docs
+      description: Link repo paths or external review references.
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Safety checklist
+      options:
+        - label: No compliance approval is implied by this issue.
+          required: true
+        - label: Human legal/privacy review remains required.
+          required: true

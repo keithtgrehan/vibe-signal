@@ -1,0 +1,43 @@
+name: Human label review
+description: Track human review packet work.
+title: "[Human label review]: "
+labels: ["human-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Human labels must be observable wording only. Do not paste private chats. Bootstrap labels are suggestions, not reviewed truth.
+  - type: textarea
+    id: scope
+    attributes:
+      label: Review scope
+    validations:
+      required: true
+  - type: textarea
+    id: packet
+    attributes:
+      label: Packet or label file
+      description: Reference paths only; do not paste raw private content.
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Validation checklist
+      options:
+        - label: No hidden-intent labels.
+          required: true
+        - label: Human gate remains human.
+          required: true

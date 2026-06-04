@@ -1,0 +1,48 @@
+name: Deployment issue
+description: Report Render/Vercel/backend smoke issues.
+title: "[Deployment]: "
+labels: ["deployment"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use metadata-only output. Do not paste secrets, private chats, raw request bodies, or platform logs with sensitive values.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Deployment URL
+      placeholder: "https://vibe-signal.onrender.com"
+  - type: textarea
+    id: smoke
+    attributes:
+      label: Smoke result
+      description: Paste metadata-only smoke output or request IDs.
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checklist
+      options:
+        - label: No secrets or raw private messages included.
+          required: true
+        - label: Production load remains bounded.
+          required: true

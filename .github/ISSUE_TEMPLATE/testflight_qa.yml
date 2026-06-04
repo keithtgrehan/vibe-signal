@@ -1,0 +1,48 @@
+name: TestFlight QA
+description: Track real-device or TestFlight QA with synthetic examples.
+title: "[TestFlight QA]: "
+labels: ["ios", "qa"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use synthetic examples only. Do not include private chats, tester identities beyond approved metadata, or screenshots with private content.
+  - type: input
+    id: build
+    attributes:
+      label: Build/version
+  - type: textarea
+    id: device
+    attributes:
+      label: Device and OS metadata
+      description: Metadata only.
+  - type: textarea
+    id: results
+    attributes:
+      label: QA results
+      description: Use synthetic examples and metadata-only evidence.
+    validations:
+      required: true
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Validation checklist
+      options:
+        - label: This does not claim App Store approval.
+          required: true
+        - label: Tester invite decision remains human.
+          required: true

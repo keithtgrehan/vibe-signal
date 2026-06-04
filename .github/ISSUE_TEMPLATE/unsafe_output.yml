@@ -1,0 +1,49 @@
+name: Unsafe output
+description: Report unsafe or overclaiming output with synthetic examples only.
+title: "[Unsafe output]: "
+labels: ["safety", "unsafe-output"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste private chats. Rewrite the issue as a synthetic example. Vibe Signal reviews observable wording only.
+  - type: textarea
+    id: synthetic_input
+    attributes:
+      label: Synthetic input
+      description: Use a synthetic example that reproduces the unsafe output.
+    validations:
+      required: true
+  - type: textarea
+    id: unsafe_output
+    attributes:
+      label: Unsafe output category
+      description: Describe the unsafe category without private text.
+      placeholder: "Example: output crossed a blocked inference boundary instead of staying with observable wording."
+    validations:
+      required: true
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Validation checklist
+      options:
+        - label: Synthetic example only.
+          required: true
+        - label: Observable wording only.
+          required: true
+        - label: No legal/compliance or model-accuracy claim.
+          required: true

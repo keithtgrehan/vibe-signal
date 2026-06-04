@@ -1,0 +1,46 @@
+name: Engine false negative
+description: Report a synthetic cue false negative.
+title: "[Engine false negative]: "
+labels: ["engine", "false-negative"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use synthetic examples only. Do not paste private chats. Report observable wording cues only.
+  - type: input
+    id: cue
+    attributes:
+      label: Missing cue
+      description: Which observable cue should have fired?
+    validations:
+      required: true
+  - type: textarea
+    id: synthetic_example
+    attributes:
+      label: Synthetic example
+      description: Synthetic input and why the cue is observable.
+    validations:
+      required: true
+  - type: dropdown
+    id: raw_content
+    attributes:
+      label: Does this touch raw content?
+      options: ["No", "Yes - synthetic only", "Unsure"]
+    validations:
+      required: true
+  - type: dropdown
+    id: public_claims
+    attributes:
+      label: Does this introduce public claims?
+      options: ["No", "Yes", "Unsure"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Validation checklist
+      options:
+        - label: This does not ask the engine to infer motives, feelings, diagnosis, or relationship outcomes.
+          required: true
+        - label: This remains bootstrap/synthetic until human review.
+          required: true
