@@ -1,0 +1,10 @@
+{
+  "source": "web_beta",
+  "event_type": "backend_failure",
+  "result_id": "synthetic_003",
+  "cue_type": null,
+  "feedback_category": "bug",
+  "severity": "medium",
+  "notes": "Synthetic backend failure test.",
+  "raw_message_present": false
+}

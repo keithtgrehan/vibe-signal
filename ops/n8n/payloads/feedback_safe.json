@@ -1,0 +1,10 @@
+{
+  "source": "web_beta",
+  "event_type": "feedback",
+  "result_id": "synthetic_001",
+  "cue_type": "ambiguity",
+  "feedback_category": "useful",
+  "severity": "low",
+  "notes": "The evidence card helped me understand the result.",
+  "raw_message_present": false
+}
