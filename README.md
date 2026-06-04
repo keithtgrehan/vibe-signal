@@ -67,8 +67,8 @@ Vibe Signal does not:
 | Safe-output blocker | Implemented |
 | Low-signal fallback | Implemented |
 | 1k synthetic API regression | Passed locally after PR #22 and PR #25 verification |
-| 10k split-aware synthetic evaluation | Implemented in PR #27; hardening active in PR #29 |
-| Hard-negative evaluation | Implemented; hard-negative precision hardening active in PR #29 |
+| 10k split-aware synthetic evaluation | Implemented in PR #27; hardened in PR #29 |
+| Hard-negative evaluation | Implemented; hard-negative precision hardening merged in PR #29 |
 | Red-team safety checks | Implemented |
 | Human-review packet | Prepared |
 | Human-reviewed labels | Pending |
@@ -77,7 +77,7 @@ Vibe Signal does not:
 
 ## Evaluation Status
 
-Current `main` includes the 10k split-aware evaluation system from PR #27. PR #29 is in active review and hardens that system with the latest local synthetic regression reports:
+Current `main` includes the 10k split-aware evaluation system from PR #27 and the hardening work merged in PR #29:
 
 - Evidence completeness: `4574/5000` -> `5000/5000`
 - Hard-negative unexpected cues: `334` -> `0`
@@ -196,7 +196,7 @@ python scripts/check_no_raw_content_leaks.py
 python scripts/check_vibe_restricted_artifacts.py --staged
 ```
 
-## Automation And Agent Workflows
+## Automation and Agent Workflows
 
 One-command local wrappers:
 
