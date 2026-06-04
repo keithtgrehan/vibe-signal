@@ -1,18 +1,16 @@
 export const HERO_COPY = {
-  title: "Understand message patterns without guessing motives.",
+  title: "See what a message is doing - without guessing what someone feels.",
   subtitle:
-    "Try a synthetic demo or paste permissioned text. Vibe Signal shows observable cues, evidence, limits, and a safer next step.",
-  primaryCta: "Run a safe demo",
-  secondaryCta: "Analyze permissioned text",
-  trustNote: "Observable wording only. No mind-reading or relationship verdicts.",
+    "Paste text you’re allowed to use, or run a synthetic demo. Vibe Signal highlights clarity, pressure, unanswered asks, and safer replies.",
+  primaryCta: "Run a demo",
+  secondaryCta: "Analyze text",
+  trustNote: "No mind-reading. No relationship verdicts. Just observable wording.",
 };
 
 export const TRUST_STRIP_ITEMS = [
-  "Synthetic demo first",
-  "Evidence before interpretation",
-  "Permissioned text only",
-  "Limits stay visible",
-  "Metadata-only feedback",
+  "No private chats stored for this demo",
+  "The exact words that triggered it",
+  "What it can’t know",
 ];
 
 export const GOAL_OPTIONS = [
@@ -85,34 +83,34 @@ export const CAN_HELP_WITH = [
 ];
 
 export const CANNOT_TELL = [
-  "Whether someone likes you",
-  "Whether someone is cheating",
-  "Whether someone is lying",
-  "What someone secretly means",
-  "Someone’s diagnosis, attachment style, neurotype, or personality",
-  "Whether a relationship will work",
+  "What someone feels",
+  "What someone intends",
+  "Whether a statement is true",
+  "Health, personality, or identity labels",
+  "What will happen next",
 ];
 
 export const HOW_IT_WORKS_STEPS = [
   {
-    title: "Start safely",
-    body: "Run a synthetic exchange first, or paste only text you have permission to review.",
+    title: "Paste or run a demo",
+    body: "Start with the synthetic example, or paste text you have permission to use.",
   },
   {
-    title: "Read the evidence",
-    body: "The result shows quoted phrases before any pattern explanation or suggested next step.",
+    title: "See the evidence",
+    body: "Vibe Signal quotes the words before it offers a read.",
   },
   {
-    title: "Keep agency",
-    body: "Use the limits and next step as options, then decide whether to ask, pause, or stop.",
+    title: "Choose a clearer next step",
+    body: "Use the reply option as a draft, then edit it in your own voice.",
   },
 ];
 
 export const RESULT_EXPLAINABILITY_STEPS = [
+  "What stands out",
   "Evidence",
-  "Pattern",
+  "What it could mean",
+  "Safer reply",
   "Limits",
-  "Next step",
 ];
 
 export const REVIEWER_DEMO_FLOW = [
@@ -142,9 +140,9 @@ export const FAQ_ITEMS = [
 export const SYNTHETIC_DEMOS = [
   {
     id: "unclear_ask",
-    title: "Unclear ask",
+    title: "Unclear timing",
     exchange: "self: Are we still on for Friday?\nother: maybe later, not sure yet",
-    highlight: "Vibe Signal will highlight vague timing after a direct question.",
+    highlight: "Vibe Signal will highlight the loose answer after a direct timing question.",
     previewPattern: "Vague timing",
     actionLabel: "Run demo",
     requiresPrivateConsent: false,
@@ -154,23 +152,22 @@ export const SYNTHETIC_DEMOS = [
       requiresPrivateConsent: false,
       signal_strength: "medium",
       compatibility_band: "mixed",
-      safe_explanation: "This message gives a vague timing answer after a direct question.",
+      safe_explanation: "The reply answers loosely, but does not confirm Friday.",
+      safe_interpretation:
+        "There may not be a clear decision yet. The safest read is that timing is still open.",
       evidence: [
         {
           evidence_id: "unclear_1",
-          safe_phrase: "maybe later",
+          safe_phrase: "maybe later, not sure yet",
           cue_family: "vague_timing",
-          explanation: "The reply gives an open-ended timing answer after a direct question.",
-          repair_suggestion: "Ask for a specific time or decision point.",
-        },
-        {
-          evidence_id: "unclear_2",
-          safe_phrase: "not sure yet",
-          cue_family: "vague_timing",
-          explanation: "The reply does not give a clear decision point.",
+          explanation: "The wording leaves the Friday plan unconfirmed.",
+          repair_suggestion:
+            "No worries - can you confirm by Thursday evening so I know whether to keep Friday free?",
         },
       ],
-      safe_next_steps: ["Ask for a specific time or decision point."],
+      safe_next_steps: [
+        "No worries - can you confirm by Thursday evening so I know whether to keep Friday free?",
+      ],
     },
   },
   {

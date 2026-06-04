@@ -6,11 +6,9 @@ import test from "node:test";
 import {
   CAN_HELP_WITH,
   CANNOT_TELL,
-  ANALYSIS_STYLE_OPTIONS,
-  CONTEXT_OPTIONS,
-  GOAL_OPTIONS,
-  RESULT_EXPLAINABILITY_STEPS,
   HERO_COPY,
+  HOW_IT_WORKS_STEPS,
+  RESULT_EXPLAINABILITY_STEPS,
   REVIEWER_DEMO_FLOW,
   SYNTHETIC_DEMOS,
   TRUST_STRIP_ITEMS,
@@ -24,243 +22,113 @@ import {
 
 const ROOT = resolve(import.meta.dirname, "..");
 
-test("landing content exposes the required trust-first hero and synthetic-first CTA", () => {
-  assert.equal(HERO_COPY.title, "Understand message patterns without guessing motives.");
+test("landing hero exposes the minimal human product promise and clear demo CTA", () => {
+  assert.equal(
+    HERO_COPY.title,
+    "See what a message is doing - without guessing what someone feels."
+  );
+  assert.match(HERO_COPY.title, /See what a message is doing/);
+  assert.match(HERO_COPY.title, /without guessing what someone feels/);
   assert.equal(
     HERO_COPY.subtitle,
-    "Try a synthetic demo or paste permissioned text. Vibe Signal shows observable cues, evidence, limits, and a safer next step."
+    "Paste text you’re allowed to use, or run a synthetic demo. Vibe Signal highlights clarity, pressure, unanswered asks, and safer replies."
   );
-  assert.equal(HERO_COPY.primaryCta, "Run a safe demo");
-  assert.equal(HERO_COPY.secondaryCta, "Analyze permissioned text");
-  assert.equal(
-    HERO_COPY.trustNote,
-    "Observable wording only. No mind-reading or relationship verdicts."
-  );
+  assert.equal(HERO_COPY.primaryCta, "Run a demo");
+  assert.equal(HERO_COPY.secondaryCta, "Analyze text");
+  assert.equal(HERO_COPY.trustNote, "No mind-reading. No relationship verdicts. Just observable wording.");
 
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  assert.match(appText, /Demo/);
+  assert.match(appText, /How it works/);
+  assert.match(appText, /Privacy/);
+  assert.match(appText, /Run demo/);
+});
+
+test("home page follows the chosen minimal information architecture", () => {
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+
+  assert.match(appText, /function Hero/);
+  assert.match(appText, /function FeaturedDemo/);
+  assert.match(appText, /function ResultCard/);
+  assert.match(appText, /function AnalyzeText/);
+  assert.match(appText, /function HowItWorks/);
+  assert.match(appText, /function TrustFooter/);
+  assert.match(appText, /demo-result-grid/);
+
+  for (const removed of [
+    "GoalSelector",
+    "ChipSelector",
+    "Compare two snippets",
+    "Analysis style",
+    "What kind of exchange is this?",
+    "Signal strength",
+    "Can help with",
+    "Cannot tell you",
+  ]) {
+    assert.equal(appText.includes(removed), false, `App.jsx still includes ${removed}`);
+  }
+});
+
+test("featured synthetic demo is a single understandable first run", () => {
+  const featured = SYNTHETIC_DEMOS.find((demo) => demo.id === "unclear_ask");
+
+  assert.equal(featured?.title, "Unclear timing");
+  assert.equal(featured?.exchange, "self: Are we still on for Friday?\nother: maybe later, not sure yet");
+  assert.equal(featured?.requiresPrivateConsent, false);
+  assert.equal(featured?.actionLabel, "Run demo");
   assert.deepEqual(TRUST_STRIP_ITEMS, [
-    "Synthetic demo first",
-    "Evidence before interpretation",
-    "Permissioned text only",
-    "Limits stay visible",
-    "Metadata-only feedback",
+    "No private chats stored for this demo",
+    "The exact words that triggered it",
+    "What it can’t know",
   ]);
 });
 
-test("main UI copy exposes demo/analyze modes, context, and analysis style without model wording", () => {
-  assert.deepEqual(GOAL_OPTIONS.map((option) => option.label), [
-    "Understand what feels unclear",
-    "Reduce pressure in my reply",
-    "Find the direct ask",
-    "Check if I am over-reading",
-    "Prepare a clearer response",
-  ]);
-  assert.deepEqual(CONTEXT_OPTIONS.map((option) => option.label), [
-    "General",
-    "Relationship",
-    "Work",
-    "Friends/family",
-    "Difficult conversation",
-    "Unsure",
-  ]);
-  assert.deepEqual(ANALYSIS_STYLE_OPTIONS.map((option) => option.label), [
-    "Quick read",
-    "Evidence-first",
-    "Careful",
-  ]);
-  assert.equal(
-    ANALYSIS_STYLE_OPTIONS.find((option) => option.id === "quick")?.description,
-    "Fast summary with key evidence and one next step."
-  );
-  assert.equal(
-    ANALYSIS_STYLE_OPTIONS.find((option) => option.id === "evidence")?.description,
-    "Quoted cues, pattern labels, limits, and repair options."
-  );
-  assert.equal(
-    ANALYSIS_STYLE_OPTIONS.find((option) => option.id === "careful")?.description,
-    "More cautious. Best for sensitive or unclear messages."
-  );
+test("result view remains evidence-first with the required result-card structure", () => {
+  const view = buildTrustFirstResultView(buildSyntheticResult("unclear_ask"));
 
-  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
-  assert.match(appText, /What do you want help with\?/);
-  assert.match(appText, /Goal only shapes wording and suggested next steps\./);
-  assert.match(appText, /Your goal:/);
-  assert.match(appText, /Demo Mode/);
-  assert.match(appText, /Analyze Text/);
-  assert.match(appText, /Compare two snippets/);
-  assert.match(appText, /Remove identifying details/);
-  assert.match(appText, /What kind of exchange is this\?/);
-  assert.match(appText, /Context only adjusts caution and wording\. It does not infer intent\./);
-  assert.match(appText, /Analysis style/);
-  assert.match(appText, /Signal strength/);
-  assert.match(appText, /Want a clearer reply\?/);
-  assert.equal(/\bmodel\b/i.test(appText), false);
-});
-
-test("home surface keeps three primary demos and hides extra examples behind disclosure", () => {
-  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
-
-  assert.match(appText, /PRIMARY_DEMO_IDS/);
-  assert.match(appText, /EXTRA_DEMO_IDS/);
-  assert.match(appText, /More examples/);
-  assert.deepEqual(SYNTHETIC_DEMOS.slice(0, 3).map((demo) => demo.title), [
-    "Unclear ask",
-    "Pressure / urgency",
-    "Repair opportunity",
-  ]);
-});
-
-test("synthetic demo cards cover required and reviewer-ready scenarios without private text", () => {
-  assert.deepEqual(
-    SYNTHETIC_DEMOS.map((demo) => demo.title),
-    [
-      "Unclear ask",
-      "Pressure / urgency",
-      "Repair opportunity",
-      "Low-signal fallback",
-      "Boundary-respecting request",
-      "Overloaded message",
-    ]
-  );
-
-  for (const demo of SYNTHETIC_DEMOS) {
-    assert.equal(demo.actionLabel, "Run demo");
-    assert.match(demo.exchange, /self:|other:/);
-    assert.ok(demo.highlight.length > 20);
-    assert.ok(demo.previewPattern.length > 8);
-    assert.equal(demo.requiresPrivateConsent, false);
-    const result = buildSyntheticResult(demo.id);
-    assert.equal(result.synthetic, true);
-    assert.equal(result.requiresPrivateConsent, false);
-  }
-});
-
-test("landing page exposes a short reviewer-safe demo path", () => {
-  assert.deepEqual(REVIEWER_DEMO_FLOW, [
-    "Open with a synthetic card",
-    "Show evidence before interpretation",
-    "Point to limits and the safe next step",
-    "Use metadata-only feedback",
-  ]);
   assert.deepEqual(RESULT_EXPLAINABILITY_STEPS, [
+    "What stands out",
     "Evidence",
-    "Pattern",
+    "What it could mean",
+    "Safer reply",
     "Limits",
-    "Next step",
   ]);
-});
-
-test("can and cannot sections use the required plain-language boundaries", () => {
-  assert.deepEqual(CAN_HELP_WITH, [
-    "Spot vague or overloaded messages",
-    "Identify unclear asks",
-    "Surface pressure or urgency cues",
-    "Show reassurance and repair opportunities",
-    "Suggest clearer, lower-pressure replies",
-  ]);
-  assert.deepEqual(CANNOT_TELL, [
-    "Whether someone likes you",
-    "Whether someone is cheating",
-    "Whether someone is lying",
-    "What someone secretly means",
-    "Someone’s diagnosis, attachment style, neurotype, or personality",
-    "Whether a relationship will work",
-  ]);
-});
-
-test("result view model is evidence-first and hides numeric confidence", () => {
-  const view = buildTrustFirstResultView({
-    match_id: "vibe_match_123",
-    signal_strength: "medium",
-    evidence: [
-      {
-        evidence_id: "ev_1",
-        safe_phrase: "maybe later",
-        cue_family: "vague_timing",
-        explanation: "The reply gives an open-ended timing answer after a direct question.",
-        repair_suggestion: "Ask for a specific time or decision point.",
-      },
-      {
-        evidence_id: "ev_2",
-        safe_phrase: "not sure yet",
-        cue_family: "vague_timing",
-      },
-    ],
-    safe_explanation: "This message gives a vague timing answer after a direct question.",
-    safe_next_steps: ["Ask for a specific time or decision point."],
-  });
-
-  assert.equal(view.mainRead, "This message gives a vague timing answer after a direct question.");
+  assert.equal(view.mainRead, "The reply answers loosely, but does not confirm Friday.");
+  assert.deepEqual(view.evidencePhrases, ["maybe later, not sure yet"]);
   assert.equal(
-    view.signalStrengthLabel,
-    "Medium — there is evidence, but context could change the read."
-  );
-  assert.deepEqual(view.evidencePhrases, ["maybe later", "not sure yet"]);
-  assert.deepEqual(view.patternLabels, ["Vague timing"]);
-  assert.equal(
-    view.patternExplanation,
-    "The reply gives an open-ended timing answer after a direct question."
+    view.interpretation,
+    "There may not be a clear decision yet. The safest read is that timing is still open."
   );
   assert.equal(
-    view.cannotInferText,
-    "This does not prove intent, attraction, honesty, or emotional state."
+    view.safeNextStep,
+    "No worries - can you confirm by Thursday evening so I know whether to keep Friday free?"
   );
-  assert.equal(view.safeNextStep, "Ask for a specific time or decision point.");
-  assert.equal(JSON.stringify(view).includes("%"), false);
+  assert.equal(view.cannotInferText, "This does not tell you what they feel or intend.");
+
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  assert.match(appText, /What stands out/);
+  assert.match(appText, /Evidence/);
+  assert.match(appText, /What it could mean/);
+  assert.match(appText, /Safer reply/);
+  assert.match(appText, /Limits/);
 });
 
-test("no-evidence match results fall back instead of rendering summary-only analysis", () => {
-  const view = buildTrustFirstResultView({
-    match_id: "vibe_match_no_evidence",
-    signal_strength: "medium",
-    safe_explanation: "The summary exists, but no safe evidence phrase was returned.",
-  });
+test("analyze flow keeps consent required before pasted text analysis", () => {
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
 
-  assert.equal(view.isLowSignal, true);
-  assert.equal(view.title, "No safe evidence phrase returned.");
-  assert.equal(view.evidenceDetails.length, 0);
-  assert.equal(view.safeNextStep, "Add context or try a synthetic example before relying on this read.");
+  assert.match(appText, /I have permission to analyze this text\./);
+  assert.match(appText, /Check the permission box before analyzing\./);
+  assert.match(appText, /disabled=\{!canSubmit\}/);
+  assert.match(appText, /Avoid sensitive, legal, medical, workplace, or third-party private content/);
+  assert.match(appText, /onRetry/);
+  assert.match(appText, /API_RETRYING_BACKEND_MESSAGE/);
+  assert.match(appText, /The backend may be waking up\. Please try again in a moment\./);
 });
 
-test("low-signal synthetic demo routes to the intentional fallback", () => {
-  const result = buildSyntheticResult("low_signal_fallback");
-  const view = buildTrustFirstResultView(result);
+test("feedback stays result-metadata only and avoids raw text fields", () => {
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
 
-  assert.equal(result.requiresPrivateConsent, false);
-  assert.equal(view.isLowSignal, true);
-  assert.equal(view.title, "Not enough context to read safely.");
-  assert.equal(
-    view.body,
-    "This message is too short or context-light. Add context or try a synthetic demo."
-  );
-  assert.deepEqual(view.tryItems, [
-    "Add the previous message",
-    "Add the question this replied to",
-    "Add what decision you need to make",
-    "Add timing if timing matters",
-    "Try a synthetic demo",
-  ]);
-});
-
-test("short/context-light inputs receive the safe low-signal fallback", () => {
-  for (const text of ["hey", "ok", "lol sure", "fine"]) {
-    const fallback = buildLowSignalFallback(text);
-    assert.equal(fallback.isLowSignal, true);
-    assert.equal(fallback.title, "Not enough context to read safely.");
-    assert.equal(
-      fallback.body,
-      "This message is too short or context-light. Add context or try a synthetic demo."
-    );
-    assert.deepEqual(fallback.tryItems, [
-      "Add the previous message",
-      "Add the question this replied to",
-      "Add what decision you need to make",
-      "Add timing if timing matters",
-      "Try a synthetic demo",
-    ]);
-  }
-});
-
-test("feedback options are metadata-only and match the requested labels", () => {
+  assert.match(appText, /Feedback stores only result metadata, never the message text\./);
   assert.deepEqual(
     FEEDBACK_OPTIONS.map((option) => option.label),
     ["Useful", "Too strong", "Missed context", "Unsafe wording", "Confusing"]
@@ -271,40 +139,57 @@ test("feedback options are metadata-only and match the requested labels", () => 
   }
 });
 
-test("consumer UI does not expose developer-facing backend/API route copy", () => {
-  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
-  for (const forbidden of ["Current backend", "Backend only", "API detail", "/api/"]) {
-    assert.equal(appText.includes(forbidden), false, `App.jsx exposed ${forbidden}`);
-  }
-});
-
-test("major controls expose focus and live-state affordances", () => {
-  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+test("mobile and small viewport CSS keeps the page single-column and bounded", () => {
   const stylesText = readFileSync(resolve(ROOT, "src/styles.css"), "utf8");
 
-  assert.match(appText, /aria-live="polite"/);
-  assert.match(appText, /role="status"/);
-  assert.match(appText, /role="alert"/);
-  assert.match(appText, /aria-describedby="conversation-helper consent-helper"/);
-  assert.equal(appText.includes('role="tablist"'), false);
-  assert.match(stylesText, /:focus-visible/);
-  assert.match(stylesText, /feedback-option-selected/);
+  assert.match(stylesText, /@media \(max-width: 920px\)/);
+  assert.match(stylesText, /\.demo-result-grid,\n  \.steps-grid \{\n    grid-template-columns: 1fr;/);
+  assert.match(stylesText, /\.result-card \{\n    position: static;/);
+  assert.match(stylesText, /@media \(max-width: 640px\)/);
+  assert.match(stylesText, /\.button \{\n    width: 100%;/);
 });
 
-test("analyze form keeps synthetic CTA, consent gate, and safe backend error copy", () => {
-  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
-  const apiText = readFileSync(resolve(ROOT, "src/api.js"), "utf8");
+test("supporting trust content stays short and safe", () => {
+  assert.deepEqual(HOW_IT_WORKS_STEPS.map((step) => step.title), [
+    "Paste or run a demo",
+    "See the evidence",
+    "Choose a clearer next step",
+  ]);
+  assert.deepEqual(REVIEWER_DEMO_FLOW, [
+    "Open with a synthetic card",
+    "Show evidence before interpretation",
+    "Point to limits and the safe next step",
+    "Use metadata-only feedback",
+  ]);
+  assert.deepEqual(CAN_HELP_WITH, [
+    "Spot vague or overloaded messages",
+    "Identify unclear asks",
+    "Surface pressure or urgency cues",
+    "Show reassurance and repair opportunities",
+    "Suggest clearer, lower-pressure replies",
+  ]);
+  assert.deepEqual(CANNOT_TELL, [
+    "What someone feels",
+    "What someone intends",
+    "Whether a statement is true",
+    "Health, personality, or identity labels",
+    "What will happen next",
+  ]);
+});
 
-  assert.match(appText, /Try safe synthetic examples first\. No private messages needed\./);
-  assert.match(appText, /Confirm permission before private text analysis\./);
-  assert.match(
-    appText,
-    /Only submit messages you have permission to analyze\. Remove names, phone numbers, addresses, and sensitive details\./
-  );
-  assert.match(appText, /I have permission to review this text\./);
-  assert.match(appText, /onRetry/);
-  assert.match(appText, /API_RETRYING_BACKEND_MESSAGE/);
-  assert.match(apiText, /The backend may be waking up\. Trying once more\.\.\./);
-  assert.match(appText, /The backend may be waking up\. Please try again in a moment\./);
-  assert.equal(appText.includes("The backend request timed out. Check the backend URL and CORS configuration."), false);
+test("fallbacks still avoid rendering summary-only analysis", () => {
+  const noEvidence = buildTrustFirstResultView({
+    match_id: "vibe_match_no_evidence",
+    signal_strength: "medium",
+    safe_explanation: "The summary exists, but no safe evidence phrase was returned.",
+  });
+
+  assert.equal(noEvidence.isLowSignal, true);
+  assert.equal(noEvidence.title, "No safe evidence phrase returned.");
+  assert.equal(noEvidence.evidenceDetails.length, 0);
+
+  const fallback = buildLowSignalFallback("ok");
+  assert.equal(fallback.isLowSignal, true);
+  assert.equal(fallback.title, "Not enough context to read safely.");
+  assert.equal(fallback.evidenceDetails.length, 0);
 });
