@@ -19,6 +19,14 @@ training_runs/
 reports/vibe_training/raw/
 reports/vibe_training/generated/
 reports/automation/
+data/restricted/private_whatsapp/**
+*.zip
+*_chat.txt
+*_redacted.jsonl
+*_labels_private.csv
+*_private_review.csv
+!data/restricted/private_whatsapp/.gitkeep
+!data/restricted/private_whatsapp/README.md
 
 .expo/
 mobile/.expo/
