@@ -83,13 +83,16 @@ test("main UI copy exposes demo/analyze modes, context, and analysis style witho
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
   assert.match(appText, /What do you want help with\?/);
   assert.match(appText, /Goal only shapes wording and suggested next steps\./);
-  assert.match(appText, /Goal focus:/);
+  assert.match(appText, /Your goal:/);
   assert.match(appText, /Demo Mode/);
   assert.match(appText, /Analyze Text/);
+  assert.match(appText, /Compare two snippets/);
+  assert.match(appText, /Remove identifying details/);
   assert.match(appText, /What kind of exchange is this\?/);
   assert.match(appText, /Context only adjusts caution and wording\. It does not infer intent\./);
   assert.match(appText, /Analysis style/);
   assert.match(appText, /Signal strength/);
+  assert.match(appText, /Want a clearer reply\?/);
   assert.equal(/\bmodel\b/i.test(appText), false);
 });
 
@@ -231,7 +234,9 @@ test("low-signal synthetic demo routes to the intentional fallback", () => {
   );
   assert.deepEqual(view.tryItems, [
     "Add the previous message",
-    "Ask for a clearer version",
+    "Add the question this replied to",
+    "Add what decision you need to make",
+    "Add timing if timing matters",
     "Try a synthetic demo",
   ]);
 });
@@ -247,7 +252,9 @@ test("short/context-light inputs receive the safe low-signal fallback", () => {
     );
     assert.deepEqual(fallback.tryItems, [
       "Add the previous message",
-      "Ask for a clearer version",
+      "Add the question this replied to",
+      "Add what decision you need to make",
+      "Add timing if timing matters",
       "Try a synthetic demo",
     ]);
   }

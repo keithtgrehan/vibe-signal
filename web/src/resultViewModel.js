@@ -5,6 +5,28 @@ const DEFAULT_CANNOT_INFER =
 const DEFAULT_NEXT_STEP = "Ask one clear, lower-pressure follow-up.";
 const LOW_SIGNAL_TRIGGERS = new Set(["hey", "hi", "ok", "okay", "k", "fine", "lol", "lol sure"]);
 
+export const EVIDENCE_QUALITY_LABELS = {
+  strong: "Strong",
+  mixed: "Mixed",
+  low: "Low",
+  insufficient: "Insufficient",
+};
+
+export const EVIDENCE_QUALITY_DESCRIPTIONS = {
+  strong: "clear wording supports the pattern.",
+  mixed: "More than one reading is possible.",
+  low: "Context is limited.",
+  insufficient: "Not enough evidence to analyze safely.",
+};
+
+const MISSING_CONTEXT_SUGGESTIONS = [
+  "Add the previous message",
+  "Add the question this replied to",
+  "Add what decision you need to make",
+  "Add timing if timing matters",
+  "Try a synthetic demo",
+];
+
 export const FEEDBACK_OPTIONS = [
   { id: "useful", label: "Useful", rating: 1, comment: "" },
   { id: "too_strong", label: "Too strong", rating: 0, comment: "" },
@@ -56,6 +78,23 @@ function signalStrengthLabel(value) {
   return "Medium — there is evidence, but context could change the read.";
 }
 
+function evidenceQuality(row, signalStrength, rowCount) {
+  const signal = normalizeText(signalStrength).toLowerCase();
+  if (signal === "insufficient") {
+    return "insufficient";
+  }
+  if (signal === "low") {
+    return "low";
+  }
+  if (!normalizeText(row?.explanation)) {
+    return "mixed";
+  }
+  if (signal === "high" || rowCount > 1) {
+    return "strong";
+  }
+  return "mixed";
+}
+
 export function isContextLightInput(text) {
   const normalized = normalizeText(text).toLowerCase().replace(/\s+/g, " ");
   if (!normalized) {
@@ -76,11 +115,13 @@ export function buildLowSignalFallback(text = "") {
     signalStrength: "insufficient",
     title: "Not enough context to read safely.",
     body: "This message is too short or context-light. Add context or try a synthetic demo.",
-    tryItems: ["Add the previous message", "Ask for a clearer version", "Try a synthetic demo"],
+    tryItems: MISSING_CONTEXT_SUGGESTIONS,
+    contextSuggestions: MISSING_CONTEXT_SUGGESTIONS,
     mainRead: "Not enough context to read safely.",
     signalStrengthLabel: signalStrengthLabel("insufficient"),
     evidencePhrases: [],
     evidenceDetails: [],
+    evidenceQualitySummary: "insufficient",
     patternLabels: ["Context-light message"],
     patternExplanation:
       "There is not enough observable wording to separate a pattern from ordinary short-message noise.",
@@ -100,11 +141,13 @@ export function buildNoEvidenceFallback() {
     title: "No safe evidence phrase returned.",
     body:
       "This result did not include a safe quoted phrase, so Vibe Signal will not render a full read.",
-    tryItems: ["Add the previous message", "Try a synthetic example", "Review a clearer exchange"],
+    tryItems: MISSING_CONTEXT_SUGGESTIONS,
+    contextSuggestions: MISSING_CONTEXT_SUGGESTIONS,
     mainRead: "No safe evidence phrase returned.",
     signalStrengthLabel: signalStrengthLabel("insufficient"),
     evidencePhrases: [],
     evidenceDetails: [],
+    evidenceQualitySummary: "insufficient",
     patternLabels: ["Evidence unavailable"],
     patternExplanation:
       "A result needs at least one safe quoted phrase before Vibe Signal shows interpretation.",
@@ -141,13 +184,21 @@ export function buildTrustFirstResultView(result = {}) {
 
   const rows = collectEvidenceRows(result);
   const evidenceDetails = rows
-    .map((row, index) => ({
-      id: normalizeText(row?.evidence_id) || `evidence_${index}`,
-      family: titleCase(row?.cue_family || row?.cue_id || "observable cue"),
-      phrase: normalizeText(row?.safe_phrase || row?.evidence_text),
-      explanation: normalizeText(row?.explanation),
-      repair: normalizeText(row?.repair_suggestion),
-    }))
+    .map((row, index) => {
+      const cueId = normalizeText(row?.cue_family || row?.cue_id || "observable_cue");
+      const quality = evidenceQuality(row, result?.signal_strength || "medium", rows.length);
+      return {
+        id: normalizeText(row?.evidence_id) || `evidence_${index}`,
+        cueId,
+        family: titleCase(cueId),
+        phrase: normalizeText(row?.safe_phrase || row?.evidence_text),
+        explanation: normalizeText(row?.explanation),
+        repair: normalizeText(row?.repair_suggestion),
+        quality,
+        qualityLabel: EVIDENCE_QUALITY_LABELS[quality],
+        qualityDescription: EVIDENCE_QUALITY_DESCRIPTIONS[quality],
+      };
+    })
     .filter((row) => row.phrase)
     .slice(0, 6);
 
@@ -175,6 +226,7 @@ export function buildTrustFirstResultView(result = {}) {
   return {
     matchId: normalizeText(result?.match_id),
     synthetic: result?.synthetic === true,
+    comparison: result?.comparison === true,
     requiresPrivateConsent: result?.requiresPrivateConsent === true,
     isLowSignal: false,
     resultState,
@@ -187,6 +239,12 @@ export function buildTrustFirstResultView(result = {}) {
     signalStrengthLabel: signalStrengthLabel(result?.signal_strength || "medium"),
     evidencePhrases: evidenceDetails.map((row) => row.phrase),
     evidenceDetails,
+    evidenceQualitySummary:
+      evidenceDetails.every((row) => row.quality === "strong")
+        ? "strong"
+        : evidenceDetails.some((row) => row.quality === "low")
+          ? "low"
+          : "mixed",
     patternLabels: patternLabels.length ? patternLabels : ["Observable wording"],
     patternExplanation:
       evidenceDetails.map((row) => row.explanation).find(Boolean) ||

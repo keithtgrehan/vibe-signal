@@ -263,19 +263,46 @@ export async function submitAnalyze(conversationText, clientOptions = {}) {
   }, clientOptions);
 }
 
-export async function submitFeedback({ matchId, rating, feedbackTag, consent }, clientOptions = {}) {
+export async function submitFeedback({
+  matchId,
+  rating,
+  feedbackTag,
+  consent,
+  cueId = "",
+  cueFamily = "",
+  evidenceQuality = "",
+  goalId = "",
+  contextId = "",
+  styleId = "",
+  lowSignal = false,
+  synthetic = false,
+  clientEventId = "",
+  clientTimestamp = "",
+}, clientOptions = {}) {
   const safeMatchId = normalizeText(matchId);
   const safeTag = safeFeedbackTag(feedbackTag, rating);
-  const normalizedRating = safeTag === "useful" ? 1 : 0;
+  const normalizedRating = rating === 1 || safeTag === "useful" || safeTag === "cue_fits" ? 1 : 0;
+  const feedbackEventId =
+    normalizeText(clientEventId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 80) ||
+    buildFeedbackEventId(safeMatchId, safeTag);
   return requestJson("/api/feedback", {
     method: "POST",
     body: JSON.stringify({
-      feedback_event_id: buildFeedbackEventId(safeMatchId, safeTag),
+      feedback_event_id: feedbackEventId,
       match_id: safeMatchId,
       rating: normalizedRating,
       feedback_tag: safeTag,
       comment: "",
       consent_to_store_feedback: consent === true,
+      cue_id: normalizeText(cueId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 48),
+      cue_family: normalizeText(cueFamily).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 48),
+      evidence_quality: normalizeText(evidenceQuality).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 24),
+      goal_id: normalizeText(goalId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 32),
+      context_id: normalizeText(contextId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 32),
+      analysis_style_id: normalizeText(styleId).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 32),
+      low_signal: lowSignal === true,
+      synthetic: synthetic === true,
+      client_timestamp: normalizeText(clientTimestamp).replace(/[^0-9.]/g, "").slice(0, 24),
     }),
   }, clientOptions);
 }

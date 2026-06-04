@@ -4,6 +4,9 @@ import {
   ArrowRight,
   CheckCircle2,
   ChevronDown,
+  Copy,
+  RotateCcw,
+  Scissors,
   ShieldCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -25,6 +28,14 @@ import {
   SYNTHETIC_DEMOS,
   TRUST_STRIP_ITEMS,
 } from "./trustContent.js";
+import {
+  REPLY_ACTIONS,
+  buildComparisonResult,
+  buildDraftReplyOptions,
+  buildFeedbackMetadata,
+  goalAwareNextStep,
+  redactIdentifyingDetails,
+} from "./guidedInteraction.js";
 import {
   buildLowSignalFallback,
   buildSyntheticResult,
@@ -69,26 +80,6 @@ function Button({ children, tone = "primary", className = "", ...props }) {
 
 function optionById(options, id) {
   return options.find((option) => option.id === id) || options[0];
-}
-
-function presentationNextStep(view, goalId, styleId) {
-  const goal = optionById(GOAL_OPTIONS, goalId);
-  const engineStep = view.safeNextStep;
-  const goalStep = `Goal focus: ${goal.nextStep}`;
-  const cautionStep =
-    styleId === "careful" || goalId === "over_reading"
-      ? "Keep the limits visible before acting."
-      : "";
-
-  if (!engineStep) {
-    return [goal.nextStep, cautionStep].filter(Boolean).join(" ");
-  }
-
-  if (styleId === "quick") {
-    return [goalStep, cautionStep].filter(Boolean).join(" ");
-  }
-
-  return [engineStep, goalStep, cautionStep].filter(Boolean).join(" ");
 }
 
 function TopNav({ onHome, onHowItWorks, onBeta, onPrivacy }) {
@@ -230,8 +221,30 @@ function DemoMode({ onRunDemo }) {
   );
 }
 
-function AnalyzeMode({ text, setText, consent, setConsent, loading, onSubmit, error, status }) {
-  const canSubmit = normalizeText(text) && consent && !loading;
+function AnalyzeMode({
+  text,
+  setText,
+  consent,
+  setConsent,
+  loading,
+  onSubmit,
+  error,
+  status,
+  compareEnabled,
+  setCompareEnabled,
+  earlierText,
+  setEarlierText,
+  laterText,
+  setLaterText,
+  onRedact,
+  onUndoRedaction,
+  redactionStatus,
+  canUndoRedaction,
+}) {
+  const hasText = compareEnabled
+    ? normalizeText(earlierText) && normalizeText(laterText)
+    : normalizeText(text);
+  const canSubmit = hasText && consent && !loading;
 
   return (
     <section className="mode-panel" aria-labelledby="analyze-mode-title">
@@ -239,17 +252,75 @@ function AnalyzeMode({ text, setText, consent, setConsent, loading, onSubmit, er
         <h2 id="analyze-mode-title">Analyze Text</h2>
         <p>Paste only text you have permission to review. Remove names and sensitive details.</p>
       </div>
-      <label className="field-label" htmlFor="conversation">Permissioned conversation text</label>
-      <p className="field-helper" id="conversation-helper">
-        Use one line per message. Prefixing with self: or other: helps keep evidence clear.
-      </p>
-      <textarea
-        aria-describedby="conversation-helper consent-helper"
-        id="conversation"
-        onChange={(event) => setText(event.target.value)}
-        placeholder="self: Can you confirm Friday?&#10;other: maybe later"
-        value={text}
-      />
+      <label className="checkbox-row compare-toggle">
+        <input
+          checked={compareEnabled}
+          onChange={(event) => setCompareEnabled(event.target.checked)}
+          type="checkbox"
+        />
+        <span>Compare two snippets</span>
+      </label>
+      <div className="redaction-toolbar">
+        <div>
+          <strong>Remove identifying details</strong>
+          <p>Helps remove obvious identifiers. This runs in your browser before analysis.</p>
+        </div>
+        <div className="redaction-actions">
+          <Button tone="secondary" onClick={onRedact}>
+            <Scissors size={16} />
+            Remove identifying details
+          </Button>
+          <Button disabled={!canUndoRedaction} tone="secondary" onClick={onUndoRedaction}>
+            <RotateCcw size={16} />
+            Undo
+          </Button>
+        </div>
+      </div>
+      {redactionStatus ? <p className="status-text" role="status">{redactionStatus}</p> : null}
+      {compareEnabled ? (
+        <div className="comparison-fields">
+          <div>
+            <label className="field-label" htmlFor="conversation-earlier">Earlier message</label>
+            <p className="field-helper" id="comparison-earlier-helper">
+              Use observable wording from the earlier snippet only.
+            </p>
+            <textarea
+              aria-describedby="comparison-earlier-helper consent-helper"
+              id="conversation-earlier"
+              onChange={(event) => setEarlierText(event.target.value)}
+              placeholder="other: Friday at 7 works."
+              value={earlierText}
+            />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="conversation-later">Later message</label>
+            <p className="field-helper" id="comparison-later-helper">
+              Use observable wording from the later snippet only.
+            </p>
+            <textarea
+              aria-describedby="comparison-later-helper consent-helper"
+              id="conversation-later"
+              onChange={(event) => setLaterText(event.target.value)}
+              placeholder="other: maybe later"
+              value={laterText}
+            />
+          </div>
+        </div>
+      ) : (
+        <>
+          <label className="field-label" htmlFor="conversation">Permissioned conversation text</label>
+          <p className="field-helper" id="conversation-helper">
+            Use one line per message. Prefixing with self: or other: helps keep evidence clear.
+          </p>
+          <textarea
+            aria-describedby="conversation-helper consent-helper"
+            id="conversation"
+            onChange={(event) => setText(event.target.value)}
+            placeholder="self: Can you confirm Friday?&#10;other: maybe later"
+            value={text}
+          />
+        </>
+      )}
       <div className="consent-card" id="consent-helper">
         <ShieldCheck size={18} />
         <p>Only submit messages you have permission to analyze. Remove names, phone numbers, addresses, and sensitive details.</p>
@@ -306,7 +377,127 @@ function EmptyResult({ onRunDemo }) {
   );
 }
 
-function ResultPanel({ result, goalId, contextId, styleId, onRunDemo }) {
+function EvidenceTable({ rows, styleId, feedbackConsent, submittedFeedback, onCueFeedback }) {
+  const visibleRows = styleId === "quick" ? rows.slice(0, 2) : rows;
+
+  return (
+    <div
+      className="evidence-table"
+      role="table"
+      aria-label="Evidence phrases, patterns, why they matter, and evidence quality"
+    >
+      <div className="evidence-table-head" role="row">
+        <span role="columnheader">Evidence phrase</span>
+        <span role="columnheader">Pattern</span>
+        <span role="columnheader">Why it matters</span>
+        <span role="columnheader">Evidence quality</span>
+      </div>
+      {visibleRows.map((row) => (
+        <article className="evidence-table-row" key={row.id} role="row">
+          <div role="cell" data-label="Evidence phrase">
+            <span className="evidence-cell-label">Evidence phrase</span>
+            <strong>“{row.phrase}”</strong>
+          </div>
+          <div role="cell" data-label="Pattern">
+            <span className="evidence-cell-label">Pattern</span>
+            <span className="pattern-pill">{row.family}</span>
+          </div>
+          <div role="cell" data-label="Why it matters">
+            <span className="evidence-cell-label">Why it matters</span>
+            <p>{styleId === "quick" ? "Visible wording supports this pattern label." : row.explanation || "This pattern is based on the quoted wording."}</p>
+          </div>
+          <div role="cell" data-label="Evidence quality">
+            <span className="evidence-cell-label">Evidence quality</span>
+            <span className={`quality-pill quality-${row.quality}`}>{row.qualityLabel}</span>
+            <p>{row.qualityDescription}</p>
+          </div>
+          <div className="cue-feedback" role="group" aria-label={`Cue feedback for ${row.family}`}>
+            {[
+              { id: "cue_fits", label: "This cue fits", rating: 1 },
+              { id: "cue_too_strong", label: "Too strong", rating: 0 },
+              { id: "cue_wrong", label: "Wrong cue", rating: 0 },
+            ].map((feedback) => {
+              const { id, label, rating } = feedback;
+              const key = `${id}:${row.id}`;
+              return (
+                <Button
+                  className={submittedFeedback.includes(key) ? "feedback-option-selected" : ""}
+                  disabled={!feedbackConsent || submittedFeedback.includes(key)}
+                  key={id}
+                  tone="secondary"
+                  onClick={() => onCueFeedback({ id, rating }, row)}
+                >
+                  {label}
+                </Button>
+              );
+            })}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ReplyHelper({ goalId, patternLabels }) {
+  const [selectedType, setSelectedType] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
+  const drafts = useMemo(
+    () => buildDraftReplyOptions({ goalId, patternLabels, selectedType }),
+    [goalId, patternLabels, selectedType]
+  );
+
+  async function copyDraft(text) {
+    setCopyStatus("");
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyStatus("Draft option copied locally. Edit before using.");
+    } catch (_error) {
+      setCopyStatus("Copy is unavailable in this browser. You can select the draft text manually.");
+    }
+  }
+
+  return (
+    <section className="reply-helper" aria-labelledby="reply-helper-title">
+      <div>
+        <h3 id="reply-helper-title">Want a clearer reply?</h3>
+        <p>Draft options are communication support, not proof of what someone means.</p>
+      </div>
+      <div className="reply-action-row" role="radiogroup" aria-label="Reply helper options">
+        {REPLY_ACTIONS.map((action) => (
+          <button
+            aria-checked={selectedType === action.type}
+            className={selectedType === action.type ? "selected" : ""}
+            key={action.id}
+            role="radio"
+            type="button"
+            onClick={() => setSelectedType((current) => (current === action.type ? "" : action.type))}
+          >
+            {action.label}
+          </button>
+        ))}
+      </div>
+      <div className="draft-list">
+        {drafts.map((draft) => (
+          <article className="draft-card" key={draft.type}>
+            <div>
+              <span>{draft.label}</span>
+              <h4>{draft.title}</h4>
+              <p>{draft.text}</p>
+              <small>{draft.helper}</small>
+            </div>
+            <Button tone="secondary" onClick={() => copyDraft(draft.text)}>
+              <Copy size={16} />
+              Copy
+            </Button>
+          </article>
+        ))}
+      </div>
+      {copyStatus ? <p className="status-text" role="status">{copyStatus}</p> : null}
+    </section>
+  );
+}
+
+function ResultPanel({ result, goalId, contextId, styleId, onRunDemo, onSwitchToAnalyze }) {
   const view = useMemo(() => (result ? buildTrustFirstResultView(result) : null), [result]);
   const [feedbackConsent, setFeedbackConsent] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState("");
@@ -320,25 +511,38 @@ function ResultPanel({ result, goalId, contextId, styleId, onRunDemo }) {
   const goal = optionById(GOAL_OPTIONS, goalId);
   const context = optionById(CONTEXT_OPTIONS, contextId);
   const style = optionById(ANALYSIS_STYLE_OPTIONS, styleId);
-  const safeNextStep = presentationNextStep(view, goalId, styleId);
+  const safeNextStep = goalAwareNextStep(view.safeNextStep, goalId, styleId);
 
-  async function sendFeedback(option) {
-    if (submittedFeedback.includes(option.id)) {
+  async function sendFeedback(option, row = null) {
+    const feedbackKey = row ? `${option.id}:${row.id}` : `${option.id}:result`;
+    if (submittedFeedback.includes(feedbackKey)) {
       setFeedbackStatus("Feedback metadata already accepted for this result.");
       setFeedbackError("");
       return;
     }
     setFeedbackStatus("");
     setFeedbackError("");
+    const metadata = buildFeedbackMetadata({
+      matchId: view.matchId,
+      feedbackTag: option.id,
+      cueId: row?.id || "",
+      cueFamily: row?.cueId || "",
+      evidenceQuality: row?.quality || view.evidenceQualitySummary || "",
+      goalId,
+      contextId,
+      styleId,
+      lowSignal: view.isLowSignal,
+      synthetic: view.synthetic,
+    });
     try {
       await submitFeedback({
-        matchId: view.matchId,
+        ...metadata,
         feedbackTag: option.id,
         rating: option.rating,
         consent: feedbackConsent,
       });
       setSubmittedFeedback((current) =>
-        current.includes(option.id) ? current : [...current, option.id]
+        current.includes(feedbackKey) ? current : [...current, feedbackKey]
       );
       setFeedbackStatus("Feedback metadata accepted. No raw message text was sent.");
     } catch (error) {
@@ -359,9 +563,9 @@ function ResultPanel({ result, goalId, contextId, styleId, onRunDemo }) {
           <p>This message is too short or context-light. Add context or try a synthetic demo.</p>
         </div>
         <div className="result-section">
-          <h3>Try</h3>
+          <h3>What context would help?</h3>
           <ul>
-            {view.tryItems.map((item) => (
+            {(view.contextSuggestions || view.tryItems).map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -370,12 +574,13 @@ function ResultPanel({ result, goalId, contextId, styleId, onRunDemo }) {
           <h3>Safer next step</h3>
           <p>{safeNextStep}</p>
         </div>
-        <Button onClick={onRunDemo}>Try a synthetic demo <ArrowRight size={16} /></Button>
+        <div className="low-signal-actions">
+          <Button onClick={onSwitchToAnalyze}>Add more context</Button>
+          <Button tone="secondary" onClick={onRunDemo}>Try a synthetic demo <ArrowRight size={16} /></Button>
+        </div>
       </section>
     );
   }
-
-  const evidenceRows = styleId === "quick" ? view.evidenceDetails.slice(0, 2) : view.evidenceDetails;
 
   return (
     <section className="result-panel" aria-label="Vibe Signal result">
@@ -385,24 +590,22 @@ function ResultPanel({ result, goalId, contextId, styleId, onRunDemo }) {
           <span className="status-pill">{view.signalStrengthLabel}</span>
         </div>
         <p className="result-context">
-          Goal: {goal.label} · Context: {context.label} · Style: {style.label}
+          Your goal: {goal.label} · Context: {context.label} · Style: {style.label}
         </p>
       </div>
       <div className="result-section">
-        <h3>What stands out</h3>
+        <h3>{view.comparison ? "What changed" : "What stands out"}</h3>
         <p>{view.mainRead}</p>
       </div>
       <div className="result-section">
         <h3>Evidence</h3>
-        <div className="evidence-list">
-          {evidenceRows.map((row) => (
-            <article className="evidence-detail" key={row.id}>
-              <span>{row.family}</span>
-              <strong>“{row.phrase}”</strong>
-              {styleId !== "quick" && row.explanation ? <p>{row.explanation}</p> : null}
-            </article>
-          ))}
-        </div>
+        <EvidenceTable
+          feedbackConsent={feedbackConsent}
+          onCueFeedback={sendFeedback}
+          rows={view.evidenceDetails}
+          styleId={styleId}
+          submittedFeedback={submittedFeedback}
+        />
       </div>
       <div className="result-section">
         <h3>Pattern</h3>
@@ -421,6 +624,7 @@ function ResultPanel({ result, goalId, contextId, styleId, onRunDemo }) {
         <h3>Safer next step</h3>
         <p>{safeNextStep}</p>
       </div>
+      <ReplyHelper goalId={goalId} patternLabels={view.patternLabels} />
       <section className="feedback-panel">
         <div>
           <h3>Metadata-only feedback</h3>
@@ -437,8 +641,8 @@ function ResultPanel({ result, goalId, contextId, styleId, onRunDemo }) {
         <div className="feedback-actions">
           {FEEDBACK_OPTIONS.map((option) => (
             <Button
-              className={submittedFeedback.includes(option.id) ? "feedback-option-selected" : ""}
-              disabled={!feedbackConsent || !view.matchId || submittedFeedback.includes(option.id)}
+              className={submittedFeedback.includes(`${option.id}:result`) ? "feedback-option-selected" : ""}
+              disabled={!feedbackConsent || !view.matchId || submittedFeedback.includes(`${option.id}:result`)}
               key={option.id}
               tone="secondary"
               onClick={() => sendFeedback(option)}
@@ -512,26 +716,93 @@ function Home({ setView }) {
   const [contextId, setContextId] = useState("general");
   const [styleId, setStyleId] = useState("evidence");
   const [text, setText] = useState(SAMPLE_TEXT);
+  const [compareEnabled, setCompareEnabled] = useState(false);
+  const [earlierText, setEarlierText] = useState("other: Friday at 7 works.");
+  const [laterText, setLaterText] = useState("other: maybe later");
   const [consent, setConsent] = useState(false);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [redactionSnapshot, setRedactionSnapshot] = useState(null);
+  const [redactionStatus, setRedactionStatus] = useState("");
 
   const selectedStyle = optionById(ANALYSIS_STYLE_OPTIONS, styleId);
-  const status = !normalizeText(text)
-    ? "Add a short exchange, or run a synthetic demo first."
+  const hasActiveText = compareEnabled
+    ? normalizeText(earlierText) && normalizeText(laterText)
+    : normalizeText(text);
+  const status = !hasActiveText
+    ? compareEnabled
+      ? "Add both snippets, or run a synthetic demo first."
+      : "Add a short exchange, or run a synthetic demo first."
     : !consent
       ? "Private analysis unlocks after the permission checkbox."
       : loading
         ? "Reviewing observable patterns..."
-        : "Ready to review permissioned text.";
+        : compareEnabled
+          ? "Ready to compare observable wording changes locally."
+          : "Ready to review permissioned text.";
 
   function runSyntheticDemo(demoId = PRIMARY_DEMO_IDS[0]) {
     setResult(buildSyntheticResult(demoId));
     setError("");
   }
 
+  function switchToAnalyzeMode() {
+    setMode("analyze");
+    setError("");
+  }
+
+  function handleRedaction() {
+    setRedactionSnapshot({ text, earlierText, laterText });
+    if (compareEnabled) {
+      const earlier = redactIdentifyingDetails(earlierText);
+      const later = redactIdentifyingDetails(laterText);
+      setEarlierText(earlier.text);
+      setLaterText(later.text);
+      const changedCount = Number(earlier.changed) + Number(later.changed);
+      setRedactionStatus(
+        changedCount
+          ? "Removed obvious identifiers locally. Review the edited snippets before analysis."
+          : "No obvious identifiers found. Review the text before analysis."
+      );
+      return;
+    }
+
+    const redacted = redactIdentifyingDetails(text);
+    setText(redacted.text);
+    setRedactionStatus(
+      redacted.changed
+        ? "Removed obvious identifiers locally. Review the edited text before analysis."
+        : "No obvious identifiers found. Review the text before analysis."
+    );
+  }
+
+  function undoRedaction() {
+    if (!redactionSnapshot) {
+      return;
+    }
+    setText(redactionSnapshot.text);
+    setEarlierText(redactionSnapshot.earlierText);
+    setLaterText(redactionSnapshot.laterText);
+    setRedactionSnapshot(null);
+    setRedactionStatus("Redaction undone locally.");
+  }
+
   async function handleAnalyzeSubmit() {
+    if (compareEnabled) {
+      if (!normalizeText(earlierText) || !normalizeText(laterText)) {
+        setError("Add both snippets before comparing observable wording.");
+        return;
+      }
+      if (!consent) {
+        setError("Confirm permission before private text analysis.");
+        return;
+      }
+      setResult(buildComparisonResult({ earlierText, laterText }));
+      setError("");
+      return;
+    }
+
     if (!normalizeText(text)) {
       setError("Add a short exchange, or run a synthetic demo first.");
       return;
@@ -623,11 +894,31 @@ function Home({ setView }) {
             <DemoMode onRunDemo={runSyntheticDemo} />
           ) : (
             <AnalyzeMode
+              canUndoRedaction={redactionSnapshot !== null}
+              compareEnabled={compareEnabled}
               consent={consent}
+              earlierText={earlierText}
               error={error}
+              laterText={laterText}
               loading={loading}
+              onRedact={handleRedaction}
               onSubmit={handleAnalyzeSubmit}
+              onUndoRedaction={undoRedaction}
+              redactionStatus={redactionStatus}
+              setCompareEnabled={(value) => {
+                setCompareEnabled(value);
+                setError("");
+                setRedactionStatus("");
+              }}
               setConsent={setConsent}
+              setEarlierText={(value) => {
+                setEarlierText(value);
+                setError("");
+              }}
+              setLaterText={(value) => {
+                setLaterText(value);
+                setError("");
+              }}
               setText={(value) => {
                 setText(value);
                 setError("");
@@ -642,6 +933,7 @@ function Home({ setView }) {
             contextId={contextId}
             goalId={goalId}
             onRunDemo={() => runSyntheticDemo(PRIMARY_DEMO_IDS[0])}
+            onSwitchToAnalyze={switchToAnalyzeMode}
             result={result}
             styleId={styleId}
           />
