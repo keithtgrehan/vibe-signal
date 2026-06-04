@@ -78,3 +78,26 @@ def test_feedback_route_keeps_bounded_cue_metadata_without_raw_text() -> None:
     assert "raw_message_text" not in stored
     assert "evidence_text" not in stored
     assert "draft_reply_text" not in stored
+
+
+def test_feedback_route_bounds_match_id_metadata() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/feedback",
+        json={
+            "match_id": "vibe match private@example.com raw phrase " + ("x" * 80),
+            "rating": 0,
+            "feedback_tag": "missed_context",
+            "comment": "metadata only",
+            "consent_to_store_feedback": True,
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    stored = response.json()["stored_feedback"]
+    assert stored["match_id"].startswith("vibe_match_private_example.com_raw_phrase_")
+    assert len(stored["match_id"]) == 64
+    assert " " not in stored["match_id"]
+    assert "@" not in stored["match_id"]
+    assert "private@example.com raw phrase" not in stored["match_id"]

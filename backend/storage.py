@@ -67,7 +67,7 @@ def store_feedback_metadata(payload: dict[str, Any]) -> dict[str, Any]:
     row = {
         "feedback_id": f"feedback_{len(FEEDBACK_ROWS) + 1:06d}",
         "feedback_event_id": feedback_event_id,
-        "match_id": str(payload.get("match_id", "")),
+        "match_id": _safe_metadata_token(payload.get("match_id"), 64),
         "rating": payload.get("rating"),
         "feedback_tag": _safe_metadata_token(payload.get("feedback_tag"), 32),
         "cue_id": _safe_metadata_token(payload.get("cue_id"), 48),
