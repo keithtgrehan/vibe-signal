@@ -13,7 +13,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RESTRICTED_ROOT = REPO_ROOT / "data" / "restricted" / "private_whatsapp"
 DEFAULT_INPUT = RESTRICTED_ROOT / "processed" / "private_label_review.csv"
-DEFAULT_REPORT = RESTRICTED_ROOT / "processed" / "private_label_evaluation.md"
+DEFAULT_REPORT = RESTRICTED_ROOT / "processed" / "private_weak_label_report.md"
 
 
 def ensure_restricted_path(path: Path, *, kind: str = "path") -> Path:
@@ -39,13 +39,21 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 
 def compute_summary(rows: list[dict[str, str]]) -> dict[str, Any]:
     candidate_counts: Counter[str] = Counter()
+    evidence_hint_counts: Counter[str] = Counter()
+    severity_counts: Counter[str] = Counter()
     review_counts: Counter[str] = Counter()
     reviewed_rows = 0
     candidate_hit = 0
     candidate_miss = 0
+    rows_with_candidates = 0
     for row in rows:
         candidates = set(split_labels(row.get("candidate_labels", "")))
+        if candidates:
+            rows_with_candidates += 1
         candidate_counts.update(candidates)
+        evidence_hint_counts.update(split_labels(row.get("evidence_hint", "")))
+        severity = row.get("severity", "").strip() or "unreviewed"
+        severity_counts[severity] += 1
         reviewed = split_labels(row.get("review_label", ""))
         if not reviewed:
             continue
@@ -59,17 +67,23 @@ def compute_summary(rows: list[dict[str, str]]) -> dict[str, Any]:
     return {
         "status": "complete",
         "row_count": len(rows),
+        "rows_with_candidate_labels": rows_with_candidates,
         "reviewed_rows": reviewed_rows,
+        "rows_needing_human_review": len(rows) - reviewed_rows,
         "candidate_hit": candidate_hit,
         "candidate_miss": candidate_miss,
         "candidate_review_agreement": agreement,
         "candidate_counts": dict(sorted(candidate_counts.items())),
+        "evidence_hint_counts": dict(sorted(evidence_hint_counts.items())),
+        "severity_counts": dict(sorted(severity_counts.items())),
         "review_counts": dict(sorted(review_counts.items())),
     }
 
 
 def build_report(summary: dict[str, Any]) -> str:
     candidate_lines = [f"- `{label}`: `{count}`" for label, count in summary["candidate_counts"].items()] or ["- None"]
+    hint_lines = [f"- `{label}`: `{count}`" for label, count in summary["evidence_hint_counts"].items()] or ["- None"]
+    severity_lines = [f"- `{label}`: `{count}`" for label, count in summary["severity_counts"].items()] or ["- None"]
     review_lines = [f"- `{label}`: `{count}`" for label, count in summary["review_counts"].items()] or ["- None"]
     agreement = summary["candidate_review_agreement"]
     agreement_text = "`not available`" if agreement is None else f"`{agreement}`"
@@ -80,7 +94,9 @@ def build_report(summary: dict[str, Any]) -> str:
             "Aggregate local report only. It contains no raw or redacted message text.",
             "",
             f"- Rows: `{summary['row_count']}`",
+            f"- Rows with candidate labels: `{summary['rows_with_candidate_labels']}`",
             f"- Reviewed rows: `{summary['reviewed_rows']}`",
+            f"- Rows needing human review: `{summary['rows_needing_human_review']}`",
             f"- Candidate hit rows: `{summary['candidate_hit']}`",
             f"- Candidate miss rows: `{summary['candidate_miss']}`",
             f"- Candidate/review agreement: {agreement_text}",
@@ -88,6 +104,14 @@ def build_report(summary: dict[str, Any]) -> str:
             "## Candidate Counts",
             "",
             *candidate_lines,
+            "",
+            "## Evidence Hint Counts",
+            "",
+            *hint_lines,
+            "",
+            "## Severity Counts",
+            "",
+            *severity_lines,
             "",
             "## Review Counts",
             "",
@@ -122,10 +146,13 @@ def main(argv: list[str] | None = None) -> int:
     printable = {
         "status": summary["status"],
         "row_count": summary["row_count"],
+        "rows_with_candidate_labels": summary["rows_with_candidate_labels"],
         "reviewed_rows": summary["reviewed_rows"],
+        "rows_needing_human_review": summary["rows_needing_human_review"],
         "candidate_hit": summary["candidate_hit"],
         "candidate_miss": summary["candidate_miss"],
         "candidate_review_agreement": summary["candidate_review_agreement"],
+        "candidate_counts": summary["candidate_counts"],
     }
     print(json.dumps(printable, indent=2, sort_keys=True))
     return 0
@@ -133,4 +160,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

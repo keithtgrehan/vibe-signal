@@ -14,18 +14,27 @@ from ..evidence.objects import build_evidence_object
 
 
 CONFIG_PATH = Path(__file__).resolve().parents[3] / "configs" / "vibe_cue_taxonomy.yml"
-ASK_RE = re.compile(r"\b(can|could|will|would)\s+you\b|\?|\bplease\b|\bconfirm\b", re.IGNORECASE)
-REQUEST_MARKER_RE = re.compile(r"\b(?:can you|could you|will you|would you|please|confirm|send|review|check|compare|rewrite|tell me)\b", re.IGNORECASE)
-ACTION_OR_DECISION_RE = re.compile(
-    r"\b(?:confirm|send|review|check|compare|rewrite|tell me|meet|call|reply|answer|decide|choose|bring|share|explain|plan|need|deadline)\b",
+ASK_RE = re.compile(r"\b(can|could|will|would)\s+you\b|\b(can|could|should|shall|do|are)\s+we\b|\?|\bplease\b|\bconfirm\b", re.IGNORECASE)
+REQUEST_MARKER_RE = re.compile(
+    r"\b(?:can you|could you|will you|would you|can we|could we|should we|shall we|do we|are we|please|confirm|send|review|check|compare|rewrite|tell me)\b",
     re.IGNORECASE,
 )
-VAGUE_OR_HEDGE_RE = re.compile(r"\b(?:maybe|idk|not sure|whatever|sometime|later|we'll see|unclear)\b", re.IGNORECASE)
+ACTION_OR_DECISION_RE = re.compile(
+    r"\b(?:confirm|send|review|check|compare|rewrite|tell me|meet|call|reply|answer|decide|choose|bring|share|explain|plan|need|deadline|book|pick|schedule)\b",
+    re.IGNORECASE,
+)
+VAGUE_OR_HEDGE_RE = re.compile(
+    r"\b(?:maybe|idk|not sure|whatever|sometime|later|soon|some point|at some point|not yet|not fully sure|let'?s see|we'll see|still deciding|tentative|unsure|unclear)\b",
+    re.IGNORECASE,
+)
 LOW_PRESSURE_COMMAND_RE = re.compile(r"\b(?:no rush|no pressure|no stress|when you can)\b", re.IGNORECASE)
-STRONG_DIRECT_MARKER_RE = re.compile(r"\b(?:please|can you|could you|will you|would you|i need|i want|please confirm|did you|do you|are you)\b", re.IGNORECASE)
-PRESSURE_DIRECTIVE_RE = re.compile(r"\b(?:you have to|you must|right now|or else|owe me|don't say no)\b", re.IGNORECASE)
+STRONG_DIRECT_MARKER_RE = re.compile(
+    r"\b(?:please|can you|could you|will you|would you|can we|could we|should we|shall we|i need|i want|please confirm|did you|do you|are you|are we)\b",
+    re.IGNORECASE,
+)
+PRESSURE_DIRECTIVE_RE = re.compile(r"\b(?:you have to|you must|need you to|right now|or else|owe me|don't say no)\b", re.IGNORECASE)
 ESCALATION_MARKER_RE = re.compile(
-    r"\b(?:or else|you always|you never|your fault|stop asking|not okay|fight|argument|right now)\b|[!?]{2,}|\b[A-Z]{3,}\b",
+    r"\b(?:or else|you always|you never|your fault|stop asking|not okay|fight|argument|right now|this keeps happening|ridiculous)\b|[!?]{2,}|\b[A-Z]{3,}\b",
     re.IGNORECASE,
 )
 INTENSE_PUNCTUATION_RE = re.compile(r"[!?]{2,}|\b[A-Z]{3,}\b")
@@ -100,6 +109,16 @@ def _sentence_count(text: str) -> int:
 
 def _request_marker_count(text: str) -> int:
     return len(REQUEST_MARKER_RE.findall(text))
+
+
+def _boundary_sensitive_context(text: str) -> bool:
+    lowered = str(text or "").lower()
+    return bool(
+        re.search(
+            r"\b(?:send me your|share your|prove it|why won't you|do not tell anyone|don't tell anyone|private photo|your location|explain why|or else|after you said no)\b",
+            lowered,
+        )
+    )
 
 
 def _parse_time(value: Any) -> datetime | None:
@@ -211,6 +230,8 @@ def _add_pattern_cue(
         return
     if cue_family == "directness" and VAGUE_OR_HEDGE_RE.search(text) and not ACTION_OR_DECISION_RE.search(text):
         return
+    if cue_family == "boundary_pressure" and match.group(0).lower() == "you have to" and not _boundary_sensitive_context(text):
+        return
     if cue_family == "hedging" and match.group(0).lower() == "i think" and not (
         ACTION_OR_DECISION_RE.search(text) or "works" in str(text or "").lower()
     ):
@@ -234,13 +255,16 @@ def _add_pattern_cue(
 
 
 def _message_is_overloaded(text: str) -> bool:
-    comma_list_count = str(text or "").count(",")
-    conjunction_count = len(re.findall(r"\b(?:and|whether)\b", str(text or ""), flags=re.IGNORECASE))
+    raw_text = str(text or "")
+    comma_list_count = raw_text.count(",")
+    delimiter_count = raw_text.count(";") + raw_text.count("/") + raw_text.count("\n")
+    conjunction_count = len(re.findall(r"\b(?:and|whether|also)\b", raw_text, flags=re.IGNORECASE))
     return (
         _word_count(text) >= 30
         or _sentence_count(text) >= 4
         or text.count("?") >= 2
         or _request_marker_count(text) >= 4
+        or (delimiter_count >= 2 and conjunction_count >= 1 and _word_count(text) >= 12)
         or (comma_list_count >= 4 and conjunction_count >= 1 and _word_count(text) >= 14)
     )
 
@@ -295,7 +319,9 @@ def _message_cues(message: dict[str, Any], conversation_id: str) -> list[dict[st
         _add_whole_message_cue(cues, cue_family="unclear_ask", text=text, message=message, conversation_id=conversation_id)
 
     cue_families = {cue["cue_family"] for cue in cues}
-    pressure_escalation = "pressure" in cue_families and ({"conflict", "boundary_pressure"} & cue_families) and ESCALATION_MARKER_RE.search(text)
+    pressure_escalation = "pressure" in cue_families and (
+        ({"conflict", "boundary_pressure"} & cue_families) or INTENSE_PUNCTUATION_RE.search(text)
+    ) and ESCALATION_MARKER_RE.search(text)
     conflict_intensity = "conflict" in cue_families and INTENSE_PUNCTUATION_RE.search(text)
     if pressure_escalation or conflict_intensity:
         _add_whole_message_cue(cues, cue_family="escalation_risk", text=text, message=message, conversation_id=conversation_id)

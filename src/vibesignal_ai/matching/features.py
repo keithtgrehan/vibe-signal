@@ -19,7 +19,10 @@ from ..features.shared import (
 )
 
 
-VAGUE_RE = re.compile(r"\b(?:maybe|later|soon|stuff|things|not sure|sometime|we'?ll see|idk|whatever)\b", re.IGNORECASE)
+VAGUE_RE = re.compile(
+    r"\b(?:maybe|later|soon|stuff|things|not sure|not yet|not fully sure|sometime|some point|at some point|let'?s see|we'?ll see|still deciding|tentative|unsure|idk|whatever)\b",
+    re.IGNORECASE,
+)
 UNSUPPORTED_CLAIM_RE = re.compile(
     r"\b(?:you always|you never|obviously|everyone knows|that proves|you don'?t care|you are trying to|you'?re trying to)\b",
     re.IGNORECASE,
@@ -145,7 +148,21 @@ def concrete_detail_count(text: str) -> int:
 
 def _has_direct_ask(text: str) -> bool:
     lowered = str(text or "").lower()
-    return is_question(lowered) or any(marker in lowered for marker in ("can you", "could you", "will you", "would you", "please confirm"))
+    return is_question(lowered) or any(
+        marker in lowered
+        for marker in (
+            "can you",
+            "could you",
+            "will you",
+            "would you",
+            "can we",
+            "could we",
+            "should we",
+            "shall we",
+            "are we",
+            "please confirm",
+        )
+    )
 
 
 def _is_evasive_reply(previous: str, current: str) -> bool:

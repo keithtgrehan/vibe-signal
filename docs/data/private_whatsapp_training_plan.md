@@ -52,7 +52,7 @@ Blocked labels include claims about hidden or unsupported states:
 2. Run `tools/ingest_private_whatsapp.py --zip-path <path-to-export.zip>`.
 3. The tool parses `_chat.txt` rows in `[DD.MM.YY, HH:MM:SS] Sender: Message` format.
 4. Multiline messages are attached to the prior message.
-5. Sender names are converted to `speaker_role`: `self` for `Keith` or `self`, and `other` for everyone else.
+5. Sender names are converted to `speaker_role`: configured local self aliases map to `self`, and all others map to `other`.
 6. The tool writes `private_messages.jsonl` and `private_ingest_stats.json` under the restricted folder.
 7. The tool prints only aggregate status and role counts.
 
@@ -102,4 +102,3 @@ Promotion out of local research requires:
 ## No Production Claims
 
 This pipeline does not prove model quality, real-world accuracy, production readiness, or relationship outcomes. It supports local cue review and future research only.
-

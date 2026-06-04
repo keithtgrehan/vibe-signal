@@ -15,7 +15,7 @@ cues:
     cue_family: directness
     description: Direct request, instruction, or confirmation wording.
     patterns:
-      - "\\b(?:please|can you|could you|will you|would you|did you|do you|are you|i need|i want|confirm|send|review)\\b"
+      - "\\b(?:please|can you|could you|will you|would you|can we|could we|should we|shall we|did you|do you|are you|are we|i need|i want|confirm|send|review)\\b"
       - "\\bi will\\s+(?:answer|reply|send|confirm|review|check|call|meet)\\b"
     reducers: []
     confidence: 0.74
@@ -41,7 +41,7 @@ cues:
     cue_family: hedging
     description: Qualifying or tentative wording.
     patterns:
-      - "\\b(?:maybe|perhaps|sort of|kind of|i guess|i think|not sure|might|could be)\\b"
+      - "\\b(?:maybe|perhaps|sort of|kind of|i guess|i think|not sure|not fully sure|unsure|tentative|might|could be)\\b"
     reducers: []
     confidence: 0.72
     explanation: "Rule matched tentative or qualifying wording."
@@ -79,7 +79,7 @@ cues:
     cue_family: pressure
     description: Obligation, ultimatum, or constrained-choice wording.
     patterns:
-      - "\\b(?:you must|right now|or else|if you do not|if you don't|you have to|don't say no|owe me)\\b"
+      - "\\b(?:you must|right now|or else|if you do not|if you don't|you have to|need you to|don't say no|owe me)\\b"
     reducers:
       - "\\b(?:no pressure|only if you want|when you can)\\b"
     confidence: 0.78
@@ -92,7 +92,7 @@ cues:
     cue_family: conflict
     description: Disagreement, tension, or conflict-process wording.
     patterns:
-      - "\\b(?:upset|frustrated|argument|fight|disagree|not okay|hurt|tense|sorry this got tense)\\b"
+      - "\\b(?:upset|frustrated|argument|fight|disagree|not okay|hurt|tense|sorry this got tense|ridiculous|this keeps happening)\\b"
     reducers: []
     confidence: 0.7
     explanation: "Rule matched conflict or tension wording."
@@ -140,7 +140,7 @@ cues:
     cue_family: ambiguity
     description: Vague timing, uncertainty, or non-specific wording.
     patterns:
-      - "\\b(?:maybe|idk|not sure|whatever|sometime|later maybe|we'll see|unclear)\\b"
+      - "\\b(?:maybe|idk|not sure|not yet|not fully sure|whatever|sometime|some point|at some point|later maybe|soon|let's see|we'll see|still deciding|tentative|unsure|unclear)\\b"
     reducers: []
     confidence: 0.72
     explanation: "Rule matched vague or non-specific wording."
@@ -200,7 +200,7 @@ cues:
     cue_family: repair_opportunity
     description: Apology, reset, or rephrasing wording.
     patterns:
-      - "\\b(?:sorry|let me rephrase|reset|repair|misunderstood|i meant)\\b"
+      - "\\b(?:sorry|my bad|let me rephrase|let me clarify|i should have said|i meant to say|can we reset|let's reset|start again|reset|repair|misunderstood|i meant)\\b"
     reducers: []
     confidence: 0.74
     explanation: "Rule matched apology, reset, or rephrasing wording."

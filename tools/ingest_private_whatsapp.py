@@ -37,9 +37,10 @@ def ensure_restricted_path(path: Path, *, kind: str = "path") -> Path:
     return resolved
 
 
-def speaker_role(sender: str) -> str:
+def speaker_role(sender: str, *, self_aliases: set[str] | None = None) -> str:
     normalized = sender.strip().casefold()
-    return "self" if normalized in {"keith", "self"} else "other"
+    aliases = self_aliases or {"self"}
+    return "self" if normalized in aliases else "other"
 
 
 def _decode_chat_bytes(raw: bytes) -> str:
@@ -51,7 +52,7 @@ def _decode_chat_bytes(raw: bytes) -> str:
     return raw.decode("utf-8", errors="replace")
 
 
-def parse_chat_text(text: str, *, source_file: str = "_chat.txt") -> list[ParsedMessage]:
+def parse_chat_text(text: str, *, source_file: str = "_chat.txt", self_aliases: set[str] | None = None) -> list[ParsedMessage]:
     messages: list[ParsedMessage] = []
     current: ParsedMessage | None = None
     for line in text.splitlines():
@@ -61,7 +62,7 @@ def parse_chat_text(text: str, *, source_file: str = "_chat.txt") -> list[Parsed
                 messages.append(current)
             current = ParsedMessage(
                 timestamp=f"{match.group('date')} {match.group('time')}",
-                speaker_role=speaker_role(match.group("sender")),
+                speaker_role=speaker_role(match.group("sender"), self_aliases=self_aliases),
                 text=match.group("message"),
                 source_file=source_file,
             )
@@ -74,7 +75,7 @@ def parse_chat_text(text: str, *, source_file: str = "_chat.txt") -> list[Parsed
     return messages
 
 
-def read_chat_zip(zip_path: Path) -> tuple[list[ParsedMessage], dict[str, Any]]:
+def read_chat_zip(zip_path: Path, *, self_aliases: set[str] | None = None) -> tuple[list[ParsedMessage], dict[str, Any]]:
     if not zip_path.exists():
         raise FileNotFoundError(f"zip not found: {zip_path}")
     messages: list[ParsedMessage] = []
@@ -88,7 +89,7 @@ def read_chat_zip(zip_path: Path) -> tuple[list[ParsedMessage], dict[str, Any]]:
                 continue
             chat_files += 1
             chat_text = _decode_chat_bytes(archive.read(member))
-            messages.extend(parse_chat_text(chat_text, source_file=f"chat_{chat_files:03d}"))
+            messages.extend(parse_chat_text(chat_text, source_file=f"chat_{chat_files:03d}", self_aliases=self_aliases))
     stats = {
         "chat_files": chat_files,
         "skipped_files": skipped_files,
@@ -129,11 +130,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ingest a local WhatsApp export into the restricted private review area.")
     parser.add_argument("--zip-path", required=True, help="Path to a local WhatsApp export zip.")
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="Restricted output directory.")
+    parser.add_argument("--self-alias", action="append", default=["self"], help="Local sender alias to map to speaker_role self.")
     args = parser.parse_args(argv)
 
     try:
         output_dir = ensure_restricted_path(Path(args.output_dir), kind="output directory")
-        messages, stats = read_chat_zip(Path(args.zip_path))
+        aliases = {str(alias).strip().casefold() for alias in args.self_alias if str(alias).strip()}
+        messages, stats = read_chat_zip(Path(args.zip_path), self_aliases=aliases)
         summary = write_outputs(messages, stats, output_dir)
     except (FileNotFoundError, ValueError, zipfile.BadZipFile) as exc:
         print(f"Error: {exc}", file=sys.stderr)
