@@ -1,7 +1,7 @@
 import { CAN_HELP_WITH, CANNOT_TELL, SYNTHETIC_DEMOS } from "./trustContent.js";
 
 const DEFAULT_CANNOT_INFER =
-  "This does not prove intent, attraction, honesty, or emotional state.";
+  "This does not tell you what they feel or intend.";
 const DEFAULT_NEXT_STEP = "Ask one clear, lower-pressure follow-up.";
 const LOW_SIGNAL_TRIGGERS = new Set(["hey", "hi", "ok", "okay", "k", "fine", "lol", "lol sure"]);
 
@@ -249,6 +249,10 @@ export function buildTrustFirstResultView(result = {}) {
     patternExplanation:
       evidenceDetails.map((row) => row.explanation).find(Boolean) ||
       "This pattern is based on the quoted wording above.",
+    interpretation:
+      normalizeText(result?.safe_interpretation) ||
+      evidenceDetails.map((row) => row.explanation).find(Boolean) ||
+      "The safest read is limited to the wording shown here.",
     cannotInferText: DEFAULT_CANNOT_INFER,
     safeNextStep: safeNextSteps[0] || firstRepair || DEFAULT_NEXT_STEP,
     canTell: CAN_HELP_WITH,
