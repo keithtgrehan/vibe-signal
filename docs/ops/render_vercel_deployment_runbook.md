@@ -110,6 +110,22 @@ Known stale signs:
 
 Stale Render does not block public legal page display because the legal pages are static-first in the web bundle. It does block reliable private custom analysis when CORS or route parity is stale.
 
+## No-Render-minute preflight mode
+
+Use the default smoke script mode when deciding whether private analyze is ready to trust from the custom domain:
+
+```bash
+bash scripts/prod_smoke_custom_domain.sh
+```
+
+If Render latest-main deploy is intentionally being deferred, use pending mode to separate frontend/custom-domain health from known stale backend parity:
+
+```bash
+bash scripts/prod_smoke_custom_domain.sh --allow-pending-render
+```
+
+Pending mode is still synthetic-only. It keeps web domain, backend health, backend status, and direct `/api/analyze` checks strict. It only downgrades known pending custom-domain CORS and `/api/legal/*` parity gaps to warnings so the report can be used before spending Render deployment minutes.
+
 ## Custom domain DNS notes
 
 - Primary web app: `https://www.vibe-signal.com`
