@@ -21,6 +21,7 @@ import {
 } from "../src/resultViewModel.js";
 
 const ROOT = resolve(import.meta.dirname, "..");
+const BACKEND_LEGAL_TEXT = readFileSync(resolve(ROOT, "../backend/routes/legal.py"), "utf8");
 
 test("landing hero exposes the Scanner-safe product promise and clear demo CTA", () => {
   assert.equal(HERO_COPY.title, "See what the wording shows.");
@@ -241,9 +242,85 @@ test("fallbacks still avoid rendering summary-only analysis", () => {
 
 test("legal and privacy surfaces remain visible from public UI", () => {
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  const stylesText = readFileSync(resolve(ROOT, "src/styles.css"), "utf8");
 
   for (const label of ["Privacy", "Terms", "Data request/delete", "Disclaimer"]) {
     assert.match(appText, new RegExp(label.replace("/", "\\/")));
   }
   assert.match(appText, /fetchLegalPage/);
+  assert.match(appText, /page\.groups/);
+  assert.match(appText, /legal-section-list/);
+  assert.match(appText, /legal-group/);
+  assert.match(stylesText, /\.legal-section-list/);
+  assert.match(stylesText, /\.legal-group/);
+  assert.match(stylesText, /\.segmented-control/);
+});
+
+test("public legal drafts include required draft status and closed-beta intro", () => {
+  assert.match(BACKEND_LEGAL_TEXT, /Status: draft_requires_legal_review/);
+  assert.match(BACKEND_LEGAL_TEXT, /Vibe Signal is currently in closed beta \/ early public beta\./);
+  assert.match(BACKEND_LEGAL_TEXT, /These legal drafts are provided for transparency and require legal review before public launch\./);
+
+  for (const route of [
+    '"privacy"',
+    '"terms"',
+    '"data-deletion"',
+    '"data-export"',
+    '"match-disclaimer"',
+  ]) {
+    assert.match(BACKEND_LEGAL_TEXT, new RegExp(`${route}:`));
+  }
+});
+
+test("privacy legal draft exposes infrastructure assumptions and missing inputs", () => {
+  for (const required of [
+    "Keith Grehan",
+    "keith.t.grehan@gmail.com",
+    "Berlin, Germany; full address available on valid legal request",
+    "https://www.vibe-signal.com",
+    "Email provider - Gmail.",
+    "AI provider - Disabled unless explicitly enabled.",
+    "External log streaming - none configured.",
+    "Feedback metadata: 90 days during beta.",
+    "Legal/data request correspondence: 24 months unless legal review changes this.",
+    "Vercel Hobby/basic runtime logs are assumed to be retained for 1 hour unless the Vercel account changes.",
+    "Render Hobby/basic backend logs are assumed to be retained for 7 days unless the Render workspace changes.",
+    "No raw messages are used for training.",
+    "No analytics, cookies, or tracking are added by this implementation.",
+    "Draft lawful-basis mapping, subject to legal review:",
+    "Submitted text for analysis: consent and/or steps requested by the user to use the service.",
+    "Infrastructure logs: legitimate interests in security, debugging, abuse prevention, and service reliability.",
+    "This lawful-basis mapping is a draft and requires legal review before public launch.",
+    "Berliner Beauftragte für Datenschutz und Informationsfreiheit",
+    "Alt-Moabit 59–61, 10555 Berlin, Germany.",
+    "Email: mailbox@datenschutz-berlin.de.",
+    "This authority information should be verified before public launch.",
+  ]) {
+    assert.match(BACKEND_LEGAL_TEXT, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+});
+
+test("terms, data request, and disclaimer drafts include required safety boundaries", () => {
+  for (const required of [
+    "Only submit text you have permission to analyze.",
+    "Prohibited use includes stalking, harassment, coercion, manipulation, or trying to make someone respond.",
+    "Account features are not currently implemented.",
+    "Payment features are not currently implemented.",
+    "Send data requests to: keith.t.grehan@gmail.com.",
+    "access/export",
+    "deletion",
+    "correction",
+    "objection/restriction",
+    "withdrawal of consent where applicable",
+    "Vibe Signal aims to respond to verified privacy requests without undue delay",
+    "where GDPR applies, within one month of receipt",
+    "This section requires legal review before public launch.",
+    "To the maximum extent permitted by applicable law, Vibe Signal is provided as a draft beta service without guarantees of uninterrupted availability, accuracy, or error-free operation.",
+    "This clause requires legal review before public launch.",
+    "These Terms are drafted with Germany as the expected governing-law jurisdiction",
+    "Raw submitted text may not be available for export or deletion because the app is designed not to intentionally retain it.",
+    "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+  ]) {
+    assert.match(BACKEND_LEGAL_TEXT, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
 });

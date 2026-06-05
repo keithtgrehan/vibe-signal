@@ -69,6 +69,7 @@ ALLOWED_NEGATED_PUBLIC_COPY_PHRASES = (
     "What someone secretly means",
     "Someone’s diagnosis, attachment style, neurotype, or personality",
     "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+    "Prohibited use includes stalking, harassment, coercion, manipulation, or trying to make someone respond.",
 )
 
 

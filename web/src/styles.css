@@ -809,15 +809,24 @@ textarea:focus {
 
 .legal-surface h1 {
   font-size: 42px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.legal-surface > * {
+  min-width: 0;
 }
 
 .segmented-control {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .segmented-control button {
+  min-width: 0;
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -825,12 +834,63 @@ textarea:focus {
   color: var(--muted);
   padding: 0 12px;
   font-weight: 850;
+  line-height: 20px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .segmented-control button.active {
   border-color: rgba(84, 230, 255, 0.72);
   background: rgba(84, 230, 255, 0.12);
   color: var(--text);
+}
+
+.legal-intro {
+  border-left: 3px solid var(--cyan);
+  margin: 4px 0 2px;
+  padding-left: 14px;
+  color: var(--muted);
+  line-height: 25px;
+  overflow-wrap: anywhere;
+}
+
+.legal-section-list {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.legal-group {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(84, 230, 255, 0.07), transparent 42%),
+    rgba(255, 255, 255, 0.03);
+  padding: 16px;
+}
+
+.legal-group h2 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  line-height: 25px;
+}
+
+.legal-group ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.legal-group li {
+  color: var(--muted);
+  line-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+.legal-group li::marker {
+  color: var(--lime);
 }
 
 .legal-list {
@@ -965,5 +1025,13 @@ textarea:focus {
 
   .segmented-control {
     grid-template-columns: 1fr;
+  }
+
+  .legal-surface h1 {
+    font-size: 32px;
+  }
+
+  .legal-group {
+    padding: 14px;
   }
 }

@@ -8,8 +8,15 @@ from fastapi import APIRouter
 router = APIRouter()
 
 
+LEGAL_STATUS = "draft_requires_legal_review"
+LEGAL_STATUS_LINE = "Status: draft_requires_legal_review"
+LEGAL_INTRO = (
+    "Vibe Signal is currently in closed beta / early public beta. "
+    "These legal drafts are provided for transparency and require legal review before public launch."
+)
+
 BASE_DRAFT_BOUNDARIES: dict[str, Any] = {
-    "status": "draft_requires_legal_review",
+    "status": LEGAL_STATUS,
     "not_legal_advice": True,
     "closed_beta_only": True,
     "production_compliance_claimed": False,
@@ -20,61 +27,279 @@ BASE_DRAFT_BOUNDARIES: dict[str, Any] = {
     "review_note": "Draft copy for closed-beta readiness; requires legal review before public launch.",
 }
 
+
+def _groups_to_sections(groups: list[dict[str, Any]]) -> list[str]:
+    sections = [LEGAL_STATUS_LINE, LEGAL_INTRO]
+    for group in groups:
+        sections.append(str(group["heading"]))
+        sections.extend(str(item) for item in group.get("items", []))
+    return sections
+
+
+PRIVACY_GROUPS: list[dict[str, Any]] = [
+    {
+        "heading": "Operator and contact placeholders",
+        "items": [
+            "Operator/controller: Keith Grehan.",
+            "Privacy contact: keith.t.grehan@gmail.com.",
+            "Business/contact method: Berlin, Germany; full address available on valid legal request.",
+            "Production URL: https://www.vibe-signal.com.",
+        ],
+    },
+    {
+        "heading": "Product purpose",
+        "items": [
+            "Vibe Signal is a communication-support tool for reviewing observable wording patterns such as clarity, ambiguity, pressure, reassurance, directness, cognitive load, and repair opportunities.",
+            "Outputs are suggestions and limits based on the text shown, not truth claims or relationship-outcome predictions.",
+        ],
+    },
+    {
+        "heading": "Categories of data",
+        "items": [
+            "Submitted text is processed transiently to provide analysis.",
+            "Metadata required to operate the service may include request status, timing, error state, and reliability signals.",
+            "Feedback stores result metadata only, never message text.",
+            "Infrastructure logs may be created by Vercel and Render.",
+            "Domain and DNS provider metadata may exist with GoDaddy where relevant to domain operation.",
+        ],
+    },
+    {
+        "heading": "What is not intentionally stored",
+        "items": [
+            "No raw chat history is intentionally stored.",
+            "No raw submitted message persistence is added.",
+            "No raw messages are used for training.",
+            "No analytics, cookies, or tracking are added by this implementation.",
+        ],
+    },
+    {
+        "heading": "Processing purposes",
+        "items": [
+            "Provide wording-based analysis and safer reply suggestions.",
+            "Support security, debugging, reliability, abuse prevention, and closed-beta feedback.",
+            "Handle legal, privacy, data request, or deletion request correspondence where applicable.",
+        ],
+    },
+    {
+        "heading": "Draft lawful-basis mapping",
+        "items": [
+            "Draft lawful-basis mapping, subject to legal review:",
+            "Submitted text for analysis: consent and/or steps requested by the user to use the service.",
+            "Feedback metadata: consent and/or legitimate interests in improving safety, reliability, and closed-beta quality.",
+            "Infrastructure logs: legitimate interests in security, debugging, abuse prevention, and service reliability.",
+            "Data request correspondence: legal obligation and/or legitimate interests in handling privacy requests.",
+            "This lawful-basis mapping is a draft and requires legal review before public launch.",
+        ],
+    },
+    {
+        "heading": "Processors and subprocessors draft table",
+        "items": [
+            "Vercel - frontend hosting, CDN, deployment, and runtime logs. Vercel Hobby/basic runtime logs are assumed to be retained for 1 hour unless the Vercel account changes.",
+            "Render - backend/API hosting and logs. Render Hobby/basic backend logs are assumed to be retained for 7 days unless the Render workspace changes.",
+            "GitHub - source code, CI, and project workflow. No raw user chats are committed.",
+            "GoDaddy - domain registration and DNS metadata.",
+            "Email provider - Gmail.",
+            "AI provider - Disabled unless explicitly enabled. Optional external provider connectors are disabled by default unless production configuration changes.",
+            "External log streaming - none configured.",
+            "Analytics - none configured.",
+        ],
+    },
+    {
+        "heading": "Retention draft",
+        "items": [
+            "Raw submitted text: transient processing only and not intentionally retained.",
+            "Feedback metadata: 90 days during beta.",
+            "Vercel runtime logs: Hobby/basic, assume 1 hour unless account changes.",
+            "Render logs: Hobby/basic, assume 7 days unless account changes.",
+            "Legal/data request correspondence: 24 months unless legal review changes this.",
+        ],
+    },
+    {
+        "heading": "Transfers, safeguards, and rights",
+        "items": [
+            "Processors may process or store data outside the user country or EEA depending on provider infrastructure; this requires legal review.",
+            "Safeguards summary: HTTPS, minimal data design, no raw chat persistence by design, restricted artifacts checks, and public copy safety checks.",
+            "Data subject rights may include access/export, deletion, correction, objection/restriction, and withdrawal of consent where applicable.",
+            "Users may lodge a complaint with their local EU/EEA data protection supervisory authority. For Berlin, the likely relevant authority is:",
+            "Berliner Beauftragte für Datenschutz und Informationsfreiheit.",
+            "Alt-Moabit 59–61, 10555 Berlin, Germany.",
+            "Email: mailbox@datenschutz-berlin.de.",
+            "This authority information should be verified before public launch.",
+            "Vibe Signal is not intended for minors or teen romantic analysis.",
+        ],
+    },
+    {
+        "heading": "Automated decision-making and model limits",
+        "items": [
+            "Vibe Signal does not make automated legal, medical, financial, employment, education, housing, credit, or similarly significant decisions.",
+            "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+            "No model-quality, health-label, or emotion-recognition claims are made.",
+        ],
+    },
+]
+
+TERMS_GROUPS: list[dict[str, Any]] = [
+    {
+        "heading": "Beta status",
+        "items": [
+            "Vibe Signal is offered as a closed beta / early public beta draft service.",
+            "The service may change, pause, or be removed while legal, privacy, and product review continue.",
+        ],
+    },
+    {
+        "heading": "Permission and permitted use",
+        "items": [
+            "Only submit text you have permission to analyze.",
+            "Permitted use includes communication clarity, reflection, and drafting safer replies.",
+            "Use outputs as one input to your own judgment and context.",
+        ],
+    },
+    {
+        "heading": "Prohibited use",
+        "items": [
+            "Prohibited use includes stalking, harassment, coercion, manipulation, or trying to make someone respond.",
+            "Do not use Vibe Signal to make hidden-intent, attraction, truthfulness, deception, cheating, or relationship-outcome certainty claims.",
+            "Do not use Vibe Signal for workplace/education emotional assessment, minors/teen romantic analysis, or content you lack rights or permission to use.",
+        ],
+    },
+    {
+        "heading": "No professional advice",
+        "items": [
+            "Vibe Signal is not professional advice.",
+            "Vibe Signal is not therapy, medical advice, legal advice, financial advice, or emergency support.",
+            "For urgent risk or safety situations, contact appropriate emergency or local support services.",
+        ],
+    },
+    {
+        "heading": "Accounts, payment, availability, and access",
+        "items": [
+            "Account features are not currently implemented.",
+            "Payment features are not currently implemented.",
+            "Service availability and warranty language require legal review before launch.",
+            "To the maximum extent permitted by applicable law, Vibe Signal is provided as a draft beta service without guarantees of uninterrupted availability, accuracy, or error-free operation. Nothing in these Terms excludes or limits liability where such exclusion or limitation is not permitted by applicable law. This clause requires legal review before public launch.",
+            "These Terms are drafted with Germany as the expected governing-law jurisdiction, subject to legal review and any mandatory consumer protection rules that may apply in the user's country of residence.",
+            "Access removal or termination process requires legal review before launch.",
+        ],
+    },
+]
+
+DATA_REQUEST_GROUPS: list[dict[str, Any]] = [
+    {
+        "heading": "Contact and request types",
+        "items": [
+            "Send data requests to: keith.t.grehan@gmail.com.",
+            "Request types may include access/export, deletion, correction, objection/restriction, and withdrawal of consent where applicable.",
+            "Vibe Signal aims to respond to verified privacy requests without undue delay and, where GDPR applies, within one month of receipt. This timeline may depend on identity verification, request scope, and applicable legal requirements. This section requires legal review before public launch.",
+        ],
+    },
+    {
+        "heading": "What to include",
+        "items": [
+            "Include the email or contact method used with Vibe Signal.",
+            "Include the request type and enough information to verify the request.",
+            "Do not include unnecessary private message content in the request.",
+            "Identity verification may be required before action is taken.",
+        ],
+    },
+    {
+        "heading": "Raw message and metadata limits",
+        "items": [
+            "Raw submitted text may not be available for export or deletion because the app is designed not to intentionally retain it.",
+            "Feedback is metadata-only and does not include message text.",
+            "Vercel Hobby/basic runtime logs are assumed to be retained for 1 hour unless the Vercel account changes.",
+            "Render Hobby/basic backend logs are assumed to be retained for 7 days unless the Render workspace changes.",
+            "Provider infrastructure logs may expire before a request is processed.",
+        ],
+    },
+    {
+        "heading": "Closed-beta manual runbook",
+        "items": [
+            "1. Receive request.",
+            "2. Verify requester.",
+            "3. Search app metadata stores if any.",
+            "4. Check feedback metadata if applicable.",
+            "5. Delete, export, or correct data where technically available.",
+            "6. Respond with what was found or deleted, or explain when no retained raw text exists.",
+        ],
+    },
+]
+
+DISCLAIMER_GROUPS: list[dict[str, Any]] = [
+    {
+        "heading": "Communication support only",
+        "items": [
+            "Vibe Signal is communication-support only.",
+            "Vibe Signal provides wording-based suggestions only.",
+            "Outputs should be read as observable text evidence and possible patterns.",
+            "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+        ],
+    },
+    {
+        "heading": "Not professional or crisis support",
+        "items": [
+            "Vibe Signal is not therapy.",
+            "Vibe Signal is not medical advice, legal advice, or financial advice.",
+            "Vibe Signal is not emergency/crisis support.",
+            "If there is urgent risk or a safety situation, contact appropriate emergency or local support services.",
+        ],
+    },
+    {
+        "heading": "Use human judgment",
+        "items": [
+            "Vibe Signal is not a substitute for human judgment, context, consent, or respectful communication.",
+            "Low-signal outputs may be incomplete.",
+            "Use safe, respectful, non-coercive communication and ask one clear follow-up when appropriate.",
+        ],
+    },
+]
+
+DATA_EXPORT_GROUPS: list[dict[str, Any]] = [
+    {
+        "heading": "Export request compatibility route",
+        "items": [
+            "This route remains available for compatibility with earlier clients.",
+            "Use the Data request/delete page for access/export, deletion, correction, objection/restriction, and withdrawal of consent where applicable.",
+            "Raw submitted text may not be available for export or deletion because the app is designed not to intentionally retain it.",
+        ],
+    },
+    *DATA_REQUEST_GROUPS,
+]
+
 LEGAL_PAGES: dict[str, dict[str, Any]] = {
     "privacy": {
-        "title": "Privacy Policy Draft",
-        "document_ref": "docs/privacy_policy_draft.md",
-        "sections": [
-            "Vibe Signal is communication-support only and processes submitted text to return pattern-based suggestions, not truth claims.",
-            "The local backend does not persist raw messages by default for analysis or matching routes.",
-            "Feedback storage requires explicit consent and stores bounded metadata only by default.",
-            "Do not submit sensitive personal data, secrets, medical data, legal documents, financial data, or third-party private messages without permission.",
-            "Closed beta is not production launch. Final privacy URLs, retention windows, deletion handling, and export handling require legal review before public launch.",
-        ],
+        "title": "Privacy",
+        "document_ref": "docs/legal/research/gdpr_privacy_notice_research.md",
+        "intro": LEGAL_INTRO,
+        "groups": PRIVACY_GROUPS,
+        "sections": _groups_to_sections(PRIVACY_GROUPS),
     },
     "terms": {
-        "title": "Terms And Acceptable Use Draft",
-        "document_ref": "docs/terms_draft.md",
-        "sections": [
-            "Use Vibe Signal only for communication-support and observable wording-pattern review.",
-            "Outputs are pattern-based suggestions, not truth claims, professional advice, relationship predictions, or identity/health judgments.",
-            "Do not use the app to pressure, harass, surveil, profile, assign health or identity labels, or make hidden-state claims about another person.",
-            "Do not submit material you do not have permission to process.",
-            "Closed beta is not production launch. Draft terms require legal review before public launch.",
-        ],
+        "title": "Terms",
+        "document_ref": "docs/legal/research/terms_research.md",
+        "intro": LEGAL_INTRO,
+        "groups": TERMS_GROUPS,
+        "sections": _groups_to_sections(TERMS_GROUPS),
     },
     "data-deletion": {
-        "title": "Data Deletion Request Draft",
-        "document_ref": "docs/data_deletion_request_draft.md",
-        "sections": [
-            "Local matching and analysis routes do not persist raw messages by default.",
-            "Deletion handling applies to stored metadata such as consented feedback, event metadata, device-scoped identifiers, or support records when those systems are enabled.",
-            "Requests should include a contact address, approximate submission date, and any non-sensitive identifiers needed to locate stored metadata.",
-            "Do not include raw chat text, secrets, medical data, legal documents, financial data, or unrelated third-party private messages in a deletion request.",
-            "Production deletion workflow, identity checks, retention windows, and response timelines require legal review before public launch.",
-        ],
+        "title": "Data request/delete",
+        "document_ref": "docs/legal/research/data_request_delete_research.md",
+        "intro": LEGAL_INTRO,
+        "groups": DATA_REQUEST_GROUPS,
+        "sections": _groups_to_sections(DATA_REQUEST_GROUPS),
     },
     "data-export": {
-        "title": "Data Export Request Draft",
-        "document_ref": "docs/data_export_request_draft.md",
-        "sections": [
-            "Local matching and analysis routes do not persist raw messages by default, so there may be no raw message content to export.",
-            "Export handling applies to stored metadata such as consented feedback, event metadata, device-scoped identifiers, or support records when those systems are enabled.",
-            "Requests should include a contact address, approximate submission date, and any non-sensitive identifiers needed to locate stored metadata.",
-            "Do not include raw chat text, secrets, medical data, legal documents, financial data, or unrelated third-party private messages in an export request.",
-            "Production export workflow, identity checks, retention windows, and response timelines require legal review before public launch.",
-        ],
+        "title": "Data export request",
+        "document_ref": "docs/legal/research/data_request_delete_research.md",
+        "intro": LEGAL_INTRO,
+        "groups": DATA_EXPORT_GROUPS,
+        "sections": _groups_to_sections(DATA_EXPORT_GROUPS),
     },
     "match-disclaimer": {
-        "title": "Match Usage Consent Disclaimer",
-        "document_ref": "docs/match_usage_consent_disclaimer.md",
-        "sections": [
-            "Vibe Signal matching is communication-support only.",
-            "Outputs are pattern-based suggestions, not truth claims.",
-            "Only submit messages you have permission to analyze.",
-            "Do not include sensitive personal data, secrets, medical data, legal documents, financial data, or third-party private messages without permission.",
-            "Closed beta is not production launch. Privacy and terms drafts require legal review before public launch.",
-        ],
+        "title": "Disclaimer",
+        "document_ref": "docs/legal/research/disclaimer_ai_safety_research.md",
+        "intro": LEGAL_INTRO,
+        "groups": DISCLAIMER_GROUPS,
+        "sections": _groups_to_sections(DISCLAIMER_GROUPS),
     },
 }
 
