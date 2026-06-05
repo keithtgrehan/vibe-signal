@@ -6,9 +6,12 @@ It is built around a deterministic-first cue engine, evidence-first result objec
 
 ## Live Demo
 
-- Web app: [https://vibe-signal.vercel.app](https://vibe-signal.vercel.app)
+- Primary web app: [https://www.vibe-signal.com](https://www.vibe-signal.com)
+- Fallback/preview web app: [https://vibe-signal.vercel.app](https://vibe-signal.vercel.app)
 - Backend health: [https://vibe-signal.onrender.com/healthz](https://vibe-signal.onrender.com/healthz)
 - Backend status metadata: [https://vibe-signal.onrender.com/api/status](https://vibe-signal.onrender.com/api/status)
+
+Vercel deploys the frontend and Render deploys the backend separately. A Vercel deploy can update the public web UI while Render is still on an older backend revision. Static legal pages render from the web bundle and work without Render.
 
 The `/api/status` route exposes only allowlisted deploy metadata such as `git_commit`, `deploy_version`, `build_timestamp`, and `service_revision` when those environment variables are configured. If Render metadata is not configured, deployed-version confidence remains limited.
 
@@ -222,13 +225,27 @@ The engine automation uses synthetic regression and bootstrap-only metrics. It d
 
 ## CORS For Local Browser QA
 
-Browser-based local QA against the current Render/FastAPI backend needs exact CORS origins configured in Render:
+Browser-based QA against the Render/FastAPI backend needs exact CORS origins configured in Render. Do not use wildcard CORS origins. The current expected set is:
 
 ```text
-VIBE_BACKEND_ALLOWED_ORIGINS=https://vibe-signal.vercel.app,http://localhost:19006,http://localhost:8081,http://localhost:5173
+VIBE_BACKEND_ALLOWED_ORIGINS=https://www.vibe-signal.com,https://vibe-signal.com,https://vibe-signal.vercel.app,http://localhost:5173,http://127.0.0.1:5173,http://localhost:19006,http://localhost:8081
 ```
 
-Do not use wildcard CORS origins. Add each future hosted web frontend origin explicitly.
+Add each future hosted web frontend origin explicitly. `https://www.vibe-signal.com` is the primary web app, `https://vibe-signal.com` redirects to it, and `https://vibe-signal.vercel.app` remains the fallback/preview host.
+
+## Deployment Split
+
+- Vercel builds and serves `web/`.
+- Render runs the FastAPI backend at `https://vibe-signal.onrender.com`.
+- `VITE_API_BASE_URL` may point the web app at the Render origin; if omitted, the frontend defaults to the Render backend.
+- Static legal pages are bundled into the frontend and remain usable if Render is cold, stale, blocked by CORS, or missing a legal alias.
+- Private custom analysis still needs the backend. Synthetic demo results are local and are the first-success path.
+
+For no-Render hardening checks, see [docs/ops/render_vercel_deployment_runbook.md](docs/ops/render_vercel_deployment_runbook.md) and run:
+
+```bash
+bash scripts/prod_smoke_custom_domain.sh
+```
 
 ## What This Project Demonstrates
 
