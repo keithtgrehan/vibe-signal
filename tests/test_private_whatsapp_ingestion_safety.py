@@ -39,7 +39,7 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
 
 
 def test_parser_handles_whatsapp_sample_text() -> None:
-    sample = "[01.06.26, 09:00:00] Keith: Can you confirm Friday?\n[01.06.26, 09:01:00] Bibi: Yes, Friday works."
+    sample = "[01.06.26, 09:00:00] Person A: Can you confirm Friday?\n[01.06.26, 09:01:00] Person B: Yes, Friday works."
 
     rows = ingest.parse_chat_text(sample)
 
@@ -69,7 +69,7 @@ def test_parser_handles_multiline_messages() -> None:
 def test_ingest_refuses_non_restricted_output_directory(tmp_path: Path) -> None:
     zip_path = tmp_path / "sample.zip"
     with zipfile.ZipFile(zip_path, "w") as archive:
-        archive.writestr("_chat.txt", "[01.06.26, 09:00:00] Keith: Can you confirm Friday?")
+        archive.writestr("_chat.txt", "[01.06.26, 09:00:00] Person A: Can you confirm Friday?")
 
     exit_code = ingest.main(["--zip-path", str(zip_path), "--output-dir", str(tmp_path / "out")])
 
@@ -82,7 +82,7 @@ def test_scripts_do_not_print_raw_message_text(tmp_path: Path, capsys) -> None:
         zip_path = tmp_path / "sample.zip"
         raw_text = "Can you confirm Friday?"
         with zipfile.ZipFile(zip_path, "w") as archive:
-            archive.writestr("_chat.txt", f"[01.06.26, 09:00:00] Keith: {raw_text}")
+            archive.writestr("_chat.txt", f"[01.06.26, 09:00:00] Person A: {raw_text}")
 
         ingest_exit = ingest.main(["--zip-path", str(zip_path), "--output-dir", str(RESTRICTED_TEST_DIR)])
         ingest_output = capsys.readouterr()
@@ -156,4 +156,3 @@ def test_review_csv_has_expected_columns() -> None:
         assert "direct_ask" in rows[0]["candidate_labels"]
     finally:
         _cleanup_restricted_test_dir()
-
