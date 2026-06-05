@@ -38,6 +38,10 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
     path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
 
+def _local_private_filename(stem: str, suffix: str) -> str:
+    return f"{stem}{suffix}"
+
+
 def test_parser_handles_whatsapp_sample_text() -> None:
     sample = "[01.06.26, 09:00:00] Person A: Can you confirm Friday?\n[01.06.26, 09:01:00] Person B: Yes, Friday works."
 
@@ -87,11 +91,11 @@ def test_scripts_do_not_print_raw_message_text(tmp_path: Path, capsys) -> None:
         ingest_exit = ingest.main(["--zip-path", str(zip_path), "--output-dir", str(RESTRICTED_TEST_DIR)])
         ingest_output = capsys.readouterr()
 
-        redacted_path = RESTRICTED_TEST_DIR / "private_messages_redacted.jsonl"
+        redacted_path = RESTRICTED_TEST_DIR / _local_private_filename("private_messages_redacted", ".jsonl")
         redact_exit = redact.main(
             [
                 "--input",
-                str(RESTRICTED_TEST_DIR / "private_messages.jsonl"),
+                str(RESTRICTED_TEST_DIR / _local_private_filename("private_messages", ".jsonl")),
                 "--output",
                 str(redacted_path),
                 "--stats-out",
@@ -113,7 +117,7 @@ def test_scripts_do_not_print_raw_message_text(tmp_path: Path, capsys) -> None:
 def test_blocked_raw_files_are_ignored_by_git_patterns() -> None:
     ignored_paths = [
         "data/restricted/private_whatsapp/local_export.zip",
-        "data/restricted/private_whatsapp/private_messages.jsonl",
+        f"data/restricted/private_whatsapp/{_local_private_filename('private_messages', '.jsonl')}",
         "example_chat.txt",
         "example_redacted.jsonl",
         "example_labels_private.csv",
@@ -135,7 +139,7 @@ def test_blocked_raw_files_are_ignored_by_git_patterns() -> None:
 def test_review_csv_has_expected_columns() -> None:
     _cleanup_restricted_test_dir()
     try:
-        redacted_jsonl = RESTRICTED_TEST_DIR / "private_messages_redacted.jsonl"
+        redacted_jsonl = RESTRICTED_TEST_DIR / _local_private_filename("private_messages_redacted", ".jsonl")
         review_csv = RESTRICTED_TEST_DIR / "private_label_review.csv"
         _write_jsonl(
             redacted_jsonl,

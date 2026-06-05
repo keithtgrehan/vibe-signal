@@ -14,6 +14,7 @@ This runbook covers the isolated n8n beta-ops demo under `ops/n8n`. It is for sy
 ## Guardrails
 
 - Do not put raw chats, tester messages, screenshots, transcripts, or credentials in this folder.
+- Do not put raw private chat content or private source metadata in this folder unless future rights/legal review allows it.
 - Do not commit webhook URLs.
 - Do not wire this workflow into backend or frontend runtime code.
 - Do not add analytics SDKs.

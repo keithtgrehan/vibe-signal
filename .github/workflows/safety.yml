@@ -20,6 +20,8 @@ jobs:
           python -m pip install -e .
       - name: Public copy safety
         run: python scripts/check_public_copy_safety.py
+      - name: Private metadata exposure
+        run: python scripts/check_private_metadata_exposure.py
       - name: No raw content leaks
         run: python scripts/check_no_raw_content_leaks.py
       - name: Restricted artifact check

@@ -36,6 +36,17 @@ Status: hygiene audit note for private WhatsApp / gold human-review data handlin
 - Current recommendation: avoid force-push/history rewrite unless the identifier is considered unacceptable to remain in public git history.
 - No raw private WhatsApp message content should be included in this note or related PR text.
 
+## Private Metadata Local-Only Policy
+
+- Private data and private metadata must remain local-only.
+- Neutral source IDs are required in tracked configs, such as `private_whatsapp_source_001` or `consented_private_source_001`.
+- Real-person-derived source IDs are prohibited in tracked files.
+- Raw/processed/model/report artifact paths are prohibited in tracked files except generic ignored-path documentation.
+- n8n workflows must not receive raw private chat content or private source metadata unless future rights/legal review allows it.
+- CI now runs a private metadata exposure check on tracked repo surfaces.
+- Historical metadata exposure remains in git history unless Keith explicitly approves history rewrite.
+- This note does not claim absolute certainty.
+
 ## Final Audit Pass
 
 Date: 2026-06-05.
@@ -84,12 +95,13 @@ Recommendations:
 - Never force-add `data/restricted/private_whatsapp/**`.
 - Keep private WhatsApp exports, workbooks, processed JSONL, and private review outputs out of git, PRs, CI artifacts, screenshots, and demo materials.
 - Rename ignored local raw filenames that contain real names to neutral filenames before demos or interviews.
-- Optional local-only example: use a neutral ignored filename such as `data/restricted/private_whatsapp/raw/private_whatsapp_export.zip`.
+- Optional local-only example: use neutral ignored filenames for raw exports; keep the exact local path out of tracked docs.
 - Do not execute local private-file renames in repo automation without Keith's explicit instruction.
 - Avoid real names in tests and fixtures; use neutral synthetic labels such as `Person A` and `Person B`.
 - Run an exposure audit before demos, interviews, public screenshots, or reviewer handoff.
 - Keep n8n workflows no-raw-content unless explicitly rights-reviewed.
 - n8n must not receive raw private chat content unless future rights review allows it.
+- n8n must not receive raw private chat content or private source metadata unless future rights/legal review allows it.
 - Do not paste private message content into docs, tests, PRs, shell commands, logs, issue comments, n8n payloads, or CI artifacts.
 
 ## Future Cleanup Candidate
