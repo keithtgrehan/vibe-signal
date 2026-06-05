@@ -40,7 +40,8 @@ def test_backend_settings_parse_safe_cors_origins_and_warn_on_rejected_values() 
     assert settings.environment == "production"
     assert settings.version == "2026.06.02"
     assert settings.log_level == "DEBUG"
-    assert settings.allowed_origins == ("https://app.example.com", "http://localhost:19006")
+    assert "https://app.example.com" in settings.allowed_origins
+    assert "http://localhost:19006" in settings.allowed_origins
     assert "wildcard_origin_rejected" in settings.config_warnings
     assert "unsupported_origin_scheme_rejected" in settings.config_warnings
     assert settings.raw_message_persistence_enabled is False
@@ -166,6 +167,37 @@ def test_configured_cors_allows_vercel_and_local_web_origins() -> None:
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ):
+        response = client.options(
+            "/api/analyze",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.headers["access-control-allow-origin"] == origin
+
+
+def test_production_cors_allows_custom_domain_and_local_browser_origins() -> None:
+    settings = load_backend_settings(
+        {
+            "VIBE_BACKEND_ENV": "production",
+            "VIBE_BACKEND_ALLOWED_ORIGINS": "https://vibe-signal.vercel.app",
+        }
+    )
+    configured_app = create_app(settings)
+    client = TestClient(configured_app)
+
+    for origin in (
+        "https://www.vibe-signal.com",
+        "https://vibe-signal.com",
+        "https://vibe-signal.vercel.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ):
+        assert origin in settings.allowed_origins
         response = client.options(
             "/api/analyze",
             headers={

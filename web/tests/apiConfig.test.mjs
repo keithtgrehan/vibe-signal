@@ -35,6 +35,31 @@ test("resolveApiBaseUrl falls back to the Render backend when no env override is
   assert.equal(resolveApiBaseUrl({}), "https://vibe-signal.onrender.com");
 });
 
+test("production hosted web without an override still targets the Render backend", () => {
+  const resolved = resolveApiBaseUrl({
+    MODE: "production",
+    PROD: true,
+    VITE_API_BASE_URL: "",
+    VITE_API_URL: "",
+    EXPO_PUBLIC_API_URL: "",
+  });
+
+  assert.equal(resolved, "https://vibe-signal.onrender.com");
+  assert.notEqual(resolved, "https://www.vibe-signal.com");
+});
+
+test("production API config rejects non-HTTPS backend origins", () => {
+  const status = getApiBaseUrlStatus({
+    MODE: "production",
+    PROD: true,
+    VITE_API_BASE_URL: "http://api.example.test",
+  });
+
+  assert.equal(status.ok, false);
+  assert.equal(status.status, "invalid_api_url");
+  assert.equal(status.apiUrl, "");
+});
+
 test("web API config rejects non-origin backend URLs", () => {
   const unsafeValues = [
     "javascript:alert(1)",
