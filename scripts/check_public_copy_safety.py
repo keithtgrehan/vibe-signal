@@ -68,6 +68,7 @@ ALLOWED_NEGATED_PUBLIC_COPY_PHRASES = (
     "Whether someone is lying",
     "What someone secretly means",
     "Someone’s diagnosis, attachment style, neurotype, or personality",
+    "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
 )
 
 

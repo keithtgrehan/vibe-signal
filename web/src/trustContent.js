@@ -1,16 +1,16 @@
 export const HERO_COPY = {
-  title: "See what a message is doing - without guessing what someone feels.",
+  title: "See what the wording shows.",
   subtitle:
-    "Paste text you’re allowed to use, or run a synthetic demo. Vibe Signal highlights clarity, pressure, unanswered asks, and safer replies.",
-  primaryCta: "Run a demo",
-  secondaryCta: "Analyze text",
-  trustNote: "No mind-reading. No relationship verdicts. Just observable wording.",
+    "Spot clarity, ambiguity, pressure, reassurance, and repair openings in text you are allowed to use.",
+  primaryCta: "Run synthetic demo",
+  secondaryCta: "Analyze with consent",
+  trustNote: "Evidence from the words shown. Possible pattern, not a fact about intent.",
 };
 
 export const TRUST_STRIP_ITEMS = [
-  "No private chats stored for this demo",
-  "The exact words that triggered it",
-  "What it can’t know",
+  "Evidence from the words shown",
+  "Possible pattern, not a fact about intent",
+  "Feedback stores result metadata only",
 ];
 
 export const GOAL_OPTIONS = [
@@ -75,33 +75,33 @@ export const ANALYSIS_STYLE_OPTIONS = [
 ];
 
 export const CAN_HELP_WITH = [
-  "Spot vague or overloaded messages",
-  "Identify unclear asks",
-  "Surface pressure or urgency cues",
-  "Show reassurance and repair opportunities",
-  "Suggest clearer, lower-pressure replies",
+  "Spot clarity, ambiguity, pressure, reassurance, and repair openings",
+  "Show evidence from the words shown",
+  "Separate possible patterns from facts about intent",
+  "Suggest one clearer, lower-pressure follow-up",
+  "Keep limits visible before you act",
 ];
 
 export const CANNOT_TELL = [
-  "What someone feels",
-  "What someone intends",
-  "Whether a statement is true",
-  "Health, personality, or identity labels",
-  "What will happen next",
+  "Intent",
+  "Attraction",
+  "Truthfulness",
+  "Health labels",
+  "Outcomes",
 ];
 
 export const HOW_IT_WORKS_STEPS = [
   {
-    title: "Paste or run a demo",
-    body: "Start with the synthetic example, or paste text you have permission to use.",
+    title: "Start with the demo",
+    body: "Run the synthetic Scanner example before using any private text.",
   },
   {
     title: "See the evidence",
-    body: "Vibe Signal quotes the words before it offers a read.",
+    body: "Quoted wording appears before any possible pattern or repair step.",
   },
   {
-    title: "Choose a clearer next step",
-    body: "Use the reply option as a draft, then edit it in your own voice.",
+    title: "Choose a safer next step",
+    body: "Use the reply as an editable draft, then decide what fits your context.",
   },
 ];
 
@@ -114,17 +114,16 @@ export const RESULT_EXPLAINABILITY_STEPS = [
 ];
 
 export const REVIEWER_DEMO_FLOW = [
-  "Open with a synthetic card",
-  "Show evidence before interpretation",
-  "Point to limits and the safe next step",
-  "Use metadata-only feedback",
+  "Open with a synthetic Scanner card",
+  "Show quoted evidence before interpretation",
+  "Keep limits and the safe next step visible",
+  "Use consented metadata-only feedback",
 ];
 
 export const FAQ_ITEMS = [
   {
     question: "Is this trying to read intent?",
-    answer:
-      "No. Vibe Signal stays with visible wording patterns and shows what it cannot infer.",
+    answer: "No. Vibe Signal stays with visible wording patterns and shows clear limits.",
   },
   {
     question: "Can I test it without private messages?",
@@ -144,7 +143,7 @@ export const SYNTHETIC_DEMOS = [
     exchange: "self: Are we still on for Friday?\nother: maybe later, not sure yet",
     highlight: "Vibe Signal will highlight the loose answer after a direct timing question.",
     previewPattern: "Vague timing",
-    actionLabel: "Run demo",
+    actionLabel: "Run synthetic demo",
     requiresPrivateConsent: false,
     result: {
       match_id: "synthetic_unclear_ask",
@@ -177,7 +176,7 @@ export const SYNTHETIC_DEMOS = [
       "self: I need a little time to think.\nother: I need an answer tonight or this will not work.",
     highlight: "Vibe Signal will highlight urgency and consequence pressure in the wording.",
     previewPattern: "Urgency pressure",
-    actionLabel: "Run demo",
+    actionLabel: "Run synthetic demo",
     requiresPrivateConsent: false,
     result: {
       match_id: "synthetic_pressure_urgency",
@@ -211,7 +210,7 @@ export const SYNTHETIC_DEMOS = [
       "self: That landed harder than I meant.\nother: I appreciate you saying that. Can we reset and choose a time tomorrow?",
     highlight: "Vibe Signal will highlight reassurance, repair wording, and a clear next step.",
     previewPattern: "Repair wording",
-    actionLabel: "Run demo",
+    actionLabel: "Run synthetic demo",
     requiresPrivateConsent: false,
     result: {
       match_id: "synthetic_repair_opportunity",
@@ -244,7 +243,7 @@ export const SYNTHETIC_DEMOS = [
     exchange: "self: hey\nother: ok",
     highlight: "Vibe Signal will avoid over-reading a short context-light exchange.",
     previewPattern: "Not enough context",
-    actionLabel: "Run demo",
+    actionLabel: "Run synthetic demo",
     requiresPrivateConsent: false,
     result: {
       match_id: "synthetic_low_signal_fallback",
@@ -264,7 +263,7 @@ export const SYNTHETIC_DEMOS = [
       "self: I cannot decide tonight.\nother: That is okay. Could you send a yes or no by Friday if you have capacity?",
     highlight: "Vibe Signal will highlight a clear ask that leaves room for a no or later.",
     previewPattern: "Clear low-pressure ask",
-    actionLabel: "Run demo",
+    actionLabel: "Run synthetic demo",
     requiresPrivateConsent: false,
     result: {
       match_id: "synthetic_boundary_respecting_request",
@@ -298,7 +297,7 @@ export const SYNTHETIC_DEMOS = [
       "self: Can we choose one plan?\nother: I can talk after work, but also need to finish errands, call Sam, and figure out dinner.",
     highlight: "Vibe Signal will highlight cognitive load and suggest narrowing the next ask.",
     previewPattern: "Overloaded reply",
-    actionLabel: "Run demo",
+    actionLabel: "Run synthetic demo",
     requiresPrivateConsent: false,
     result: {
       match_id: "synthetic_overloaded_message",
