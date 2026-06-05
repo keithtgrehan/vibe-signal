@@ -26,7 +26,15 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
-export function parseApiBaseUrl(value) {
+function isProductionEnv(env = {}) {
+  return (
+    env.PROD === true ||
+    String(env.PROD || "").toLowerCase() === "true" ||
+    String(env.MODE || "").toLowerCase() === "production"
+  );
+}
+
+export function parseApiBaseUrl(value, options = {}) {
   const text = normalizeText(value);
   if (!text) {
     return {
@@ -46,7 +54,11 @@ export function parseApiBaseUrl(value) {
       parsed.hash ||
       (parsed.pathname && parsed.pathname !== "/");
 
-    if (!["http:", "https:"].includes(parsed.protocol) || hasUnsafeParts) {
+    if (
+      !["http:", "https:"].includes(parsed.protocol) ||
+      (options.requireHttps === true && parsed.protocol !== "https:") ||
+      hasUnsafeParts
+    ) {
       return {
         ok: false,
         status: "invalid_api_url",
@@ -77,7 +89,7 @@ export function getApiBaseUrlStatus(env = {}) {
     normalizeText(env.VITE_API_URL) ||
     normalizeText(env.EXPO_PUBLIC_API_URL) ||
     DEFAULT_API_URL;
-  return parseApiBaseUrl(candidate);
+  return parseApiBaseUrl(candidate, { requireHttps: isProductionEnv(env) });
 }
 
 export function resolveApiBaseUrl(env = {}) {

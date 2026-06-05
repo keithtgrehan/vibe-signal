@@ -23,6 +23,15 @@ ENVIRONMENT_ALIASES = {
     "prod": "production",
     "test": "test",
 }
+PRODUCTION_BROWSER_ALLOWED_ORIGINS = (
+    "https://www.vibe-signal.com",
+    "https://vibe-signal.com",
+    "https://vibe-signal.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:19006",
+    "http://localhost:8081",
+)
 
 
 @dataclass(frozen=True)
@@ -87,11 +96,6 @@ def safe_version_label(value: str) -> str:
 def load_backend_settings(environ: Mapping[str, str] | None = None) -> BackendSettings:
     source = os.environ if environ is None else environ
     warnings: list[str] = []
-    allowed_origins, origin_warnings = _parse_allowed_origins(
-        source.get("VIBE_BACKEND_ALLOWED_ORIGINS", "")
-    )
-    warnings.extend(origin_warnings)
-
     log_level = str(source.get("VIBE_BACKEND_LOG_LEVEL", "INFO")).strip().upper() or "INFO"
     if log_level not in VALID_LOG_LEVELS:
         warnings.append("unsupported_log_level_defaulted_to_info")
@@ -100,6 +104,16 @@ def load_backend_settings(environ: Mapping[str, str] | None = None) -> BackendSe
         source.get("VIBE_BACKEND_ENV", "local")
     )
     warnings.extend(environment_warnings)
+    default_origins = (
+        ",".join(PRODUCTION_BROWSER_ALLOWED_ORIGINS)
+        if environment == "production"
+        else ""
+    )
+    configured_origins = source.get("VIBE_BACKEND_ALLOWED_ORIGINS", "")
+    allowed_origins, origin_warnings = _parse_allowed_origins(
+        ",".join(origin for origin in (default_origins, configured_origins) if origin)
+    )
+    warnings.extend(origin_warnings)
     raw_version = str(source.get("VIBE_BACKEND_VERSION", "0.1.0")).strip() or "0.1.0"
     version = safe_version_label(raw_version)
     if version == "unknown":
