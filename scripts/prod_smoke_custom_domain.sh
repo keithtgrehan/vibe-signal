@@ -31,6 +31,14 @@ require_curl() {
   command -v curl >/dev/null 2>&1 || fail "curl is required"
 }
 
+safe_tmp_path() {
+  local label="$1"
+  local suffix="$2"
+  local safe_label
+  safe_label="${label//[^[:alnum:]_.-]/_}"
+  printf '%s/%s.%s' "$TMP_DIR" "$safe_label" "$suffix"
+}
+
 http_status() {
   local method="$1"
   local url="$2"
@@ -57,7 +65,8 @@ expect_status_class() {
 check_head() {
   local label="$1"
   local url="$2"
-  local output="$TMP_DIR/${label// /_}.headers"
+  local output
+  output="$(safe_tmp_path "$label" "headers")"
   local status
   status="$(curl -sS -I -o "$output" -w '%{http_code}' "$url")"
   expect_status_class "$label" "$status" '2*|3*'
@@ -66,7 +75,8 @@ check_head() {
 check_get_json() {
   local label="$1"
   local url="$2"
-  local output="$TMP_DIR/${label// /_}.json"
+  local output
+  output="$(safe_tmp_path "$label" "json")"
   local status
   status="$(http_status GET "$url" "$output" -H 'Accept: application/json')"
   expect_status_class "$label" "$status" '2*'

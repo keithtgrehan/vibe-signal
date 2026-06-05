@@ -95,6 +95,14 @@ def test_custom_domain_smoke_script_contains_required_checks_and_synthetic_only_
         assert marker not in lowered
 
 
+def test_custom_domain_smoke_script_uses_safe_curl_output_files() -> None:
+    text = _read(SMOKE_SCRIPT)
+
+    assert "safe_tmp_path" in text
+    assert "${label// /_}" not in text
+    assert not re.search(r"curl[^\n]*\|[^\n]*(?:head|grep|awk|sed)", text)
+
+
 def test_hardening_docs_do_not_claim_compliance_or_production_approval() -> None:
     combined = "\n".join(_read(path) for path in (README, GO_NO_GO, RUNBOOK))
 
