@@ -803,6 +803,42 @@ textarea:focus {
   font-weight: 900;
 }
 
+.beta-guidance {
+  margin-top: 22px;
+}
+
+.beta-guidance ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.beta-guidance li {
+  color: var(--muted);
+  line-height: 24px;
+}
+
+.beta-guidance li::marker {
+  color: var(--lime);
+}
+
+.beta-guidance button {
+  width: fit-content;
+  min-height: 38px;
+  border: 1px solid rgba(84, 230, 255, 0.4);
+  border-radius: var(--radius);
+  background: rgba(84, 230, 255, 0.08);
+  color: var(--cyan);
+  padding: 0 12px;
+  font-weight: 850;
+}
+
+.beta-guidance button:hover {
+  border-color: rgba(141, 247, 201, 0.48);
+  color: var(--lime);
+}
+
 .trust-footer {
   justify-content: space-between;
   margin-top: 26px;

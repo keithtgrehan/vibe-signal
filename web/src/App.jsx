@@ -512,6 +512,34 @@ function HowItWorks() {
   );
 }
 
+function BetaGuidance({ onOpenLegal }) {
+  const guidanceItems = [
+    "Use the synthetic demo first.",
+    "Only paste short text you have permission to analyze.",
+    "Do not paste sensitive details, secrets, or private third-party content without permission.",
+    "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+    "Report unsafe or confusing output through metadata-only feedback.",
+  ];
+
+  return (
+    <section className="panel beta-guidance" aria-labelledby="beta-guidance-title">
+      <div className="panel-heading">
+        <p className="section-kicker">Closed beta</p>
+        <h2 id="beta-guidance-title">Beta tester notes</h2>
+        <p>Use Vibe Signal for communication clarity, not professional advice or certainty.</p>
+      </div>
+      <ul>
+        {guidanceItems.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <button type="button" onClick={() => onOpenLegal("data-request")}>
+        Data request/delete
+      </button>
+    </section>
+  );
+}
+
 function TrustFooter({ onOpenLegal }) {
   return (
     <footer className="trust-footer">
@@ -676,6 +704,7 @@ function Home({ navDemoRequest, onOpenLegal }) {
           scanStatus={scanStatus}
         />
       </section>
+      <BetaGuidance onOpenLegal={onOpenLegal} />
       <TrustFooter onOpenLegal={onOpenLegal} />
     </main>
   );

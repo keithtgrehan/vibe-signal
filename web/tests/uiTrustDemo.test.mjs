@@ -164,6 +164,36 @@ test("analyze flow keeps consent required before pasted text analysis", () => {
   assert.match(appText, /ScanningState/);
 });
 
+test("synthetic demo path is local and does not depend on backend fetch", () => {
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  const syntheticDemoFunction = appText.match(/function runSyntheticDemo[\s\S]*?\n  \}/)?.[0] || "";
+
+  assert.match(syntheticDemoFunction, /buildSyntheticResult/);
+  assert.match(syntheticDemoFunction, /setResult/);
+  assert.match(syntheticDemoFunction, /setLoading\(false\)/);
+  assert.doesNotMatch(syntheticDemoFunction, /submitAnalyze/);
+  assert.doesNotMatch(syntheticDemoFunction, /fetch\(/);
+  assert.doesNotMatch(syntheticDemoFunction, /fetchLegalPage/);
+});
+
+test("beta tester guidance is visible and bounded", () => {
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  const stylesText = readFileSync(resolve(ROOT, "src/styles.css"), "utf8");
+
+  for (const required of [
+    "Beta tester notes",
+    "Use the synthetic demo first.",
+    "Only paste short text you have permission to analyze.",
+    "Do not paste sensitive details, secrets, or private third-party content without permission.",
+    "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+    "Report unsafe or confusing output through metadata-only feedback.",
+    "Data request/delete",
+  ]) {
+    assert.match(appText, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(stylesText, /\.beta-guidance/);
+});
+
 test("feedback stays result-metadata only and avoids raw text fields", () => {
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
 
