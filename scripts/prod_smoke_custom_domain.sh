@@ -11,6 +11,7 @@ ANALYZE_URL="https://vibe-signal.onrender.com/api/analyze"
 LEGAL_PRIVACY_URL="https://vibe-signal.onrender.com/legal/privacy"
 API_LEGAL_PRIVACY_URL="https://vibe-signal.onrender.com/api/legal/privacy"
 TMP_DIR="$(mktemp -d)"
+ALLOW_PENDING_RENDER="${ALLOW_PENDING_RENDER:-0}"
 
 trap 'rm -rf "$TMP_DIR"' EXIT
 
@@ -27,8 +28,48 @@ fail() {
   exit 1
 }
 
+warn_or_fail_pending_render() {
+  local message="$1"
+  if [[ "$ALLOW_PENDING_RENDER" == "1" ]]; then
+    warn "$message"
+    return 0
+  fi
+  fail "$message"
+}
+
 require_curl() {
   command -v curl >/dev/null 2>&1 || fail "curl is required"
+}
+
+usage() {
+  cat <<'EOF'
+Usage: bash scripts/prod_smoke_custom_domain.sh [--allow-pending-render]
+
+Runs a synthetic-only custom-domain smoke check.
+
+Options:
+  --allow-pending-render  Downgrade known pending Render CORS/API legal parity
+                          failures to WARN. Health, status, and direct analyze
+                          checks remain strict.
+EOF
+}
+
+parse_args() {
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      --allow-pending-render)
+        ALLOW_PENDING_RENDER=1
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        fail "unknown argument: $1"
+        ;;
+    esac
+    shift
+  done
 }
 
 safe_tmp_path() {
@@ -106,9 +147,13 @@ check_cors_options() {
       -o "$output" \
       -w '%{http_code}'
   )"
-  expect_status_class "CORS OPTIONS /api/analyze from www" "$status" '2*'
+  if [[ "$status" != 2* ]]; then
+    warn_or_fail_pending_render "CORS OPTIONS /api/analyze from www returned $status; Render latest-main deploy may still be pending."
+    return
+  fi
+  pass "CORS OPTIONS /api/analyze from www ($status)"
   grep -qi "access-control-allow-origin: $ORIGIN" "$output" ||
-    fail "CORS OPTIONS did not allow $ORIGIN"
+    warn_or_fail_pending_render "CORS OPTIONS did not allow $ORIGIN; Render latest-main deploy may still be pending."
 }
 
 check_optional_api_legal() {
@@ -123,9 +168,13 @@ check_optional_api_legal() {
 }
 
 main() {
+  parse_args "$@"
   require_curl
   printf 'Vibe Signal custom-domain production smoke\n'
   printf 'Synthetic text only. Do not paste personal content into this script.\n'
+  if [[ "$ALLOW_PENDING_RENDER" == "1" ]]; then
+    warn "Render pending mode enabled: known CORS/API legal parity gaps warn instead of failing."
+  fi
 
   check_head "curl -I https://www.vibe-signal.com" "$WEB_PRIMARY"
   check_head "curl -I https://vibe-signal.com" "$WEB_APEX"
