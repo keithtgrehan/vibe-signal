@@ -21,6 +21,7 @@ import {
 } from "../src/resultViewModel.js";
 
 const ROOT = resolve(import.meta.dirname, "..");
+const BACKEND_LEGAL_TEXT = readFileSync(resolve(ROOT, "../backend/routes/legal.py"), "utf8");
 
 test("landing hero exposes the Scanner-safe product promise and clear demo CTA", () => {
   assert.equal(HERO_COPY.title, "See what the wording shows.");
@@ -241,9 +242,68 @@ test("fallbacks still avoid rendering summary-only analysis", () => {
 
 test("legal and privacy surfaces remain visible from public UI", () => {
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  const stylesText = readFileSync(resolve(ROOT, "src/styles.css"), "utf8");
 
   for (const label of ["Privacy", "Terms", "Data request/delete", "Disclaimer"]) {
     assert.match(appText, new RegExp(label.replace("/", "\\/")));
   }
   assert.match(appText, /fetchLegalPage/);
+  assert.match(appText, /page\.groups/);
+  assert.match(appText, /legal-section-list/);
+  assert.match(appText, /legal-group/);
+  assert.match(stylesText, /\.legal-section-list/);
+  assert.match(stylesText, /\.legal-group/);
+  assert.match(stylesText, /\.segmented-control/);
+});
+
+test("public legal drafts include required draft status and closed-beta intro", () => {
+  assert.match(BACKEND_LEGAL_TEXT, /Status: draft_requires_legal_review/);
+  assert.match(BACKEND_LEGAL_TEXT, /Vibe Signal is currently in closed beta \/ early public beta\./);
+  assert.match(BACKEND_LEGAL_TEXT, /These legal drafts are provided for transparency and require legal review before public launch\./);
+
+  for (const route of [
+    '"privacy"',
+    '"terms"',
+    '"data-deletion"',
+    '"data-export"',
+    '"match-disclaimer"',
+  ]) {
+    assert.match(BACKEND_LEGAL_TEXT, new RegExp(`${route}:`));
+  }
+});
+
+test("privacy legal draft exposes infrastructure assumptions and missing inputs", () => {
+  for (const required of [
+    "[LEGAL_OPERATOR_NAME_REQUIRED]",
+    "[PRIVACY_CONTACT_EMAIL_REQUIRED]",
+    "[BUSINESS_ADDRESS_OR_CONTACT_METHOD_REQUIRED]",
+    "https://www.vibe-signal.com",
+    "Vercel Hobby/basic runtime logs are assumed to be retained for 1 hour unless the Vercel account changes.",
+    "Render Hobby/basic backend logs are assumed to be retained for 7 days unless the Render workspace changes.",
+    "No raw messages are used for training.",
+    "No analytics, cookies, or tracking are added by this implementation.",
+    "[LAWFUL_BASIS_REQUIRES_LEGAL_REVIEW]",
+    "[SUPERVISORY_AUTHORITY_REQUIRES_LEGAL_REVIEW]",
+  ]) {
+    assert.match(BACKEND_LEGAL_TEXT, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+});
+
+test("terms, data request, and disclaimer drafts include required safety boundaries", () => {
+  for (const required of [
+    "Only submit text you have permission to analyze.",
+    "Prohibited use includes stalking, harassment, coercion, manipulation, or trying to make someone respond.",
+    "[ACCOUNT_FEATURES_NOT_CURRENTLY_IMPLEMENTED]",
+    "[PAYMENT_FEATURES_NOT_CURRENTLY_IMPLEMENTED]",
+    "access/export",
+    "deletion",
+    "correction",
+    "objection/restriction",
+    "withdrawal of consent where applicable",
+    "[RESPONSE_TIMELINE_REQUIRES_LEGAL_REVIEW]",
+    "Raw submitted text may not be available for export or deletion because the app is designed not to intentionally retain it.",
+    "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+  ]) {
+    assert.match(BACKEND_LEGAL_TEXT, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
 });

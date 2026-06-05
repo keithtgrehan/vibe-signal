@@ -54,6 +54,16 @@ def test_public_copy_safety_still_blocks_hidden_intent_claim(tmp_path: Path) -> 
     assert {finding["pattern_id"] for finding in summary["findings"]} >= {"hidden_intent"}
 
 
+def test_public_copy_safety_still_blocks_lying_claim(tmp_path: Path) -> None:
+    probe = tmp_path / "public.md"
+    probe.write_text("Vibe Signal can tell when they are lying.\n", encoding="utf-8")
+
+    summary = build_summary(scan_paths([str(probe)]))
+
+    assert summary["status"] == "fail"
+    assert {finding["pattern_id"] for finding in summary["findings"]} >= {"lying_or_lies"}
+
+
 def test_public_copy_safety_still_blocks_diagnosis_therapy_framing(tmp_path: Path) -> None:
     probe = tmp_path / "public.md"
     probe.write_text("Vibe Signal is therapy for their diagnosis.\n", encoding="utf-8")
@@ -62,3 +72,25 @@ def test_public_copy_safety_still_blocks_diagnosis_therapy_framing(tmp_path: Pat
 
     assert summary["status"] == "fail"
     assert {finding["pattern_id"] for finding in summary["findings"]} >= {"diagnose"}
+
+
+def test_public_copy_safety_still_blocks_make_them_respond_claim(tmp_path: Path) -> None:
+    probe = tmp_path / "public.md"
+    probe.write_text("Use this to make them respond.\n", encoding="utf-8")
+
+    summary = build_summary(scan_paths([str(probe)]))
+
+    assert summary["status"] == "fail"
+    assert {finding["pattern_id"] for finding in summary["findings"]} >= {"make_them"}
+
+
+def test_public_copy_safety_allows_exact_prohibited_use_sentence(tmp_path: Path) -> None:
+    probe = tmp_path / "public.md"
+    probe.write_text(
+        "Prohibited use includes stalking, harassment, coercion, manipulation, or trying to make someone respond.\n",
+        encoding="utf-8",
+    )
+
+    summary = build_summary(scan_paths([str(probe)]))
+
+    assert summary["status"] == "pass"

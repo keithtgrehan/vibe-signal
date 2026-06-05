@@ -619,6 +619,8 @@ function Legal({ initialSlug, setView }) {
   const [page, setPage] = useState(FALLBACK_LEGAL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const legalGroups = Array.isArray(page.groups) ? page.groups : [];
+  const legalSections = Array.isArray(page.sections) ? page.sections : [];
 
   useEffect(() => {
     setSlug(initialSlug || "privacy");
@@ -672,9 +674,25 @@ function Legal({ initialSlug, setView }) {
         </div>
         {error ? <div className="error-banner" role="alert">{error}</div> : null}
         {loading ? <p className="quiet-copy">Loading legal draft...</p> : null}
-        <div className="legal-list">
-          {(page.sections || []).map((section) => <p key={section}>{section}</p>)}
-        </div>
+        {page.intro ? <p className="legal-intro">{page.intro}</p> : null}
+        {legalGroups.length > 0 ? (
+          <div className="legal-section-list">
+            {legalGroups.map((group) => (
+              <section className="legal-group" key={group.heading || JSON.stringify(group)}>
+                <h2>{group.heading}</h2>
+                <ul>
+                  {(Array.isArray(group.items) ? group.items : []).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="legal-list">
+            {legalSections.map((section) => <p key={section}>{section}</p>)}
+          </div>
+        )}
       </section>
     </main>
   );
