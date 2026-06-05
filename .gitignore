@@ -26,3 +26,8 @@ mobile/node_modules/
 web/node_modules/
 **/__pycache__/
 *.log
+
+# Restricted private local data
+data/restricted/private_whatsapp/**
+!data/restricted/private_whatsapp/.gitkeep
+!data/restricted/private_whatsapp/README.md
