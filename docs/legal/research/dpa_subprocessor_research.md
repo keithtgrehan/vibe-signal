@@ -20,7 +20,7 @@ This is research grounding for Vibe Signal vendor and DPA readiness. It is not l
 
 ## Controller / Processor Summary
 
-- Controller: the party deciding why and how Vibe Signal processes user data. Placeholder: [LEGAL_OPERATOR_NAME_REQUIRED].
+- Controller: the party deciding why and how Vibe Signal processes user data. Current beta operator: Keith Grehan.
 - Processor: a vendor processing personal data for the controller under instructions, such as hosting or infrastructure services.
 - GDPR Article 28 generally requires controller-processor terms covering subject matter, duration, nature and purpose, data categories, controller obligations, processor obligations, security, subprocessing, assistance, return/deletion, and audits.
 - This draft should not claim that DPAs are signed or complete until Keith/legal confirms vendor account terms and plan-specific availability.
@@ -33,8 +33,8 @@ This is research grounding for Vibe Signal vendor and DPA readiness. It is not l
 | Render | Processor / independent controller for its own service metadata depending on context | Backend/API hosting and logs | Hobby/basic logs assumed 7 days unless workspace changes |
 | GitHub | Developer platform vendor | Source code, CI, PR workflow | No raw user chats should be committed |
 | GoDaddy | Registrar/DNS vendor | Domain registration and DNS metadata | Domain registrar/DNS metadata only |
-| Email provider | Placeholder | Privacy contact and request correspondence | [EMAIL_PROVIDER_REQUIRED] |
-| OpenAI / Anthropic / Groq | Disabled unless production provider path is enabled | Optional external AI provider path | [AI_PROVIDER_STATUS_REQUIRED]; repo provider flags default off |
+| Email provider | Gmail | Privacy contact and request correspondence | keith.t.grehan@gmail.com |
+| OpenAI / Anthropic / Groq | Disabled unless explicitly enabled | Optional external AI provider path | Repo provider flags default off |
 | Analytics/crash providers | None | Not configured | Do not add analytics, cookies, or tracking |
 
 ## Log Retention Notes
@@ -55,6 +55,5 @@ This is research grounding for Vibe Signal vendor and DPA readiness. It is not l
 - Which vendor DPAs have been accepted for Keith's actual accounts?
 - Does Vercel DPA availability differ for Hobby/basic versus Pro/Enterprise on the active account?
 - Is Render's DPA accepted automatically through account terms, or does Keith need a signed addendum?
-- Which email provider will receive privacy requests?
-- Is any external AI provider enabled in production, and if so under what terms, region, retention, and training settings?
+- If any external AI provider is enabled later, under what terms, region, retention, and training settings?
 - What subprocessor update notification process should be documented?

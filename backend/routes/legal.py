@@ -40,9 +40,9 @@ PRIVACY_GROUPS: list[dict[str, Any]] = [
     {
         "heading": "Operator and contact placeholders",
         "items": [
-            "Operator/controller placeholder: [LEGAL_OPERATOR_NAME_REQUIRED].",
-            "Privacy contact placeholder: [PRIVACY_CONTACT_EMAIL_REQUIRED].",
-            "Business address or contact method placeholder: [BUSINESS_ADDRESS_OR_CONTACT_METHOD_REQUIRED].",
+            "Operator/controller: Keith Grehan.",
+            "Privacy contact: keith.t.grehan@gmail.com.",
+            "Business/contact method: Berlin, Germany; full address available on valid legal request.",
             "Production URL: https://www.vibe-signal.com.",
             "Controller role and lawful basis require legal review: [LAWFUL_BASIS_REQUIRES_LEGAL_REVIEW].",
         ],
@@ -88,8 +88,9 @@ PRIVACY_GROUPS: list[dict[str, Any]] = [
             "Render - backend/API hosting and logs. Render Hobby/basic backend logs are assumed to be retained for 7 days unless the Render workspace changes.",
             "GitHub - source code, CI, and project workflow. No raw user chats are committed.",
             "GoDaddy - domain registration and DNS metadata.",
-            "Email provider - [EMAIL_PROVIDER_REQUIRED].",
-            "AI provider - [AI_PROVIDER_STATUS_REQUIRED]. Optional external provider connectors are disabled by default unless production configuration changes.",
+            "Email provider - Gmail.",
+            "AI provider - Disabled unless explicitly enabled. Optional external provider connectors are disabled by default unless production configuration changes.",
+            "External log streaming - none configured.",
             "Analytics - none configured.",
         ],
     },
@@ -97,10 +98,10 @@ PRIVACY_GROUPS: list[dict[str, Any]] = [
         "heading": "Retention draft",
         "items": [
             "Raw submitted text: transient processing only and not intentionally retained.",
-            "Feedback metadata: [FEEDBACK_METADATA_RETENTION_REQUIRED].",
+            "Feedback metadata: 90 days during beta.",
             "Vercel runtime logs: Hobby/basic, assume 1 hour unless account changes.",
             "Render logs: Hobby/basic, assume 7 days unless account changes.",
-            "Legal/data request correspondence: [LEGAL_REQUEST_RETENTION_REQUIRED].",
+            "Legal/data request correspondence: 24 months unless legal review changes this.",
         ],
     },
     {
@@ -158,8 +159,8 @@ TERMS_GROUPS: list[dict[str, Any]] = [
     {
         "heading": "Accounts, payment, availability, and access",
         "items": [
-            "Account features: [ACCOUNT_FEATURES_NOT_CURRENTLY_IMPLEMENTED].",
-            "Payment features: [PAYMENT_FEATURES_NOT_CURRENTLY_IMPLEMENTED].",
+            "Account features are not currently implemented.",
+            "Payment features are not currently implemented.",
             "Service availability and warranty language require legal review before launch.",
             "Limitation of liability placeholder: [LIMITATION_OF_LIABILITY_REQUIRES_LEGAL_REVIEW].",
             "Governing law placeholder: [GOVERNING_LAW_REQUIRES_LEGAL_REVIEW].",
@@ -172,7 +173,7 @@ DATA_REQUEST_GROUPS: list[dict[str, Any]] = [
     {
         "heading": "Contact and request types",
         "items": [
-            "Send data requests to: [PRIVACY_CONTACT_EMAIL_REQUIRED].",
+            "Send data requests to: keith.t.grehan@gmail.com.",
             "Request types may include access/export, deletion, correction, objection/restriction, and withdrawal of consent where applicable.",
             "Response timeline placeholder: [RESPONSE_TIMELINE_REQUIRES_LEGAL_REVIEW].",
         ],

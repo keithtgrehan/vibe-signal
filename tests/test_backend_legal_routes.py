@@ -57,8 +57,15 @@ def test_legal_routes_include_required_public_draft_content() -> None:
     privacy = client.get("/legal/privacy").json()
     privacy_copy = " ".join(privacy["sections"])
     assert "Status: draft_requires_legal_review" in privacy_copy
-    assert "[LEGAL_OPERATOR_NAME_REQUIRED]" in privacy_copy
+    assert "Keith Grehan" in privacy_copy
+    assert "keith.t.grehan@gmail.com" in privacy_copy
+    assert "Berlin, Germany; full address available on valid legal request" in privacy_copy
     assert "https://www.vibe-signal.com" in privacy_copy
+    assert "Email provider - Gmail." in privacy_copy
+    assert "AI provider - Disabled unless explicitly enabled." in privacy_copy
+    assert "External log streaming - none configured." in privacy_copy
+    assert "Feedback metadata: 90 days during beta." in privacy_copy
+    assert "Legal/data request correspondence: 24 months unless legal review changes this." in privacy_copy
     assert "Vercel Hobby/basic runtime logs are assumed to be retained for 1 hour unless the Vercel account changes." in privacy_copy
     assert "Render Hobby/basic backend logs are assumed to be retained for 7 days unless the Render workspace changes." in privacy_copy
     assert "No raw messages are used for training." in privacy_copy
@@ -68,11 +75,14 @@ def test_legal_routes_include_required_public_draft_content() -> None:
     terms_copy = " ".join(terms["sections"])
     assert "Only submit text you have permission to analyze." in terms_copy
     assert "Prohibited use includes stalking, harassment, coercion, manipulation, or trying to make someone respond." in terms_copy
+    assert "Account features are not currently implemented." in terms_copy
+    assert "Payment features are not currently implemented." in terms_copy
     assert "[LIMITATION_OF_LIABILITY_REQUIRES_LEGAL_REVIEW]" in terms_copy
     assert "[GOVERNING_LAW_REQUIRES_LEGAL_REVIEW]" in terms_copy
 
     data_request = client.get("/legal/data-deletion").json()
     data_request_copy = " ".join(data_request["sections"])
+    assert "Send data requests to: keith.t.grehan@gmail.com." in data_request_copy
     for required in ("access/export", "deletion", "correction", "objection/restriction"):
         assert required in data_request_copy
     assert "[RESPONSE_TIMELINE_REQUIRES_LEGAL_REVIEW]" in data_request_copy

@@ -22,7 +22,7 @@ This is research grounding for Vibe Signal data request/delete handling. It is n
 
 ## Contact Placeholder
 
-- Privacy contact email: [PRIVACY_CONTACT_EMAIL_REQUIRED].
+- Privacy contact email: keith.t.grehan@gmail.com.
 
 ## What Requesters Should Include
 
@@ -47,8 +47,8 @@ This is research grounding for Vibe Signal data request/delete handling. It is n
 ## Response Process Placeholder
 
 - Response timeline: [RESPONSE_TIMELINE_REQUIRES_LEGAL_REVIEW].
-- Feedback metadata retention: [FEEDBACK_METADATA_RETENTION_REQUIRED].
-- Legal request correspondence retention: [LEGAL_REQUEST_RETENTION_REQUIRED].
+- Feedback metadata retention: 90 days during beta.
+- Legal request correspondence retention: 24 months unless legal review changes this.
 
 ## Closed-Beta Manual Runbook
 

@@ -32,8 +32,8 @@ This is research grounding for Vibe Signal public Terms. It is not legal approva
 - No therapy, medical, legal, or financial advice.
 - No emergency support.
 - Service availability / no warranty language requiring legal review.
-- Account placeholder: [ACCOUNT_FEATURES_NOT_CURRENTLY_IMPLEMENTED].
-- Payment placeholder: [PAYMENT_FEATURES_NOT_CURRENTLY_IMPLEMENTED].
+- Account features are not currently implemented.
+- Payment features are not currently implemented.
 - Limitation of liability placeholder: [LIMITATION_OF_LIABILITY_REQUIRES_LEGAL_REVIEW].
 - Governing law placeholder: [GOVERNING_LAW_REQUIRES_LEGAL_REVIEW].
 - Termination or access-removal placeholder requiring legal review.
