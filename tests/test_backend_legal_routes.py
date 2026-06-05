@@ -16,7 +16,9 @@ def test_legal_routes_return_draft_review_boundaries() -> None:
     for path in (
         "/legal/privacy",
         "/legal/terms",
+        "/legal/data-request",
         "/legal/data-deletion",
+        "/legal/disclaimer",
         "/legal/data-export",
         "/legal/match-disclaimer",
     ):
@@ -65,6 +67,8 @@ def test_api_legal_alias_routes_return_existing_public_drafts() -> None:
         "/api/legal/terms": "Terms",
         "/api/legal/data-request": "Data request/delete",
         "/api/legal/disclaimer": "Disclaimer",
+        "/legal/data-request": "Data request/delete",
+        "/legal/disclaimer": "Disclaimer",
     }
     for path, title in aliases.items():
         response = client.get(path)

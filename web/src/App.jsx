@@ -23,6 +23,11 @@ import {
 } from "./trustContent.js";
 import { buildFeedbackMetadata } from "./guidedInteraction.js";
 import {
+  getLocalLegalPage,
+  isValidLegalPage,
+  LEGAL_SLUGS,
+} from "./legalContent.js";
+import {
   buildLowSignalFallback,
   buildSyntheticResult,
   buildTrustFirstResultView,
@@ -33,22 +38,6 @@ import {
 const FEATURED_DEMO_ID = "unclear_ask";
 const BACKEND_RETRY_COPY =
   API_RETRYING_BACKEND_MESSAGE || "The backend may be waking up. Trying once more...";
-const FALLBACK_LEGAL = {
-  title: "Closed Beta Legal Draft",
-  status: "draft_requires_legal_review",
-  sections: [
-    "Vibe Signal is communication support only.",
-    "Outputs are wording-based suggestions, not truth claims.",
-    "Only submit text you have permission to analyze.",
-    "Privacy and terms drafts require legal review before public launch.",
-  ],
-};
-const LEGAL_SLUGS = [
-  ["privacy", "Privacy"],
-  ["terms", "Terms"],
-  ["data-deletion", "Data request/delete"],
-  ["match-disclaimer", "Disclaimer"],
-];
 
 function normalizeText(value) {
   return String(value || "").trim();
@@ -694,34 +683,30 @@ function Home({ navDemoRequest, onOpenLegal }) {
 
 function Legal({ initialSlug, setView }) {
   const [slug, setSlug] = useState(initialSlug || "privacy");
-  const [page, setPage] = useState(FALLBACK_LEGAL);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [page, setPage] = useState(() => getLocalLegalPage(initialSlug || "privacy"));
   const legalGroups = Array.isArray(page.groups) ? page.groups : [];
   const legalSections = Array.isArray(page.sections) ? page.sections : [];
 
   useEffect(() => {
-    setSlug(initialSlug || "privacy");
+    const nextSlug = initialSlug || "privacy";
+    setSlug(nextSlug);
+    setPage(getLocalLegalPage(nextSlug));
   }, [initialSlug]);
 
   useEffect(() => {
     let cancelled = false;
+    const localPage = getLocalLegalPage(slug);
+    setPage(localPage);
+
     async function load() {
-      setLoading(true);
-      setError("");
       try {
         const payload = await fetchLegalPage(slug);
-        if (!cancelled) {
+        if (!cancelled && isValidLegalPage(payload)) {
           setPage(payload);
         }
       } catch (_requestError) {
-        if (!cancelled) {
-          setPage(FALLBACK_LEGAL);
-          setError("Using fallback copy because the legal draft did not load.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
+        if (import.meta.env?.DEV) {
+          console.warn("Legal draft API unavailable; using bundled legal copy.");
         }
       }
     }
@@ -750,8 +735,6 @@ function Legal({ initialSlug, setView }) {
             </button>
           ))}
         </div>
-        {error ? <div className="error-banner" role="alert">{error}</div> : null}
-        {loading ? <p className="quiet-copy">Loading legal draft...</p> : null}
         {page.intro ? <p className="legal-intro">{page.intro}</p> : null}
         {legalGroups.length > 0 ? (
           <div className="legal-section-list">
