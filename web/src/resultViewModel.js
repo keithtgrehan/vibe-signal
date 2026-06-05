@@ -1,7 +1,7 @@
 import { CAN_HELP_WITH, CANNOT_TELL, SYNTHETIC_DEMOS } from "./trustContent.js";
 
 const DEFAULT_CANNOT_INFER =
-  "This does not tell you what they feel or intend.";
+  "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.";
 const DEFAULT_NEXT_STEP = "Ask one clear, lower-pressure follow-up.";
 const LOW_SIGNAL_TRIGGERS = new Set(["hey", "hi", "ok", "okay", "k", "fine", "lol", "lol sure"]);
 
@@ -259,6 +259,6 @@ export function buildTrustFirstResultView(result = {}) {
     cannotTell: CANNOT_TELL,
     feedbackOptions: FEEDBACK_OPTIONS,
     disclosure:
-      "Evidence is shown before interpretation so you can decide whether the read fits the wider context.",
+      "Evidence from the words shown appears before any possible pattern.",
   };
 }

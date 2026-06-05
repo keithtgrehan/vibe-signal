@@ -22,38 +22,50 @@ import {
 
 const ROOT = resolve(import.meta.dirname, "..");
 
-test("landing hero exposes the minimal human product promise and clear demo CTA", () => {
-  assert.equal(
-    HERO_COPY.title,
-    "See what a message is doing - without guessing what someone feels."
-  );
-  assert.match(HERO_COPY.title, /See what a message is doing/);
-  assert.match(HERO_COPY.title, /without guessing what someone feels/);
+test("landing hero exposes the Scanner-safe product promise and clear demo CTA", () => {
+  assert.equal(HERO_COPY.title, "See what the wording shows.");
   assert.equal(
     HERO_COPY.subtitle,
-    "Paste text you’re allowed to use, or run a synthetic demo. Vibe Signal highlights clarity, pressure, unanswered asks, and safer replies."
+    "Spot clarity, ambiguity, pressure, reassurance, and repair openings in text you are allowed to use."
   );
-  assert.equal(HERO_COPY.primaryCta, "Run a demo");
-  assert.equal(HERO_COPY.secondaryCta, "Analyze text");
-  assert.equal(HERO_COPY.trustNote, "No mind-reading. No relationship verdicts. Just observable wording.");
+  assert.equal(HERO_COPY.primaryCta, "Run synthetic demo");
+  assert.equal(HERO_COPY.secondaryCta, "Analyze with consent");
+  assert.equal(
+    HERO_COPY.trustNote,
+    "Evidence from the words shown. Possible pattern, not a fact about intent."
+  );
 
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
   assert.match(appText, /Demo/);
-  assert.match(appText, /How it works/);
+  assert.match(appText, /Analyze/);
   assert.match(appText, /Privacy/);
-  assert.match(appText, /Run demo/);
+  assert.match(appText, /Run synthetic demo/);
 });
 
-test("home page follows the chosen minimal information architecture", () => {
+test("home page follows the Scanner product information architecture", () => {
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
 
-  assert.match(appText, /function Hero/);
-  assert.match(appText, /function FeaturedDemo/);
-  assert.match(appText, /function ResultCard/);
-  assert.match(appText, /function AnalyzeText/);
-  assert.match(appText, /function HowItWorks/);
-  assert.match(appText, /function TrustFooter/);
-  assert.match(appText, /demo-result-grid/);
+  for (const componentName of [
+    "TopNav",
+    "Hero",
+    "DemoCard",
+    "AnalyzePanel",
+    "ConsentGate",
+    "ScanningState",
+    "ResultPanel",
+    "SignalBreakdown",
+    "EvidenceList",
+    "SafeReplyCard",
+    "LimitsCard",
+    "FeedbackPanel",
+    "TrustFooter",
+    "Legal",
+  ]) {
+    assert.match(appText, new RegExp(`function ${componentName}`));
+  }
+
+  assert.match(appText, /scanner-workspace/);
+  assert.match(appText, /scanner-result-shell/);
 
   for (const removed of [
     "GoalSelector",
@@ -61,9 +73,12 @@ test("home page follows the chosen minimal information architecture", () => {
     "Compare two snippets",
     "Analysis style",
     "What kind of exchange is this?",
-    "Signal strength",
-    "Can help with",
-    "Cannot tell you",
+    "Get the receipts",
+    "Share my receipt",
+    "Interest score",
+    "window.VIBE",
+    "decodedThisWeek",
+    "ratingCount",
   ]) {
     assert.equal(appText.includes(removed), false, `App.jsx still includes ${removed}`);
   }
@@ -75,11 +90,11 @@ test("featured synthetic demo is a single understandable first run", () => {
   assert.equal(featured?.title, "Unclear timing");
   assert.equal(featured?.exchange, "self: Are we still on for Friday?\nother: maybe later, not sure yet");
   assert.equal(featured?.requiresPrivateConsent, false);
-  assert.equal(featured?.actionLabel, "Run demo");
+  assert.equal(featured?.actionLabel, "Run synthetic demo");
   assert.deepEqual(TRUST_STRIP_ITEMS, [
-    "No private chats stored for this demo",
-    "The exact words that triggered it",
-    "What it can’t know",
+    "Evidence from the words shown",
+    "Possible pattern, not a fact about intent",
+    "Feedback stores result metadata only",
   ]);
 });
 
@@ -103,32 +118,42 @@ test("result view remains evidence-first with the required result-card structure
     view.safeNextStep,
     "No worries - can you confirm by Thursday evening so I know whether to keep Friday free?"
   );
-  assert.equal(view.cannotInferText, "This does not tell you what they feel or intend.");
+  assert.equal(
+    view.cannotInferText,
+    "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes."
+  );
 
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
-  assert.match(appText, /What stands out/);
-  assert.match(appText, /Evidence/);
+  assert.match(appText, /Evidence from the words shown/);
+  assert.match(appText, /Signal \/ cue breakdown/);
+  assert.match(appText, /Evidence phrase list/);
   assert.match(appText, /What it could mean/);
   assert.match(appText, /Safer reply/);
-  assert.match(appText, /Limits/);
+  assert.match(appText, /Limits \/ cannot infer/);
+  assert.match(appText, /buildTrustFirstResultView/);
 });
 
 test("analyze flow keeps consent required before pasted text analysis", () => {
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
 
-  assert.match(appText, /I have permission to analyze this text\./);
-  assert.match(appText, /Check the permission box before analyzing\./);
+  assert.match(appText, /I have permission to analyze this text and understand the limits\./);
+  assert.match(appText, /Check the consent box before analyzing private text\./);
   assert.match(appText, /disabled=\{!canSubmit\}/);
-  assert.match(appText, /Avoid sensitive, legal, medical, workplace, or third-party private content/);
+  assert.match(appText, /Only paste text you have permission to use/);
+  assert.match(appText, /runSyntheticDemo/);
+  assert.match(appText, /buildSyntheticResult/);
   assert.match(appText, /onRetry/);
   assert.match(appText, /API_RETRYING_BACKEND_MESSAGE/);
-  assert.match(appText, /The backend may be waking up\. Please try again in a moment\./);
+  assert.match(appText, /The backend may be waking up\. Trying once more\.\.\./);
+  assert.match(appText, /buildLowSignalFallback/);
+  assert.match(appText, /ScanningState/);
 });
 
 test("feedback stays result-metadata only and avoids raw text fields", () => {
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
 
-  assert.match(appText, /Feedback stores only result metadata, never the message text\./);
+  assert.match(appText, /Feedback stores result metadata only, never message text\./);
+  assert.match(appText, /I agree to send metadata-only result feedback\./);
   assert.deepEqual(
     FEEDBACK_OPTIONS.map((option) => option.label),
     ["Useful", "Too strong", "Missed context", "Unsafe wording", "Confusing"]
@@ -142,38 +167,58 @@ test("feedback stays result-metadata only and avoids raw text fields", () => {
 test("mobile and small viewport CSS keeps the page single-column and bounded", () => {
   const stylesText = readFileSync(resolve(ROOT, "src/styles.css"), "utf8");
 
+  for (const token of [
+    "--bg: #0A0F1C",
+    "--bg2: #0E1525",
+    "--text: #EAF0FF",
+    "--muted: rgba(234,240,255,0.56)",
+    "--cyan: #54E6FF",
+    "--lime: #8DF7C9",
+    "--magenta: #FF6BBA",
+    "--panel: rgba(255,255,255,0.04)",
+    "--line: rgba(255,255,255,0.09)",
+  ]) {
+    assert.match(stylesText, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
   assert.match(stylesText, /@media \(max-width: 920px\)/);
-  assert.match(stylesText, /\.demo-result-grid,\n  \.steps-grid \{\n    grid-template-columns: 1fr;/);
-  assert.match(stylesText, /\.result-card \{\n    position: static;/);
+  assert.match(stylesText, /\.scanner-workspace \{\n    grid-template-columns: 1fr;/);
+  assert.match(stylesText, /\.left-stack \{\n    display: contents;/);
+  assert.match(stylesText, /\.demo-card \{\n    order: 1;/);
+  assert.match(stylesText, /\.analyze-panel \{\n    order: 2;/);
+  assert.match(stylesText, /\.scanner-result-shell \{\n    order: 3;/);
+  assert.match(stylesText, /\.how-section \{\n    order: 4;/);
+  assert.match(stylesText, /\.scanner-result-shell \{\n    position: static;/);
   assert.match(stylesText, /@media \(max-width: 640px\)/);
   assert.match(stylesText, /\.button \{\n    width: 100%;/);
+  assert.equal(/overflow-x:\s*hidden/.test(stylesText), true);
 });
 
 test("supporting trust content stays short and safe", () => {
   assert.deepEqual(HOW_IT_WORKS_STEPS.map((step) => step.title), [
-    "Paste or run a demo",
+    "Start with the demo",
     "See the evidence",
-    "Choose a clearer next step",
+    "Choose a safer next step",
   ]);
   assert.deepEqual(REVIEWER_DEMO_FLOW, [
-    "Open with a synthetic card",
-    "Show evidence before interpretation",
-    "Point to limits and the safe next step",
-    "Use metadata-only feedback",
+    "Open with a synthetic Scanner card",
+    "Show quoted evidence before interpretation",
+    "Keep limits and the safe next step visible",
+    "Use consented metadata-only feedback",
   ]);
   assert.deepEqual(CAN_HELP_WITH, [
-    "Spot vague or overloaded messages",
-    "Identify unclear asks",
-    "Surface pressure or urgency cues",
-    "Show reassurance and repair opportunities",
-    "Suggest clearer, lower-pressure replies",
+    "Spot clarity, ambiguity, pressure, reassurance, and repair openings",
+    "Show evidence from the words shown",
+    "Separate possible patterns from facts about intent",
+    "Suggest one clearer, lower-pressure follow-up",
+    "Keep limits visible before you act",
   ]);
   assert.deepEqual(CANNOT_TELL, [
-    "What someone feels",
-    "What someone intends",
-    "Whether a statement is true",
-    "Health, personality, or identity labels",
-    "What will happen next",
+    "Intent",
+    "Attraction",
+    "Truthfulness",
+    "Health labels",
+    "Outcomes",
   ]);
 });
 
@@ -192,4 +237,13 @@ test("fallbacks still avoid rendering summary-only analysis", () => {
   assert.equal(fallback.isLowSignal, true);
   assert.equal(fallback.title, "Not enough context to read safely.");
   assert.equal(fallback.evidenceDetails.length, 0);
+});
+
+test("legal and privacy surfaces remain visible from public UI", () => {
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+
+  for (const label of ["Privacy", "Terms", "Data request/delete", "Disclaimer"]) {
+    assert.match(appText, new RegExp(label.replace("/", "\\/")));
+  }
+  assert.match(appText, /fetchLegalPage/);
 });
