@@ -37,6 +37,56 @@ def test_readme_documents_custom_domain_static_legal_and_cors_origins() -> None:
         assert origin in text
 
 
+def test_readme_is_recruiter_demo_friendly_and_current() -> None:
+    text = _read(README)
+
+    for required in (
+        "## 60-Second Demo Path",
+        "Run the synthetic demo first",
+        "Do not paste sensitive/private third-party content",
+        "## Why This Repo Matters",
+        "AI product thinking",
+        "trust/safety UX",
+        "full-stack deployment",
+        "Codex-driven development workflow",
+        "## How n8n Fits In",
+        "n8n is an optional operations/workflow automation layer",
+        "n8n does not replace the deterministic engine",
+        "n8n should not receive raw private chat content",
+        "## Deployment Model",
+        "Private analyze requires the Render backend",
+        "## Current Status",
+        "legal pages remain `draft_requires_legal_review`",
+        "## Roadmap",
+    ):
+        assert required in text
+
+
+def test_readme_avoids_overclaiming_demo_language() -> None:
+    text = _read(README)
+
+    safe_required = (
+        "no hidden intent",
+        "no attraction prediction",
+        "no deception or cheating detection",
+        "no model-accuracy claim from synthetic tests",
+    )
+    for required in safe_required:
+        assert required in text
+
+    forbidden_claims = (
+        r"\bdetect hidden intent\b",
+        r"\bpredict attraction\b",
+        r"\bdeception detection\b(?!\s+is not)",
+        r"\bmodel accuracy\b(?!\s+claim)",
+        r"\bGDPR compliant\b",
+        r"\blegal approval\b",
+        r"\blegally approved\b",
+    )
+    for pattern in forbidden_claims:
+        assert not re.search(pattern, text, flags=re.IGNORECASE)
+
+
 def test_closed_beta_go_no_go_reflects_current_no_render_state() -> None:
     text = _read(GO_NO_GO)
 
