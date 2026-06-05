@@ -136,6 +136,7 @@ test("result view remains evidence-first with the required result-card structure
 
 test("analyze flow keeps consent required before pasted text analysis", () => {
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  const apiText = readFileSync(resolve(ROOT, "src/api.js"), "utf8");
 
   assert.match(appText, /I have permission to analyze this text and understand the limits\./);
   assert.match(appText, /Check the consent box before analyzing private text\./);
@@ -146,6 +147,13 @@ test("analyze flow keeps consent required before pasted text analysis", () => {
   assert.match(appText, /onRetry/);
   assert.match(appText, /API_RETRYING_BACKEND_MESSAGE/);
   assert.match(appText, /The backend may be waking up\. Trying once more\.\.\./);
+  assert.match(appText, /MAX_ANALYZE_INPUT_CHARS/);
+  assert.match(appText, /ANALYZE_INPUT_LIMIT_MESSAGE/);
+  assert.match(apiText, /This beta works best with short excerpts\. Try 2-8 messages or under 2,000 characters\./);
+  assert.match(appText, /onCancel/);
+  assert.match(appText, /Cancel/);
+  assert.match(appText, /Try again/);
+  assert.match(appText, /finally\s*\{\s*if \(analyzeRunRef\.current === runId\)\s*\{\s*setLoading\(false\);/s);
   assert.match(appText, /buildLowSignalFallback/);
   assert.match(appText, /ScanningState/);
 });

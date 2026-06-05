@@ -1,15 +1,21 @@
 const DEFAULT_API_URL = "https://vibe-signal.onrender.com";
-const REQUEST_TIMEOUT_MS = 30000;
+const REQUEST_TOTAL_TIMEOUT_MS = 25000;
+const REQUEST_ATTEMPT_TIMEOUT_MS = 12000;
 const MAX_TRANSIENT_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 500;
 
 export const API_RETRYING_BACKEND_MESSAGE = "The backend may be waking up. Trying once more...";
+export const MAX_ANALYZE_INPUT_CHARS = 2000;
+export const ANALYZE_INPUT_LIMIT_MESSAGE =
+  "This beta works best with short excerpts. Try 2-8 messages or under 2,000 characters.";
 
 const USER_FACING_ERROR_MESSAGES = {
   configuration_error:
     "The backend URL is misconfigured. Set VITE_API_BASE_URL to a clean http(s) backend origin.",
   backend_waking: API_RETRYING_BACKEND_MESSAGE,
   timeout: "The backend did not respond in time. Please try again in a moment.",
+  cancelled: "Analysis cancelled.",
+  input_too_long: ANALYZE_INPUT_LIMIT_MESSAGE,
   cors_or_network: "The app could not reach the backend. Check deployment configuration.",
   backend_error: "The backend could not complete the request. Please try again in a moment.",
   validation_error:
@@ -160,21 +166,114 @@ function classifyHttpStatus(status) {
 }
 
 function classifyFetchFailure(error) {
+  if (error?.vibeClassification === "cancelled") {
+    return "cancelled";
+  }
+  if (error?.vibeClassification === "timeout") {
+    return "timeout";
+  }
   if (error?.name === "AbortError") {
     return "timeout";
   }
   return "cors_or_network";
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => {
-    globalThis.setTimeout(resolve, ms);
+function positiveNumberOrFallback(value, fallback) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : fallback;
+}
+
+function createAbortLikeError(classification) {
+  if (typeof DOMException === "function") {
+    const error = new DOMException(classification, "AbortError");
+    error.vibeClassification = classification;
+    return error;
+  }
+  const error = new Error(classification);
+  error.name = "AbortError";
+  error.vibeClassification = classification;
+  return error;
+}
+
+function sleep(ms, signal) {
+  if (ms <= 0) {
+    return Promise.resolve();
+  }
+  if (signal?.aborted) {
+    return Promise.reject(createAbortLikeError("cancelled"));
+  }
+  return new Promise((resolve, reject) => {
+    let timer;
+    const cleanup = () => {
+      globalThis.clearTimeout(timer);
+      if (signal) {
+        signal.removeEventListener("abort", abort);
+      }
+    };
+    const abort = () => {
+      cleanup();
+      reject(createAbortLikeError("cancelled"));
+    };
+    timer = globalThis.setTimeout(() => {
+      cleanup();
+      resolve();
+    }, ms);
+    if (signal) {
+      signal.addEventListener("abort", abort, { once: true });
+    }
   });
 }
 
-async function fetchWithTimeout(path, options) {
+function withTimeout(factory, timeoutMs, signal) {
+  if (signal?.aborted) {
+    return Promise.reject(createAbortLikeError("cancelled"));
+  }
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const cleanupCallbacks = [];
+    const settle = (callback, value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      for (const cleanup of cleanupCallbacks) {
+        cleanup();
+      }
+      callback(value);
+    };
+
+    const timer = globalThis.setTimeout(() => {
+      settle(reject, createAbortLikeError("timeout"));
+    }, Math.max(1, timeoutMs));
+    cleanupCallbacks.push(() => globalThis.clearTimeout(timer));
+
+    if (signal) {
+      const abort = () => settle(reject, createAbortLikeError("cancelled"));
+      signal.addEventListener("abort", abort, { once: true });
+      cleanupCallbacks.push(() => signal.removeEventListener("abort", abort));
+    }
+
+    Promise.resolve()
+      .then(factory)
+      .then((value) => settle(resolve, value))
+      .catch((error) => settle(reject, error));
+  });
+}
+
+async function fetchWithTimeout(path, options, clientOptions = {}) {
+  if (clientOptions.signal?.aborted) {
+    throw createAbortLikeError("cancelled");
+  }
   const controller = new AbortController();
-  const timer = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let timeoutExpired = false;
+  const timer = globalThis.setTimeout(() => {
+    timeoutExpired = true;
+    controller.abort();
+  }, Math.max(1, clientOptions.timeoutMs));
+  const abortFromClient = () => controller.abort();
+  if (clientOptions.signal) {
+    clientOptions.signal.addEventListener("abort", abortFromClient, { once: true });
+  }
   try {
     return await fetch(`${API_BASE_URL}${path}`, {
       ...options,
@@ -184,8 +283,19 @@ async function fetchWithTimeout(path, options) {
         ...(options.headers || {}),
       },
     });
+  } catch (error) {
+    if (clientOptions.signal?.aborted) {
+      throw createAbortLikeError("cancelled");
+    }
+    if (timeoutExpired && error?.name === "AbortError") {
+      error.vibeClassification = "timeout";
+    }
+    throw error;
   } finally {
     globalThis.clearTimeout(timer);
+    if (clientOptions.signal) {
+      clientOptions.signal.removeEventListener("abort", abortFromClient);
+    }
   }
 }
 
@@ -194,20 +304,41 @@ async function requestJson(path, options = {}, clientOptions = {}) {
     throw buildApiRequestError("configuration_error");
   }
 
+  const timeoutMs = positiveNumberOrFallback(clientOptions.timeoutMs, REQUEST_TOTAL_TIMEOUT_MS);
+  const attemptTimeoutMs = positiveNumberOrFallback(
+    clientOptions.attemptTimeoutMs,
+    REQUEST_ATTEMPT_TIMEOUT_MS
+  );
+  const retryDelayMs = positiveNumberOrFallback(clientOptions.retryDelayMs, RETRY_DELAY_MS);
+  const deadline = Date.now() + timeoutMs;
   let lastTransientError = null;
   for (let attempt = 1; attempt <= MAX_TRANSIENT_ATTEMPTS; attempt += 1) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) {
+      throw buildApiRequestError("timeout");
+    }
     let response;
     try {
-      response = await fetchWithTimeout(path, options);
+      response = await fetchWithTimeout(path, options, {
+        signal: clientOptions.signal,
+        timeoutMs: Math.min(attemptTimeoutMs, remainingMs),
+      });
     } catch (error) {
       const classification = classifyFetchFailure(error);
+      if (classification === "cancelled") {
+        throw buildApiRequestError("cancelled");
+      }
       lastTransientError = buildApiRequestError(classification);
-      if (attempt < MAX_TRANSIENT_ATTEMPTS) {
+      if (attempt < MAX_TRANSIENT_ATTEMPTS && Date.now() < deadline) {
         clientOptions.onRetry?.({
           classification: "backend_waking",
           message: USER_FACING_ERROR_MESSAGES.backend_waking,
         });
-        await sleep(RETRY_DELAY_MS);
+        try {
+          await sleep(Math.min(retryDelayMs, Math.max(0, deadline - Date.now())), clientOptions.signal);
+        } catch (delayError) {
+          throw buildApiRequestError(classifyFetchFailure(delayError));
+        }
         continue;
       }
       throw lastTransientError;
@@ -218,8 +349,16 @@ async function requestJson(path, options = {}, clientOptions = {}) {
     }
 
     try {
-      return await response.json();
-    } catch (_error) {
+      return await withTimeout(
+        () => response.json(),
+        Math.max(1, deadline - Date.now()),
+        clientOptions.signal
+      );
+    } catch (error) {
+      const classification = classifyFetchFailure(error);
+      if (classification === "cancelled" || classification === "timeout") {
+        throw buildApiRequestError(classification);
+      }
       throw buildApiRequestError("backend_error");
     }
   }
@@ -249,6 +388,9 @@ export async function submitMatch(conversationText, clientOptions = {}) {
 }
 
 export async function submitAnalyze(conversationText, clientOptions = {}) {
+  if (normalizeText(conversationText).length > MAX_ANALYZE_INPUT_CHARS) {
+    throw buildApiRequestError("input_too_long");
+  }
   const messages = buildMessagesFromText(conversationText);
   if (!messages.length) {
     throw new Error("Add at least one line of conversation text.");

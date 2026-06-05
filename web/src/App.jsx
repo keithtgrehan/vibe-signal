@@ -5,11 +5,13 @@ import {
   CheckCircle2,
   ChevronDown,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  ANALYZE_INPUT_LIMIT_MESSAGE,
   API_RETRYING_BACKEND_MESSAGE,
   fetchLegalPage,
+  MAX_ANALYZE_INPUT_CHARS,
   submitAnalyze,
   submitFeedback,
 } from "./api.js";
@@ -191,8 +193,21 @@ function ConsentGate({ consent, setConsent }) {
   );
 }
 
-function AnalyzePanel({ text, setText, consent, setConsent, loading, error, status, onSubmit }) {
-  const canSubmit = normalizeText(text) && consent && !loading;
+function AnalyzePanel({
+  text,
+  setText,
+  consent,
+  setConsent,
+  loading,
+  error,
+  status,
+  onSubmit,
+  onCancel,
+}) {
+  const inputLength = normalizeText(text).length;
+  const inputTooLong = inputLength > MAX_ANALYZE_INPUT_CHARS;
+  const canSubmit = normalizeText(text) && consent && !loading && !inputTooLong;
+  const canRetry = Boolean(normalizeText(text)) && consent && !loading && !inputTooLong;
 
   return (
     <section className="panel analyze-panel" id="analyze" aria-labelledby="analyze-title">
@@ -203,7 +218,8 @@ function AnalyzePanel({ text, setText, consent, setConsent, loading, error, stat
       </div>
       <label className="field-label" htmlFor="conversation">Message text</label>
       <textarea
-        aria-describedby="analyze-helper consent-copy"
+        aria-describedby="analyze-helper analyze-limit-helper consent-copy"
+        aria-invalid={inputTooLong ? "true" : "false"}
         id="conversation"
         onChange={(event) => setText(event.target.value)}
         placeholder="self: Are we still on for Friday?&#10;other: maybe later, not sure yet"
@@ -213,17 +229,37 @@ function AnalyzePanel({ text, setText, consent, setConsent, loading, error, stat
       <p className="helper-copy" id="analyze-helper">
         Vibe Signal reviews wording cues only. It does not decide what happened or what someone meant.
       </p>
+      <p
+        className={`helper-copy ${inputTooLong ? "limit-warning" : ""}`.trim()}
+        id="analyze-limit-helper"
+      >
+        {inputTooLong
+          ? ANALYZE_INPUT_LIMIT_MESSAGE
+          : `Short excerpts work best. ${inputLength}/${MAX_ANALYZE_INPUT_CHARS} characters.`}
+      </p>
       {error ? (
         <div className="error-banner" role="alert">
           <AlertCircle size={18} />
           <span>{error}</span>
+          {canRetry ? (
+            <Button className="inline-error-action" tone="secondary" onClick={onSubmit}>
+              Try again
+            </Button>
+          ) : null}
         </div>
       ) : null}
       <div className="form-footer">
         <span aria-live="polite">{status}</span>
-        <Button disabled={!canSubmit} onClick={onSubmit}>
-          {loading ? "Scanning..." : "Analyze"}
-        </Button>
+        <div className="form-actions">
+          {loading ? (
+            <Button tone="secondary" onClick={onCancel}>
+              Cancel
+            </Button>
+          ) : null}
+          <Button disabled={!canSubmit} onClick={onSubmit}>
+            {loading ? "Scanning..." : "Analyze"}
+          </Button>
+        </div>
       </div>
     </section>
   );
@@ -509,10 +545,15 @@ function Home({ navDemoRequest, onOpenLegal }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [scanStatus, setScanStatus] = useState("Ready to scan wording cues.");
+  const analyzeAbortRef = useRef(null);
+  const analyzeRunRef = useRef(0);
 
   const hasText = normalizeText(text);
+  const inputTooLong = hasText.length > MAX_ANALYZE_INPUT_CHARS;
   const status = !hasText
     ? "Run the synthetic demo first, or add text with consent."
+    : inputTooLong
+      ? ANALYZE_INPUT_LIMIT_MESSAGE
     : !consent
       ? "Check the consent box before analyzing private text."
       : loading
@@ -520,6 +561,9 @@ function Home({ navDemoRequest, onOpenLegal }) {
         : "Ready to analyze.";
 
   function runSyntheticDemo(demoId = FEATURED_DEMO_ID) {
+    analyzeRunRef.current += 1;
+    analyzeAbortRef.current?.abort();
+    analyzeAbortRef.current = null;
     setResult(buildSyntheticResult(demoId));
     setLoading(false);
     setError("");
@@ -533,9 +577,28 @@ function Home({ navDemoRequest, onOpenLegal }) {
     }
   }, [navDemoRequest]);
 
+  useEffect(() => () => analyzeAbortRef.current?.abort(), []);
+
+  function handleCancelAnalyze() {
+    if (!loading) {
+      return;
+    }
+    analyzeRunRef.current += 1;
+    analyzeAbortRef.current?.abort();
+    analyzeAbortRef.current = null;
+    setLoading(false);
+    setError("Analysis cancelled.");
+    setScanStatus("Analysis cancelled.");
+  }
+
   async function handleAnalyzeSubmit() {
     if (!normalizeText(text)) {
       setError("Add a short exchange, or run the synthetic demo first.");
+      return;
+    }
+    if (inputTooLong) {
+      setError(ANALYZE_INPUT_LIMIT_MESSAGE);
+      setScanStatus("Shorten the excerpt before analyzing.");
       return;
     }
     if (!consent) {
@@ -554,30 +617,44 @@ function Home({ navDemoRequest, onOpenLegal }) {
       return;
     }
 
+    const runId = analyzeRunRef.current + 1;
+    const controller = new AbortController();
+    analyzeRunRef.current = runId;
+    analyzeAbortRef.current = controller;
     setLoading(true);
     setResult(null);
     setError("");
     setScanStatus("Reading the wording...");
     try {
       const payload = await submitAnalyze(text, {
+        signal: controller.signal,
         onRetry: (retryState) => {
           if (retryState?.classification === "backend_waking") {
             setScanStatus(BACKEND_RETRY_COPY);
           }
         },
       });
+      if (analyzeRunRef.current !== runId) {
+        return;
+      }
       setResult(payload);
       setError("");
       setScanStatus("Result ready.");
       window.setTimeout(() => scrollToId("demo"), 0);
     } catch (requestError) {
+      if (analyzeRunRef.current !== runId) {
+        return;
+      }
       setError(
         requestError?.message ||
           "The backend could not complete the analysis. Try the synthetic demo or try again in a moment."
       );
       setScanStatus("Analysis paused.");
     } finally {
-      setLoading(false);
+      if (analyzeRunRef.current === runId) {
+        setLoading(false);
+        analyzeAbortRef.current = null;
+      }
     }
   }
 
@@ -591,6 +668,7 @@ function Home({ navDemoRequest, onOpenLegal }) {
             consent={consent}
             error={error}
             loading={loading}
+            onCancel={handleCancelAnalyze}
             onSubmit={handleAnalyzeSubmit}
             setConsent={setConsent}
             setText={(value) => {

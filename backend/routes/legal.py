@@ -335,3 +335,23 @@ def data_export_request_draft() -> dict[str, Any]:
 @router.get("/legal/match-disclaimer")
 def match_usage_consent_disclaimer() -> dict[str, Any]:
     return _legal_page("match-disclaimer")
+
+
+@router.get("/api/legal/privacy")
+def api_privacy_policy_draft() -> dict[str, Any]:
+    return _legal_page("privacy")
+
+
+@router.get("/api/legal/terms")
+def api_terms_draft() -> dict[str, Any]:
+    return _legal_page("terms")
+
+
+@router.get("/api/legal/data-request")
+def api_data_request_draft() -> dict[str, Any]:
+    return _legal_page("data-deletion")
+
+
+@router.get("/api/legal/disclaimer")
+def api_disclaimer_draft() -> dict[str, Any]:
+    return _legal_page("match-disclaimer")

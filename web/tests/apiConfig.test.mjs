@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  ANALYZE_INPUT_LIMIT_MESSAGE,
+  MAX_ANALYZE_INPUT_CHARS,
   getApiBaseUrlStatus,
   resolveApiBaseUrl,
   submitAnalyze,
@@ -205,6 +207,136 @@ test("submitAnalyze retries once then classifies a final timeout safely", async 
   }
 });
 
+test("submitAnalyze keeps timeout budget bounded across retry attempts", async () => {
+  const originalFetch = globalThis.fetch;
+  let attempts = 0;
+  globalThis.fetch = async (_url, options) => {
+    attempts += 1;
+    return new Promise((_resolve, reject) => {
+      options.signal.addEventListener(
+        "abort",
+        () => reject(new DOMException("raw timeout detail should stay hidden", "AbortError")),
+        { once: true }
+      );
+    });
+  };
+
+  try {
+    await assert.rejects(
+      () =>
+        submitAnalyze("self: Friday?\nother: maybe later", {
+          timeoutMs: 300,
+          attemptTimeoutMs: 10,
+          retryDelayMs: 1,
+        }),
+      (error) => {
+        assert.equal(error.classification, "timeout");
+        assert.equal(error.message, "The backend did not respond in time. Please try again in a moment.");
+        assert.equal(String(error).includes("raw timeout detail"), false);
+        return true;
+      }
+    );
+    assert.equal(attempts, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("submitAnalyze can be cancelled without retrying or exposing raw text", async () => {
+  const originalFetch = globalThis.fetch;
+  const controller = new AbortController();
+  let attempts = 0;
+  globalThis.fetch = async (_url, options) => {
+    attempts += 1;
+    return new Promise((_resolve, reject) => {
+      options.signal.addEventListener(
+        "abort",
+        () => reject(new DOMException("raw cancelled detail should stay hidden", "AbortError")),
+        { once: true }
+      );
+    });
+  };
+
+  try {
+    const request = submitAnalyze("self: Friday?\nother: maybe later raw-private-example", {
+      signal: controller.signal,
+      timeoutMs: 100,
+      attemptTimeoutMs: 50,
+      retryDelayMs: 1,
+    });
+    globalThis.setTimeout(() => controller.abort(), 1);
+
+    await assert.rejects(
+      () => request,
+      (error) => {
+        assert.equal(error.classification, "cancelled");
+        assert.equal(error.message, "Analysis cancelled.");
+        assert.equal(String(error).includes("raw-private-example"), false);
+        assert.equal(String(error).includes("raw cancelled detail"), false);
+        return true;
+      }
+    );
+    assert.equal(attempts, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("submitAnalyze blocks inputs above the beta length limit before fetch", async () => {
+  const originalFetch = globalThis.fetch;
+  let attempts = 0;
+  globalThis.fetch = async () => {
+    attempts += 1;
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ evidence: [] }),
+    };
+  };
+
+  try {
+    await assert.rejects(
+      () => submitAnalyze(`self: ${"a".repeat(MAX_ANALYZE_INPUT_CHARS + 1)}`),
+      (error) => {
+        assert.equal(error.classification, "input_too_long");
+        assert.equal(error.message, ANALYZE_INPUT_LIMIT_MESSAGE);
+        return true;
+      }
+    );
+    assert.equal(attempts, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("submitAnalyze allows a 2000 character beta excerpt", async () => {
+  const originalFetch = globalThis.fetch;
+  let attempts = 0;
+  globalThis.fetch = async (_url, options) => {
+    attempts += 1;
+    const body = JSON.parse(options.body);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        conversation_id: body.conversation_id,
+        analysis_mode: "deterministic_local_only",
+        provider_used: false,
+        raw_chat_persisted: false,
+        evidence: [],
+      }),
+    };
+  };
+
+  try {
+    const result = await submitAnalyze("a".repeat(MAX_ANALYZE_INPUT_CHARS));
+    assert.equal(result.analysis_mode, "deterministic_local_only");
+    assert.equal(attempts, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("submitAnalyze classifies CORS or network failures without raw details", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {
@@ -221,6 +353,35 @@ test("submitAnalyze classifies CORS or network failures without raw details", as
         return true;
       }
     );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("submitAnalyze classifies backend 500 without retrying or exposing raw details", async () => {
+  const originalFetch = globalThis.fetch;
+  let attempts = 0;
+  globalThis.fetch = async () => {
+    attempts += 1;
+    return {
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: "raw backend failure should stay hidden" }),
+    };
+  };
+
+  try {
+    await assert.rejects(
+      () => submitAnalyze("self: Friday?\nother: maybe later raw-private-example"),
+      (error) => {
+        assert.equal(error.classification, "backend_error");
+        assert.equal(error.message, "The backend could not complete the request. Please try again in a moment.");
+        assert.equal(String(error).includes("raw backend failure"), false);
+        assert.equal(String(error).includes("raw-private-example"), false);
+        return true;
+      }
+    );
+    assert.equal(attempts, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }
