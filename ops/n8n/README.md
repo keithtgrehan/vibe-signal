@@ -18,6 +18,7 @@ This folder contains an isolated n8n demo for Vibe Signal beta operations.
 
 - It does not analyze messages
 - It does not store raw chats
+- It does not receive raw private chat content or private source metadata unless future rights/legal review allows it
 - It does not connect to production users
 - It does not add analytics SDKs
 - It does not make legal compliance claims
@@ -45,4 +46,4 @@ node ops/n8n/scripts/post_feedback_event.js ops/n8n/payloads/backend_failure.jso
 node ops/n8n/scripts/validate_n8n_payloads.js
 ```
 
-All sample payloads are synthetic metadata-only events. Do not replace them with real private chats, tester messages, credentials, or production webhook URLs.
+All sample payloads are synthetic metadata-only events. Do not replace them with real private chats, private source metadata, tester messages, credentials, or production webhook URLs.
