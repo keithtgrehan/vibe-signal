@@ -44,7 +44,6 @@ PRIVACY_GROUPS: list[dict[str, Any]] = [
             "Privacy contact: keith.t.grehan@gmail.com.",
             "Business/contact method: Berlin, Germany; full address available on valid legal request.",
             "Production URL: https://www.vibe-signal.com.",
-            "Controller role and lawful basis require legal review: [LAWFUL_BASIS_REQUIRES_LEGAL_REVIEW].",
         ],
     },
     {
@@ -82,6 +81,17 @@ PRIVACY_GROUPS: list[dict[str, Any]] = [
         ],
     },
     {
+        "heading": "Draft lawful-basis mapping",
+        "items": [
+            "Draft lawful-basis mapping, subject to legal review:",
+            "Submitted text for analysis: consent and/or steps requested by the user to use the service.",
+            "Feedback metadata: consent and/or legitimate interests in improving safety, reliability, and closed-beta quality.",
+            "Infrastructure logs: legitimate interests in security, debugging, abuse prevention, and service reliability.",
+            "Data request correspondence: legal obligation and/or legitimate interests in handling privacy requests.",
+            "This lawful-basis mapping is a draft and requires legal review before public launch.",
+        ],
+    },
+    {
         "heading": "Processors and subprocessors draft table",
         "items": [
             "Vercel - frontend hosting, CDN, deployment, and runtime logs. Vercel Hobby/basic runtime logs are assumed to be retained for 1 hour unless the Vercel account changes.",
@@ -110,7 +120,11 @@ PRIVACY_GROUPS: list[dict[str, Any]] = [
             "Processors may process or store data outside the user country or EEA depending on provider infrastructure; this requires legal review.",
             "Safeguards summary: HTTPS, minimal data design, no raw chat persistence by design, restricted artifacts checks, and public copy safety checks.",
             "Data subject rights may include access/export, deletion, correction, objection/restriction, and withdrawal of consent where applicable.",
-            "Complaint or supervisory authority placeholder: [SUPERVISORY_AUTHORITY_REQUIRES_LEGAL_REVIEW].",
+            "Users may lodge a complaint with their local EU/EEA data protection supervisory authority. For Berlin, the likely relevant authority is:",
+            "Berliner Beauftragte für Datenschutz und Informationsfreiheit.",
+            "Alt-Moabit 59–61, 10555 Berlin, Germany.",
+            "Email: mailbox@datenschutz-berlin.de.",
+            "This authority information should be verified before public launch.",
             "Vibe Signal is not intended for minors or teen romantic analysis.",
         ],
     },
@@ -162,8 +176,8 @@ TERMS_GROUPS: list[dict[str, Any]] = [
             "Account features are not currently implemented.",
             "Payment features are not currently implemented.",
             "Service availability and warranty language require legal review before launch.",
-            "Limitation of liability placeholder: [LIMITATION_OF_LIABILITY_REQUIRES_LEGAL_REVIEW].",
-            "Governing law placeholder: [GOVERNING_LAW_REQUIRES_LEGAL_REVIEW].",
+            "To the maximum extent permitted by applicable law, Vibe Signal is provided as a draft beta service without guarantees of uninterrupted availability, accuracy, or error-free operation. Nothing in these Terms excludes or limits liability where such exclusion or limitation is not permitted by applicable law. This clause requires legal review before public launch.",
+            "These Terms are drafted with Germany as the expected governing-law jurisdiction, subject to legal review and any mandatory consumer protection rules that may apply in the user's country of residence.",
             "Access removal or termination process requires legal review before launch.",
         ],
     },
@@ -175,7 +189,7 @@ DATA_REQUEST_GROUPS: list[dict[str, Any]] = [
         "items": [
             "Send data requests to: keith.t.grehan@gmail.com.",
             "Request types may include access/export, deletion, correction, objection/restriction, and withdrawal of consent where applicable.",
-            "Response timeline placeholder: [RESPONSE_TIMELINE_REQUIRES_LEGAL_REVIEW].",
+            "Vibe Signal aims to respond to verified privacy requests without undue delay and, where GDPR applies, within one month of receipt. This timeline may depend on identity verification, request scope, and applicable legal requirements. This section requires legal review before public launch.",
         ],
     },
     {

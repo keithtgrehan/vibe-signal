@@ -46,7 +46,7 @@ This is research grounding for Vibe Signal data request/delete handling. It is n
 
 ## Response Process Placeholder
 
-- Response timeline: [RESPONSE_TIMELINE_REQUIRES_LEGAL_REVIEW].
+- Vibe Signal aims to respond to verified privacy requests without undue delay and, where GDPR applies, within one month of receipt. This timeline may depend on identity verification, request scope, and applicable legal requirements. This section requires legal review before public launch.
 - Feedback metadata retention: 90 days during beta.
 - Legal request correspondence retention: 24 months unless legal review changes this.
 

@@ -34,8 +34,8 @@ This is research grounding for Vibe Signal public Terms. It is not legal approva
 - Service availability / no warranty language requiring legal review.
 - Account features are not currently implemented.
 - Payment features are not currently implemented.
-- Limitation of liability placeholder: [LIMITATION_OF_LIABILITY_REQUIRES_LEGAL_REVIEW].
-- Governing law placeholder: [GOVERNING_LAW_REQUIRES_LEGAL_REVIEW].
+- To the maximum extent permitted by applicable law, Vibe Signal is provided as a draft beta service without guarantees of uninterrupted availability, accuracy, or error-free operation. Nothing in these Terms excludes or limits liability where such exclusion or limitation is not permitted by applicable law. This clause requires legal review before public launch.
+- These Terms are drafted with Germany as the expected governing-law jurisdiction, subject to legal review and any mandatory consumer protection rules that may apply in the user's country of residence.
 - Termination or access-removal placeholder requiring legal review.
 
 ## Product-Boundary Wording

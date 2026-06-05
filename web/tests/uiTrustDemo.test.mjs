@@ -287,8 +287,14 @@ test("privacy legal draft exposes infrastructure assumptions and missing inputs"
     "Render Hobby/basic backend logs are assumed to be retained for 7 days unless the Render workspace changes.",
     "No raw messages are used for training.",
     "No analytics, cookies, or tracking are added by this implementation.",
-    "[LAWFUL_BASIS_REQUIRES_LEGAL_REVIEW]",
-    "[SUPERVISORY_AUTHORITY_REQUIRES_LEGAL_REVIEW]",
+    "Draft lawful-basis mapping, subject to legal review:",
+    "Submitted text for analysis: consent and/or steps requested by the user to use the service.",
+    "Infrastructure logs: legitimate interests in security, debugging, abuse prevention, and service reliability.",
+    "This lawful-basis mapping is a draft and requires legal review before public launch.",
+    "Berliner Beauftragte für Datenschutz und Informationsfreiheit",
+    "Alt-Moabit 59–61, 10555 Berlin, Germany.",
+    "Email: mailbox@datenschutz-berlin.de.",
+    "This authority information should be verified before public launch.",
   ]) {
     assert.match(BACKEND_LEGAL_TEXT, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
@@ -306,7 +312,12 @@ test("terms, data request, and disclaimer drafts include required safety boundar
     "correction",
     "objection/restriction",
     "withdrawal of consent where applicable",
-    "[RESPONSE_TIMELINE_REQUIRES_LEGAL_REVIEW]",
+    "Vibe Signal aims to respond to verified privacy requests without undue delay",
+    "where GDPR applies, within one month of receipt",
+    "This section requires legal review before public launch.",
+    "To the maximum extent permitted by applicable law, Vibe Signal is provided as a draft beta service without guarantees of uninterrupted availability, accuracy, or error-free operation.",
+    "This clause requires legal review before public launch.",
+    "These Terms are drafted with Germany as the expected governing-law jurisdiction",
     "Raw submitted text may not be available for export or deletion because the app is designed not to intentionally retain it.",
     "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
   ]) {

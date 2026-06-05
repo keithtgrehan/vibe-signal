@@ -22,12 +22,17 @@ This is research grounding for Vibe Signal public legal drafts. It is not legal 
 - Product purpose: communication-support for observable wording patterns including clarity, ambiguity, pressure, reassurance, directness, cognitive load, and repair opportunities.
 - Categories of personal data: submitted text processed transiently, service metadata, metadata-only feedback, infrastructure logs, and domain/DNS metadata where relevant.
 - Purposes: provide analysis, security/debugging/reliability, closed-beta feedback, abuse prevention, and legal/data request handling.
-- Lawful basis: [LAWFUL_BASIS_REQUIRES_LEGAL_REVIEW].
+- Draft lawful-basis mapping, subject to legal review:
+  - Submitted text for analysis: consent and/or steps requested by the user to use the service.
+  - Feedback metadata: consent and/or legitimate interests in improving safety, reliability, and closed-beta quality.
+  - Infrastructure logs: legitimate interests in security, debugging, abuse prevention, and service reliability.
+  - Data request correspondence: legal obligation and/or legitimate interests in handling privacy requests.
+  - This lawful-basis mapping is a draft and requires legal review before public launch.
 - Recipients/processors: Vercel, Render, GitHub, GoDaddy, Gmail, AI provider disabled unless explicitly enabled, and no analytics provider.
 - International transfers: processors may process/store data outside the user country or EEA depending on provider infrastructure; legal review must decide notice and safeguards language.
 - Retention: raw submitted text transient only; feedback metadata 90 days during beta; legal request correspondence 24 months unless legal review changes this; provider logs follow the current plan assumptions.
 - Data subject rights: access/export, deletion, correction, objection/restriction, and withdrawal of consent where applicable.
-- Complaint right: [SUPERVISORY_AUTHORITY_REQUIRES_LEGAL_REVIEW].
+- Users may lodge a complaint with their local EU/EEA data protection supervisory authority. For Berlin, the likely relevant authority is Berliner Beauftragte für Datenschutz und Informationsfreiheit, Alt-Moabit 59–61, 10555 Berlin, Germany, Email: mailbox@datenschutz-berlin.de. This authority information should be verified before public launch.
 - Security summary: HTTPS, minimal data design, no raw chat persistence by design, restricted artifact checks, and public copy safety checks.
 - Children/minors limitation: not intended for minors or teen romantic analysis.
 - Automated decision-making statement: no automated legal, medical, financial, employment, education, housing, credit, or similarly significant decisions.
@@ -51,5 +56,6 @@ This is research grounding for Vibe Signal public legal drafts. It is not legal 
 
 - Confirm whether Vibe Signal is subject to GDPR/UK GDPR/other privacy laws based on users and operator location.
 - Confirm lawful basis by processing purpose.
+- Verify Berlin supervisory authority details before public launch.
 - Confirm processor DPAs and international transfer mechanism language.
 - Confirm age/minors policy language.
