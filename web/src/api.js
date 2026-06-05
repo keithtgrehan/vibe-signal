@@ -450,7 +450,7 @@ export async function submitFeedback({
 }
 
 export async function fetchLegalPage(slug, clientOptions = {}) {
-  return requestJson(`/legal/${slug}`, {
+  return requestJson(`/api/legal/${slug}`, {
     method: "GET",
   }, clientOptions);
 }

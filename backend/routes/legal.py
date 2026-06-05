@@ -327,6 +327,11 @@ def data_deletion_request_draft() -> dict[str, Any]:
     return _legal_page("data-deletion")
 
 
+@router.get("/legal/data-request")
+def data_request_draft() -> dict[str, Any]:
+    return _legal_page("data-deletion")
+
+
 @router.get("/legal/data-export")
 def data_export_request_draft() -> dict[str, Any]:
     return _legal_page("data-export")
@@ -334,6 +339,11 @@ def data_export_request_draft() -> dict[str, Any]:
 
 @router.get("/legal/match-disclaimer")
 def match_usage_consent_disclaimer() -> dict[str, Any]:
+    return _legal_page("match-disclaimer")
+
+
+@router.get("/legal/disclaimer")
+def disclaimer_draft() -> dict[str, Any]:
     return _legal_page("match-disclaimer")
 
 

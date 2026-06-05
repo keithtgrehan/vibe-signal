@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   ANALYZE_INPUT_LIMIT_MESSAGE,
   MAX_ANALYZE_INPUT_CHARS,
+  fetchLegalPage,
   getApiBaseUrlStatus,
   resolveApiBaseUrl,
   submitAnalyze,
@@ -50,6 +51,34 @@ test("web API config rejects non-origin backend URLs", () => {
     assert.equal(status.apiUrl, "");
     assert.equal(status.host, "");
   }
+});
+
+test("fetchLegalPage uses API legal parity routes", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(url);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        title: "Privacy",
+        status: "draft_requires_legal_review",
+        intro: "Vibe Signal is currently in closed beta / early public beta.",
+        groups: [{ heading: "Draft", items: ["Status: draft_requires_legal_review"] }],
+        sections: ["Status: draft_requires_legal_review"],
+      }),
+    };
+  };
+
+  try {
+    await fetchLegalPage("privacy");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].endsWith("/api/legal/privacy"), true);
 });
 
 test("submitFeedback sends bounded metadata without raw message text", async () => {

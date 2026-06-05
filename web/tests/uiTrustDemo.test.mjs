@@ -19,6 +19,12 @@ import {
   buildTrustFirstResultView,
   FEEDBACK_OPTIONS,
 } from "../src/resultViewModel.js";
+import {
+  getLocalLegalPage,
+  isValidLegalPage,
+  LEGAL_SLUGS,
+  LOCAL_LEGAL_PAGES,
+} from "../src/legalContent.js";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const BACKEND_LEGAL_TEXT = readFileSync(resolve(ROOT, "../backend/routes/legal.py"), "utf8");
@@ -252,9 +258,16 @@ test("legal and privacy surfaces remain visible from public UI", () => {
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
   const stylesText = readFileSync(resolve(ROOT, "src/styles.css"), "utf8");
 
-  for (const label of ["Privacy", "Terms", "Data request/delete", "Disclaimer"]) {
-    assert.match(appText, new RegExp(label.replace("/", "\\/")));
-  }
+  assert.deepEqual(LEGAL_SLUGS.map(([, label]) => label), [
+    "Privacy",
+    "Terms",
+    "Data request/delete",
+    "Disclaimer",
+  ]);
+  assert.match(appText, /getLocalLegalPage/);
+  assert.match(appText, /isValidLegalPage/);
+  assert.equal(appText.includes("Using fallback copy because the legal draft did not load."), false);
+  assert.equal(appText.includes("FALLBACK_LEGAL"), false);
   assert.match(appText, /fetchLegalPage/);
   assert.match(appText, /page\.groups/);
   assert.match(appText, /legal-section-list/);
@@ -262,6 +275,52 @@ test("legal and privacy surfaces remain visible from public UI", () => {
   assert.match(stylesText, /\.legal-section-list/);
   assert.match(stylesText, /\.legal-group/);
   assert.match(stylesText, /\.segmented-control/);
+});
+
+test("static frontend legal drafts render complete content without backend fetch", () => {
+  assert.deepEqual(LEGAL_SLUGS, [
+    ["privacy", "Privacy"],
+    ["terms", "Terms"],
+    ["data-request", "Data request/delete"],
+    ["disclaimer", "Disclaimer"],
+  ]);
+
+  const combined = Object.values(LOCAL_LEGAL_PAGES)
+    .flatMap((page) => [page.title, page.intro, ...page.sections])
+    .join(" ");
+
+  for (const slug of ["privacy", "terms", "data-request", "disclaimer"]) {
+    const page = getLocalLegalPage(slug);
+    assert.equal(page.slug, slug);
+    assert.equal(page.status, "draft_requires_legal_review");
+    assert.equal(page.sections.includes("Status: draft_requires_legal_review"), true);
+    assert.equal(page.groups.length > 0, true);
+    assert.equal(isValidLegalPage(page), true);
+    assert.equal(/\[[^\]]*(?:REQUIRES|REQUIRED)[^\]]*\]/.test(page.sections.join(" ")), false);
+  }
+
+  for (const required of [
+    "Keith Grehan",
+    "keith.t.grehan@gmail.com",
+    "Berlin, Germany; full address available on valid legal request",
+    "Feedback metadata: 90 days during beta.",
+    "Legal/data request correspondence: 24 months unless legal review changes this.",
+    "Vercel Hobby/basic runtime logs are assumed to be retained for 1 hour unless the Vercel account changes.",
+    "Render Hobby/basic backend logs are assumed to be retained for 7 days unless the Render workspace changes.",
+    "Email provider - Gmail.",
+    "AI provider - Disabled unless explicitly enabled.",
+    "Draft lawful-basis mapping, subject to legal review:",
+    "Berliner Beauftragte für Datenschutz und Informationsfreiheit",
+    "These Terms are drafted with Germany as the expected governing-law jurisdiction",
+    "To the maximum extent permitted by applicable law, Vibe Signal is provided as a draft beta service without guarantees of uninterrupted availability, accuracy, or error-free operation.",
+    "Vibe Signal aims to respond to verified privacy requests without undue delay",
+    "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+  ]) {
+    assert.match(combined, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  assert.equal(isValidLegalPage({ status: "draft_requires_legal_review", groups: [] }), false);
+  assert.equal(getLocalLegalPage("missing").slug, "privacy");
 });
 
 test("public legal drafts include required draft status and closed-beta intro", () => {
