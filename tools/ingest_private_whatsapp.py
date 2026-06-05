@@ -37,9 +37,15 @@ def ensure_restricted_path(path: Path, *, kind: str = "path") -> Path:
     return resolved
 
 
-def speaker_role(sender: str) -> str:
+def _normalize_sender(sender: str) -> str:
+    return sender.strip().casefold()
+
+
+def speaker_role(sender: str, *, primary_sender: str | None = None) -> str:
     normalized = sender.strip().casefold()
-    return "self" if normalized in {"keith", "self"} else "other"
+    if normalized == "self":
+        return "self"
+    return "self" if primary_sender is not None and normalized == primary_sender else "other"
 
 
 def _decode_chat_bytes(raw: bytes) -> str:
@@ -54,14 +60,18 @@ def _decode_chat_bytes(raw: bytes) -> str:
 def parse_chat_text(text: str, *, source_file: str = "_chat.txt") -> list[ParsedMessage]:
     messages: list[ParsedMessage] = []
     current: ParsedMessage | None = None
+    primary_sender: str | None = None
     for line in text.splitlines():
         match = CHAT_LINE_RE.match(line)
         if match:
             if current is not None:
                 messages.append(current)
+            sender = match.group("sender")
+            if primary_sender is None:
+                primary_sender = _normalize_sender(sender)
             current = ParsedMessage(
                 timestamp=f"{match.group('date')} {match.group('time')}",
-                speaker_role=speaker_role(match.group("sender")),
+                speaker_role=speaker_role(sender, primary_sender=primary_sender),
                 text=match.group("message"),
                 source_file=source_file,
             )
