@@ -245,6 +245,7 @@ h3 {
 .hero-actions,
 .feedback-actions,
 .form-footer,
+.form-actions,
 .trust-footer,
 .trust-footer div {
   display: flex;
@@ -684,6 +685,10 @@ textarea:focus {
   color: rgba(234, 240, 255, 0.44) !important;
 }
 
+.limit-warning {
+  color: #FFC3CC !important;
+}
+
 .error-banner {
   display: flex;
   align-items: flex-start;
@@ -695,10 +700,23 @@ textarea:focus {
   padding: 12px;
 }
 
+.error-banner span {
+  flex: 1;
+}
+
+.inline-error-action {
+  min-height: 34px;
+  padding: 0 12px;
+}
+
 .form-footer {
   justify-content: space-between;
   color: rgba(234, 240, 255, 0.42);
   font-size: 13px;
+}
+
+.form-actions {
+  justify-content: flex-end;
 }
 
 .scanning-state {
@@ -1008,6 +1026,7 @@ textarea:focus {
 
   .hero-actions,
   .form-footer,
+  .form-actions,
   .trust-footer,
   .trust-footer div {
     align-items: stretch;

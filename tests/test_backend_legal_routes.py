@@ -57,6 +57,25 @@ def test_match_disclaimer_route_keeps_required_safety_copy() -> None:
     assert "not emergency/crisis support" in combined_copy
 
 
+def test_api_legal_alias_routes_return_existing_public_drafts() -> None:
+    client = TestClient(app)
+
+    aliases = {
+        "/api/legal/privacy": "Privacy",
+        "/api/legal/terms": "Terms",
+        "/api/legal/data-request": "Data request/delete",
+        "/api/legal/disclaimer": "Disclaimer",
+    }
+    for path, title in aliases.items():
+        response = client.get(path)
+
+        assert response.status_code == 200, path
+        body = response.json()
+        assert body["title"] == title
+        assert body["status"] == "draft_requires_legal_review"
+        assert body["sections"]
+
+
 def test_legal_routes_include_required_public_draft_content() -> None:
     client = TestClient(app)
 
