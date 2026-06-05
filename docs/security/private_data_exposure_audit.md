@@ -26,6 +26,50 @@ Status: hygiene audit note for private WhatsApp / gold human-review data handlin
 - Backend and API route review did not identify intentional raw private chat persistence in tracked code.
 - Workflow artifact review did not identify upload-artifact paths intended to publish private WhatsApp raw exports, private workbooks, private models, or private processed JSONL files.
 
+## Metadata Exposure Remediation
+
+- Found: a real-name-derived private WhatsApp source identifier in `configs/private_training_sources.example.yml`.
+- Exposure class: tracked metadata. No raw message content was found in that checked file.
+- Remediation: replaced the source identifier with neutral `private_whatsapp_source_001`.
+- History note: the metadata existed in git history before this fix; history rewrite was not performed in this PR.
+- Decision needed: Keith can separately decide whether metadata-only history exposure warrants git history rewrite.
+- Current recommendation: avoid force-push/history rewrite unless the identifier is considered unacceptable to remain in public git history.
+- No raw private WhatsApp message content should be included in this note or related PR text.
+
+## Final Audit Pass
+
+Date: 2026-06-05.
+
+Result: No raw private WhatsApp/gold-review content found in checked repo/site/artifact surfaces. One metadata-only exposure was found and remediated in current tracked files. Historical metadata exposure remains in git history unless a separate history rewrite is approved.
+
+Checked surfaces:
+
+- tracked files
+- git object/path history
+- remote branch path history
+- GitHub Actions artifact names
+- workflow upload-artifact rules
+- web dist bundle
+- public site HTML
+- backend/API route exposure
+- ignored restricted local paths
+
+Remaining uncertainty:
+
+- PR comments/body text not exhaustively reviewed
+- external provider logs not fully inspectable from repo
+- local terminal/chat/ChatGPT/Codex history outside git
+- future manual force-adds remain possible
+
+Recommendations:
+
+- keep private data under `data/restricted/private_whatsapp/**`
+- never force-add restricted files
+- keep n8n no-raw-content unless future rights/legal review allows it
+- rerun audit before demos/interviews/public launches
+- optionally delete stale clean remote branches after confirming not needed
+- rename local ignored raw filenames to neutral filenames if they contain real names
+
 ## Remaining Uncertainty
 
 - PR comments and PR body text were not exhaustively reviewed.

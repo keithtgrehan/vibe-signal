@@ -1,4 +1,4 @@
-private_whatsapp_laura_bibi:
+private_whatsapp_source_001:
   source_type: whatsapp_export
   commercial_training_allowed: false
   product_training_allowed: false
@@ -9,4 +9,3 @@ private_whatsapp_laura_bibi:
   synthetic_derivatives_allowed: true
   consent_status: user_asserted_consent
   notes: "Restricted private source. Use only for local cue review unless separately approved."
-
