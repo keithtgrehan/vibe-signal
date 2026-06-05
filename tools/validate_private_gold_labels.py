@@ -129,4 +129,3 @@ def main(argv: list[str] | None = None, *, restricted_root: Path = RESTRICTED_RO
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
