@@ -21,13 +21,15 @@ Final tester invite decision: `BLOCKED`.
 | Real-device iPhone/TestFlight QA | `NOT RUN` | Required before invites. |
 | Legal/privacy review | `NOT RUN` | Required before invites. |
 
-## Current Operating Notes After PR #48-#53
+## Current Operating Notes After PR #48-#55
 
 - PR #48 shipped the Scanner-style web redesign with evidence-first copy and no Receipts concept.
 - PR #49 and follow-up legal work created draft legal pages, all still marked `draft_requires_legal_review`.
 - PR #51 hardened custom analyze timeout/loading recovery.
 - PR #52 made public legal pages static-first and backend-independent.
 - PR #53 added production API/CORS routing fixes in repo; Render still needs a deploy before those backend changes can be verified live.
+- PR #54 added no-Render deployment hardening docs, the custom-domain smoke script, and no-backend demo verification.
+- PR #55 hardened the custom-domain smoke script output handling.
 
 ## Decision
 
