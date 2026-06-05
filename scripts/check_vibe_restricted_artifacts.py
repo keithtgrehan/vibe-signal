@@ -87,6 +87,8 @@ SAFE_PREFIXES = (
     "reports/synthetic_whatsapp/",
     "data/vibe_gold/example_",
     "data/review/.gitkeep",
+    "data/restricted/private_whatsapp/.gitkeep",
+    "data/restricted/private_whatsapp/readme.md",
     "reports/.gitkeep",
 )
 

@@ -1,0 +1,11 @@
+private_whatsapp_laura_bibi:
+  source_type: whatsapp_export
+  commercial_training_allowed: false
+  product_training_allowed: false
+  local_research_allowed: true
+  human_review_required: true
+  raw_commit_allowed: false
+  redacted_commit_allowed: false
+  synthetic_derivatives_allowed: true
+  consent_status: user_asserted_consent
+  notes: "Restricted private source. Use only for local cue review unless separately approved."
