@@ -63,6 +63,7 @@ test("home page follows the Scanner product information architecture", () => {
     "SignalBreakdown",
     "EvidenceList",
     "SafeReplyCard",
+    "ComfortLoopCard",
     "LimitsCard",
     "FeedbackPanel",
     "TrustFooter",
@@ -136,6 +137,11 @@ test("result view remains evidence-first with the required result-card structure
   assert.match(appText, /Evidence phrase list/);
   assert.match(appText, /What it could mean/);
   assert.match(appText, /Safer reply/);
+  assert.match(appText, /Try a clearer reply/);
+  assert.match(appText, /Compare this rewrite/);
+  assert.match(appText, /Need more context\?/);
+  assert.match(appText, /Copy what helps/);
+  assert.match(appText, /No result is a verdict/);
   assert.match(appText, /Limits \/ cannot infer/);
   assert.match(appText, /buildTrustFirstResultView/);
 });

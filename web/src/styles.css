@@ -490,6 +490,7 @@ h3 {
 .result-hero-card,
 .result-section,
 .safe-reply-card,
+.comfort-loop-card,
 .limits-card,
 .feedback-panel {
   display: grid;
@@ -591,6 +592,49 @@ h3 {
   font-size: 12px;
   line-height: 18px;
   font-weight: 750;
+}
+
+.comfort-loop-card {
+  border-color: rgba(84, 230, 255, 0.22);
+  background:
+    linear-gradient(140deg, rgba(84, 230, 255, 0.08), rgba(141, 247, 201, 0.06)),
+    rgba(255, 255, 255, 0.03);
+}
+
+.comfort-loop-card p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 23px;
+}
+
+.comfort-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.comfort-actions button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text);
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 800;
+}
+
+.comfort-actions button.active {
+  border-color: rgba(141, 247, 201, 0.42);
+  background: rgba(141, 247, 201, 0.09);
+  color: var(--lime);
+}
+
+.comfort-detail {
+  border-left: 2px solid var(--lime);
+  padding-left: 10px;
 }
 
 .limits-card {

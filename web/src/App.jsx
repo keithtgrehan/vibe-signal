@@ -327,6 +327,7 @@ function ResultPanel({ loading, result, scanStatus, onRunDemo }) {
         <p>{interpretation}</p>
       </section>
       <SafeReplyCard nextStep={view.safeNextStep} />
+      <ComfortLoopCard />
       <LimitsCard view={view} />
       <FeedbackPanel view={view} />
     </section>
@@ -390,6 +391,53 @@ function SafeReplyCard({ nextStep }) {
       <h3 id="reply-title">Safer reply</h3>
       <p>{nextStep || "Ask one clear follow-up and leave room for a later answer."}</p>
       <small>Use this as a draft. Edit before sending.</small>
+    </section>
+  );
+}
+
+function ComfortLoopCard() {
+  const actions = [
+    {
+      id: "clearer-reply",
+      label: "Try a clearer reply",
+      detail: "Keep one ask, one timeframe, and room for the other person to answer later.",
+    },
+    {
+      id: "compare-rewrite",
+      label: "Compare this rewrite",
+      detail: "Check whether the draft lowers pressure while preserving what you need to say.",
+    },
+    {
+      id: "more-context",
+      label: "Need more context?",
+      detail: "Add the previous message or the later reply before treating a pattern as useful.",
+    },
+    {
+      id: "copy-what-helps",
+      label: "Copy what helps",
+      detail: "Use only the words that fit your situation. Edit before sending.",
+    },
+  ];
+  const [selectedAction, setSelectedAction] = useState(actions[0]);
+
+  return (
+    <section className="comfort-loop-card" aria-labelledby="comfort-loop-title">
+      <p className="section-kicker">Next small step</p>
+      <h3 id="comfort-loop-title">Stay oriented before you act.</h3>
+      <p>No result is a verdict. Pick the next useful step, then check the limits below.</p>
+      <div className="comfort-actions" aria-label="Helpful next-step options">
+        {actions.map((action) => (
+          <button
+            className={selectedAction.id === action.id ? "active" : ""}
+            key={action.id}
+            type="button"
+            onClick={() => setSelectedAction(action)}
+          >
+            {action.label}
+          </button>
+        ))}
+      </div>
+      <p className="comfort-detail" role="status">{selectedAction.detail}</p>
     </section>
   );
 }
