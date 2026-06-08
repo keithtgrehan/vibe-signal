@@ -22,14 +22,24 @@ What to look for:
 
 Important caveat: Synthetic demo and regression checks prove product flow, output-contract behavior, and safety behavior under controlled conditions. They are not real-world accuracy claims or legal/privacy approval.
 
+## Reviewer Status
+
+- Live demo: [https://www.vibe-signal.com](https://www.vibe-signal.com)
+- Status: closed-beta proof / recruiter-demo ready
+- Recommended first path: synthetic demo
+- Privacy posture: consent-gated custom input, metadata-only feedback, no raw-chat persistence by design
+- Caveat: synthetic demos prove product flow and safety behavior under controlled conditions, not real-world accuracy or legal/privacy approval
+
 ## Reviewer Links
 
 - Live demo: [https://www.vibe-signal.com](https://www.vibe-signal.com)
+- Demo script: [docs/recruiter_readiness/demo_script.md](docs/recruiter_readiness/demo_script.md)
 - Project summary: [docs/recruiter_readiness/project_summary.md](docs/recruiter_readiness/project_summary.md)
 - Repo tour: [docs/recruiter_readiness/repo_tour.md](docs/recruiter_readiness/repo_tour.md)
-- Architecture overview: [README.md#architecture-overview](#architecture-overview)
+- Architecture overview: [docs/recruiter_readiness/architecture_overview.md](docs/recruiter_readiness/architecture_overview.md)
 - Evaluation caveat: [docs/recruiter_readiness/project_summary.md#evaluation-story](docs/recruiter_readiness/project_summary.md#evaluation-story)
 - Safety policy: [docs/legal_safe_output_policy.md](docs/legal_safe_output_policy.md)
+- n8n relevance: [docs/recruiter_readiness/company_specific/n8n_relevance.md](docs/recruiter_readiness/company_specific/n8n_relevance.md)
 - Research/control-room index: [docs/control_room/research_index.md](docs/control_room/research_index.md)
 
 ## Live Demo

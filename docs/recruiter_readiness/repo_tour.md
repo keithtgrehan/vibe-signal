@@ -40,11 +40,15 @@ This tour is for reviewers who want to understand the current Vibe Signal implem
 1. Read [README.md](../../README.md).
 2. Open [https://www.vibe-signal.com](https://www.vibe-signal.com) and run the synthetic demo.
 3. Review evidence phrases, signal cards, limits, and safe next step.
-4. Read [docs/recruiter_readiness/project_summary.md](project_summary.md).
-5. Review [reports/engine_eval/metric_calculation_audit.md](../../reports/engine_eval/metric_calculation_audit.md).
-6. Review [docs/proof/closed_beta/closed_beta_go_no_go.md](../proof/closed_beta/closed_beta_go_no_go.md).
+4. Use [docs/recruiter_readiness/demo_script.md](demo_script.md) for a short talk track.
+5. Read [docs/recruiter_readiness/project_summary.md](project_summary.md).
+6. Review [docs/recruiter_readiness/architecture_overview.md](architecture_overview.md).
+7. Review [reports/engine_eval/metric_calculation_audit.md](../../reports/engine_eval/metric_calculation_audit.md).
+8. Review [docs/proof/closed_beta/closed_beta_go_no_go.md](../proof/closed_beta/closed_beta_go_no_go.md).
 
 For research and stale-PR context, use [docs/control_room/research_index.md](../control_room/research_index.md) as the control-room entry point.
+
+For workflow-automation interview prep, use [docs/recruiter_readiness/company_specific/n8n_relevance.md](company_specific/n8n_relevance.md). It is interview prep, not a product claim.
 
 ## Review Caveat
 
