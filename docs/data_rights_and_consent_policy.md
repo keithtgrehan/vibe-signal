@@ -1,6 +1,6 @@
 # Data Rights and Consent Policy
 
-Vibe Engine is local-first by default. Use only user-owned data, consented data, manual local examples, metadata-only references, or synthetic fixtures.
+Vibe Signal is local-first by default. Use only user-owned data, consented data, manual local examples, metadata-only references, or synthetic fixtures.
 
 ## Allowed Inputs
 
@@ -30,7 +30,7 @@ External datasets are benchmark-only by default. Their labels are not product tr
 
 ## Claims Boundary
 
-Vibe Engine describes observable communication patterns. It does not infer true emotion, detect deception, detect cheating, predict attraction, infer attachment style, diagnose mental health, infer protected traits, perform biometric identity analysis, score manipulation, advise emotional manipulation, train models, or download datasets.
+Vibe Signal describes observable communication patterns. It does not infer true emotion, make deception or cheating detection claims, predict attraction, infer attachment style, diagnose mental health, infer protected traits, perform biometric identity analysis, score manipulation, advise emotional manipulation, train models, or download datasets.
 
 ## Matching v0 Data Posture
 

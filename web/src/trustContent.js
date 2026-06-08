@@ -1,11 +1,72 @@
 export const HERO_COPY = {
-  title: "See what the wording shows.",
+  title: "Vibe Signal turns messy communication into evidence-backed signals.",
   subtitle:
-    "Spot clarity, ambiguity, pressure, reassurance, and repair openings in text you are allowed to use.",
+    "It highlights observable wording patterns like clarity, ambiguity, pressure, reassurance, and repair opportunities without guessing intent, attraction, deception, diagnosis, manipulation, neurotype, attachment style, or relationship outcomes.",
   primaryCta: "Run synthetic demo",
   secondaryCta: "Analyze with consent",
-  trustNote: "Evidence from the words shown. Possible pattern, not a fact about intent.",
+  trustNote: "This is intentionally bounded. It reviews wording patterns, not people's motives.",
 };
+
+export const PROOF_CARDS = [
+  {
+    title: "Observable evidence",
+    body: "Shows the exact phrases that triggered each signal.",
+  },
+  {
+    title: "Bounded AI logic",
+    body: "Deterministic-first cue engine with safe output rules and low-signal fallbacks.",
+  },
+  {
+    title: "Privacy-conscious by design",
+    body: "Consent-gated input, metadata-only feedback, no raw-chat persistence.",
+  },
+];
+
+export const SYNTHETIC_DEMO_PATH_STEPS = [
+  "Click Run synthetic demo",
+  "Review the input text",
+  "Check detected cues",
+  "Inspect evidence phrases",
+  "Read the safe next step",
+  "Check what this does not claim",
+];
+
+export const TECHNICAL_DEMO_SHIPPED = [
+  "Vite/React web app",
+  "FastAPI backend on Render",
+  "Expo mobile shell",
+  "Deterministic cue engine",
+  "Evidence objects and safe output checks",
+  "/api/analyze",
+  "/api/match",
+  "/api/feedback",
+  "/healthz",
+  "/api/status",
+  "Consent-gated custom input",
+  "Public-copy, no-raw-content, and restricted-artifact safety scanners",
+  "Synthetic eval harness",
+  "Human-review packet scaffold",
+];
+
+export const TECHNICAL_DEMO_FLOW = [
+  "Input text",
+  "Consent / safety boundary",
+  "Deterministic cue engine",
+  "Evidence extraction",
+  "Safe result cards",
+  "Metadata-only feedback",
+];
+
+export const TECHNICAL_DEMO_NON_CLAIMS = [
+  "no hidden-intent detection",
+  "no attraction prediction",
+  "no deception or cheating detection",
+  "no diagnosis or therapy",
+  "no neurotype or attachment labels",
+  "no manipulation advice",
+  "no relationship-outcome prediction",
+  "no real-world accuracy claim from synthetic demos",
+];
 
 export const TRUST_STRIP_ITEMS = [
   "Evidence from the words shown",

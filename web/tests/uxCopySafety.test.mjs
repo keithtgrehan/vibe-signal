@@ -19,6 +19,10 @@ const ALLOWED_BOUNDARY_PHRASES = [
   "What someone secretly means",
   "Someone’s diagnosis, attachment style, neurotype, or personality",
   "Vibe Signal does not know intent, attraction, truthfulness, diagnosis, or outcomes.",
+  "without guessing intent, attraction, deception, diagnosis, manipulation, neurotype, attachment style, or relationship outcomes",
+  "no deception or cheating detection",
+  "no diagnosis or therapy",
+  "no manipulation advice",
 ];
 
 const BLOCKED_PATTERNS = [

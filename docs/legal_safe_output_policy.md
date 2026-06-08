@@ -2,7 +2,7 @@
 
 Some users explore changes in communication patterns when trying to understand relationship dynamics.
 
-VibeSignal AI is designed to feel psychologically useful while staying legally safer through output discipline.
+Vibe Signal is designed to feel psychologically useful while staying legally safer through output discipline.
 
 Rules for user-facing output:
 
