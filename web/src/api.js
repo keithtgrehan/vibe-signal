@@ -109,7 +109,22 @@ const AUTHOR_ALIASES = {
   unknown: "unknown",
 };
 
-function parseMessageLine(line, index) {
+function roleForNamedSpeaker(label, namedSpeakerRoles) {
+  const key = normalizeText(label).toLowerCase();
+  if (!key) {
+    return "unknown";
+  }
+  if (AUTHOR_ALIASES[key]) {
+    return AUTHOR_ALIASES[key];
+  }
+  if (!namedSpeakerRoles.has(key)) {
+    const nextRole = namedSpeakerRoles.size === 0 ? "self" : namedSpeakerRoles.size === 1 ? "other" : "unknown";
+    namedSpeakerRoles.set(key, nextRole);
+  }
+  return namedSpeakerRoles.get(key) || "unknown";
+}
+
+function parseMessageLine(line, index, namedSpeakerRoles) {
   const trimmed = String(line || "").trim();
   const prefixed = trimmed.match(/^([a-zA-Z]+)\s*[:\-]\s*(.+)$/);
   if (!prefixed) {
@@ -122,17 +137,18 @@ function parseMessageLine(line, index) {
 
   return {
     id: `m${index + 1}`,
-    author: AUTHOR_ALIASES[prefixed[1].toLowerCase()] || "unknown",
+    author: roleForNamedSpeaker(prefixed[1], namedSpeakerRoles),
     text: prefixed[2].trim(),
   };
 }
 
 export function buildMessagesFromText(conversationText) {
+  const namedSpeakerRoles = new Map();
   return String(conversationText || "")
     .split(/\n+/)
     .map((line) => line.trim())
     .filter(Boolean)
-    .map(parseMessageLine)
+    .map((line, index) => parseMessageLine(line, index, namedSpeakerRoles))
     .filter((message) => message.text);
 }
 

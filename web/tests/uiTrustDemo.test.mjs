@@ -222,6 +222,8 @@ test("analyze flow keeps consent required before pasted text analysis", () => {
   assert.match(appText, /Check the consent box before analyzing private text\./);
   assert.match(appText, /disabled=\{!canSubmit\}/);
   assert.match(appText, /Only paste text you have permission to use/);
+  assert.match(appText, /Use\s+self:\s+and\s+other:\s+for best results\./);
+  assert.match(appText, /Names are not needed\./);
   assert.match(appText, /runSyntheticDemo/);
   assert.match(appText, /buildSyntheticResult/);
   assert.match(appText, /onRetry/);
