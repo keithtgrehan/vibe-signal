@@ -18,7 +18,12 @@ import {
 import {
   HERO_COPY,
   HOW_IT_WORKS_STEPS,
+  PROOF_CARDS,
+  SYNTHETIC_DEMO_PATH_STEPS,
   SYNTHETIC_DEMOS,
+  TECHNICAL_DEMO_FLOW,
+  TECHNICAL_DEMO_NON_CLAIMS,
+  TECHNICAL_DEMO_SHIPPED,
   TRUST_STRIP_ITEMS,
 } from "./trustContent.js";
 import { buildFeedbackMetadata } from "./guidedInteraction.js";
@@ -66,6 +71,7 @@ function TopNav({ onRunDemo, onOpenLegal }) {
       </button>
       <nav className="nav-links" aria-label="Primary">
         <button type="button" onClick={() => scrollToId("demo")}>Demo</button>
+        <button type="button" onClick={() => scrollToId("technical-demo")}>2 minute demo</button>
         <button type="button" onClick={() => scrollToId("analyze")}>Analyze</button>
         <button type="button" onClick={() => onOpenLegal("privacy")}>Privacy</button>
         <Button className="nav-cta" onClick={onRunDemo}>
@@ -126,6 +132,19 @@ function ScannerPreview() {
   );
 }
 
+function ProofCards() {
+  return (
+    <section className="proof-grid" aria-label="Product proof points">
+      {PROOF_CARDS.map((card) => (
+        <article key={card.title}>
+          <h2>{card.title}</h2>
+          <p>{card.body}</p>
+        </article>
+      ))}
+    </section>
+  );
+}
+
 function DemoCard({ onRunDemo }) {
   const featured = SYNTHETIC_DEMOS.find((item) => item.id === FEATURED_DEMO_ID) || SYNTHETIC_DEMOS[0];
   const extraDemos = SYNTHETIC_DEMOS.filter((item) => item.id !== featured.id).slice(0, 4);
@@ -151,6 +170,14 @@ function DemoCard({ onRunDemo }) {
       <p className="quiet-copy">
         This first run uses a synthetic exchange, so it does not require private-message consent.
       </p>
+      <div className="demo-path" aria-label="Synthetic demo path">
+        <h3>Try the synthetic demo first.</h3>
+        <ol>
+          {SYNTHETIC_DEMO_PATH_STEPS.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      </div>
       <details className="example-disclosure">
         <summary>
           More synthetic examples
@@ -165,6 +192,82 @@ function DemoCard({ onRunDemo }) {
           ))}
         </div>
       </details>
+    </section>
+  );
+}
+
+function TechnicalDemoSection({ onRunDemo }) {
+  return (
+    <section className="panel technical-demo" id="technical-demo" aria-labelledby="technical-demo-title">
+      <div className="panel-heading">
+        <p className="section-kicker">Reviewer walkthrough</p>
+        <h2 id="technical-demo-title">Vibe Signal - 2 Minute Technical Demo</h2>
+        <p>
+          A compact reviewer path through the product problem, shipped surface, architecture, caveats,
+          and non-claims.
+        </p>
+      </div>
+      <div className="technical-demo-grid">
+        <section aria-labelledby="problem-title">
+          <h3 id="problem-title">Product problem</h3>
+          <p>
+            People paste messy communication into generic LLMs and get unsafe, overconfident
+            interpretations. Vibe Signal gives bounded, evidence-backed communication cues instead.
+          </p>
+        </section>
+        <section aria-labelledby="shipped-title">
+          <h3 id="shipped-title">What shipped</h3>
+          <ul>
+            {TECHNICAL_DEMO_SHIPPED.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+        <section aria-labelledby="architecture-title">
+          <h3 id="architecture-title">Architecture</h3>
+          <ol className="flow-list">
+            {TECHNICAL_DEMO_FLOW.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </section>
+        <section aria-labelledby="demo-caveat-title">
+          <h3 id="demo-caveat-title">Demo caveat</h3>
+          <p>
+            Synthetic demo examples are for product demonstration, regression checks, and coverage
+            only. They are not real-world accuracy claims.
+          </p>
+        </section>
+        <section aria-labelledby="non-claims-title">
+          <h3 id="non-claims-title">What it does not claim</h3>
+          <ul>
+            {TECHNICAL_DEMO_NON_CLAIMS.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      </div>
+      <div className="reviewer-actions" aria-label="Reviewer links">
+        <Button onClick={onRunDemo}>
+          Run synthetic demo
+          <ArrowRight size={17} />
+        </Button>
+        <a className="button button-secondary" href="https://github.com/keithtgrehan/vibe-signal">
+          View GitHub repo
+        </a>
+        <a
+          className="button button-secondary"
+          href="https://github.com/keithtgrehan/vibe-signal/blob/main/docs/recruiter_readiness/project_summary.md"
+        >
+          Read project summary
+        </a>
+        <a
+          className="button button-secondary"
+          href="https://github.com/keithtgrehan/vibe-signal/blob/main/docs/recruiter_readiness/repo_tour.md"
+        >
+          Read repo tour
+        </a>
+      </div>
     </section>
   );
 }
@@ -726,6 +829,7 @@ function Home({ navDemoRequest, onOpenLegal }) {
   return (
     <main className="page">
       <Hero onRunDemo={() => runSyntheticDemo()} />
+      <ProofCards />
       <section className="scanner-workspace" aria-label="Demo, analysis, and result">
         <div className="left-stack">
           <DemoCard onRunDemo={runSyntheticDemo} />
@@ -752,6 +856,7 @@ function Home({ navDemoRequest, onOpenLegal }) {
           scanStatus={scanStatus}
         />
       </section>
+      <TechnicalDemoSection onRunDemo={() => runSyntheticDemo()} />
       <BetaGuidance onOpenLegal={onOpenLegal} />
       <TrustFooter onOpenLegal={onOpenLegal} />
     </main>

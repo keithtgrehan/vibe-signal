@@ -4,6 +4,33 @@ Vibe Signal is a privacy-conscious communication-support app that highlights obs
 
 The product is built around a deterministic-first cue engine, evidence-first result cards, consent-gated private input, and strict copy/safety boundaries. It helps users review wording, not infer private motives.
 
+## CEO / Reviewer Quick Start
+
+1. Open [https://www.vibe-signal.com](https://www.vibe-signal.com).
+2. Run the synthetic demo.
+3. Review evidence phrases and safe next step.
+4. Read [docs/recruiter_readiness/project_summary.md](docs/recruiter_readiness/project_summary.md).
+5. Read [docs/recruiter_readiness/repo_tour.md](docs/recruiter_readiness/repo_tour.md).
+
+What to look for:
+
+- shipped frontend + backend
+- deterministic-first AI product logic
+- evidence-backed outputs
+- privacy/safety constraints
+- evaluation and regression discipline
+
+Important caveat: Synthetic demo and regression checks prove product flow, output-contract behavior, and safety behavior under controlled conditions. They are not real-world accuracy claims or legal/privacy approval.
+
+## Reviewer Links
+
+- Live demo: [https://www.vibe-signal.com](https://www.vibe-signal.com)
+- Project summary: [docs/recruiter_readiness/project_summary.md](docs/recruiter_readiness/project_summary.md)
+- Repo tour: [docs/recruiter_readiness/repo_tour.md](docs/recruiter_readiness/repo_tour.md)
+- Architecture overview: [README.md#architecture-overview](#architecture-overview)
+- Evaluation caveat: [docs/recruiter_readiness/project_summary.md#evaluation-story](docs/recruiter_readiness/project_summary.md#evaluation-story)
+- Safety policy: [docs/legal_safe_output_policy.md](docs/legal_safe_output_policy.md)
+
 ## Live Demo
 
 - Primary web app: [https://www.vibe-signal.com](https://www.vibe-signal.com)
@@ -70,13 +97,13 @@ The interesting part is not a single model call. It is the full product system a
 | --- | --- |
 | `web/` | Vite/React frontend on Vercel with the Scanner-style UI, local synthetic demo, static-first legal pages, consent-gated custom analyze, and metadata-only feedback. |
 | `backend/` | FastAPI backend on Render for private custom analysis, health/status routes, feedback, and legal API parity. |
-| `src/vibesignal_ai/` | Deterministic-first cue engine, contracts, safety rules, evidence objects, summaries, and blocked-output boundaries. |
+| `src/vibesignal_ai/` | Deterministic-first cue engine, interfaces, safety rules, evidence objects, summaries, and blocked-output boundaries. |
 | `mobile/` | Expo mobile app shell, onboarding, consent, matching/results flow, legal screens, and Render backend configuration. |
 | `tools/` | Synthetic fixture generation, regression runners, evaluation utilities, and reviewer packet scaffolding. |
 | `docs/` | Product, safety, legal-readiness, deployment, data-rights, reviewer, and closed-beta evidence docs. |
 | `ops/n8n/` | Optional workflow automation artifacts for beta operations and demo workflows. |
 | `scripts/` | Public-copy safety, no-raw-content, restricted-artifact, deployment smoke, and local validation scripts. |
-| `tests/` | Python test suite for backend, safety, docs, engine contracts, evaluation gates, and operating assumptions. |
+| `tests/` | Python test suite for backend, safety, docs, engine interfaces, evaluation gates, and operating assumptions. |
 
 ## How n8n Fits In
 
@@ -119,7 +146,7 @@ See [docs/ops/render_vercel_deployment_runbook.md](docs/ops/render_vercel_deploy
 - Timeout/cancel recovery merged for custom analyze.
 - Production API-base routing and CORS config are in repo.
 - Production smoke script added and hardened.
-- Render custom-domain CORS requires latest Render deploy if the production smoke script still reports an OPTIONS failure.
+- Verify production smoke before a live demo; Render custom-domain CORS may require a latest-main deploy if the smoke script reports an OPTIONS failure.
 - Real-device iPhone/TestFlight QA is still required before wider beta invites.
 - Legal/privacy review is still required before wider beta invites.
 
@@ -167,7 +194,7 @@ Production smoke:
 bash scripts/prod_smoke_custom_domain.sh
 ```
 
-The smoke script uses synthetic text only. It may report a pending CORS or `/api/legal/*` backend-parity failure until Render is deployed from latest `main`; frontend legal pages should still work from the Vercel bundle.
+The smoke script uses synthetic text only. Treat any CORS or `/api/legal/*` backend-parity failure as a deploy verification item; frontend legal pages should still work from the Vercel bundle.
 
 ## Validation Commands
 
@@ -183,7 +210,7 @@ bash scripts/prod_smoke_custom_domain.sh
 
 ## Roadmap
 
-- Render latest-main deploy/CORS proof.
+- Verify production smoke before demos and beta invites.
 - Beta tester onboarding.
 - Feedback triage workflow.
 - iOS/TestFlight real-device QA.

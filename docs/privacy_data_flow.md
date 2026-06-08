@@ -1,5 +1,7 @@
 # Privacy Data Flow
 
+Scope note: this document describes implementation boundaries and planned-capability surfaces. It is not a legal/privacy approval, production-readiness claim, or App Store readiness claim.
+
 ## Local Mode
 
 - Mode: `local_only`

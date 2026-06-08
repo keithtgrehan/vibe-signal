@@ -11,7 +11,7 @@ This tour is for reviewers who want to understand the current Vibe Signal implem
 ## Deterministic Engine
 
 - `src/vibesignal_ai/features/`: cue taxonomy and deterministic feature detection.
-- `src/vibesignal_ai/matching/`: match/analyze contracts, deterministic result builder, explanation logic, confidence/low-signal handling, and evidence compaction.
+- `src/vibesignal_ai/matching/`: match/analyze interfaces, deterministic result builder, explanation logic, confidence/low-signal handling, and evidence compaction.
 - `src/vibesignal_ai/evidence/`: evidence-object helpers and validation.
 - `configs/vibe_cue_taxonomy.yml`: observable cue taxonomy and safe wording.
 
@@ -38,13 +38,14 @@ This tour is for reviewers who want to understand the current Vibe Signal implem
 ## Best Review Path
 
 1. Read [README.md](../../README.md).
-2. Read [docs/recruiter_readiness/current_pr_status.md](current_pr_status.md).
-3. Inspect the web app and run a synthetic demo.
-4. Review [reports/engine_eval/10k_precision_hardening_comparison.md](../../reports/engine_eval/10k_precision_hardening_comparison.md).
+2. Open [https://www.vibe-signal.com](https://www.vibe-signal.com) and run the synthetic demo.
+3. Review evidence phrases, signal cards, limits, and safe next step.
+4. Read [docs/recruiter_readiness/project_summary.md](project_summary.md).
 5. Review [reports/engine_eval/metric_calculation_audit.md](../../reports/engine_eval/metric_calculation_audit.md).
 6. Review [docs/proof/closed_beta/closed_beta_go_no_go.md](../proof/closed_beta/closed_beta_go_no_go.md).
 
 ## Review Caveat
 
-Synthetic reports are regression and contract coverage. They are not real-world validation, model-quality proof, or production-readiness evidence.
+Synthetic reports are regression and coverage. They are not real-world validation, model-quality proof, or production-readiness evidence.
 
+Public demos use synthetic examples only. Vibe Signal reviews observable wording patterns, not private motives or relationship outcomes.

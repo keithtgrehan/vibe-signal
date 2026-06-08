@@ -8,9 +8,14 @@ import {
   CANNOT_TELL,
   HERO_COPY,
   HOW_IT_WORKS_STEPS,
+  PROOF_CARDS,
   RESULT_EXPLAINABILITY_STEPS,
   REVIEWER_DEMO_FLOW,
+  SYNTHETIC_DEMO_PATH_STEPS,
   SYNTHETIC_DEMOS,
+  TECHNICAL_DEMO_FLOW,
+  TECHNICAL_DEMO_NON_CLAIMS,
+  TECHNICAL_DEMO_SHIPPED,
   TRUST_STRIP_ITEMS,
 } from "../src/trustContent.js";
 import {
@@ -30,23 +35,31 @@ const ROOT = resolve(import.meta.dirname, "..");
 const BACKEND_LEGAL_TEXT = readFileSync(resolve(ROOT, "../backend/routes/legal.py"), "utf8");
 
 test("landing hero exposes the Scanner-safe product promise and clear demo CTA", () => {
-  assert.equal(HERO_COPY.title, "See what the wording shows.");
+  assert.equal(HERO_COPY.title, "Vibe Signal turns messy communication into evidence-backed signals.");
   assert.equal(
     HERO_COPY.subtitle,
-    "Spot clarity, ambiguity, pressure, reassurance, and repair openings in text you are allowed to use."
+    "It highlights observable wording patterns like clarity, ambiguity, pressure, reassurance, and repair opportunities without guessing intent, attraction, deception, diagnosis, manipulation, neurotype, attachment style, or relationship outcomes."
   );
   assert.equal(HERO_COPY.primaryCta, "Run synthetic demo");
   assert.equal(HERO_COPY.secondaryCta, "Analyze with consent");
   assert.equal(
     HERO_COPY.trustNote,
-    "Evidence from the words shown. Possible pattern, not a fact about intent."
+    "This is intentionally bounded. It reviews wording patterns, not people's motives."
   );
 
   const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
   assert.match(appText, /Demo/);
+  assert.match(appText, /2 minute demo/);
   assert.match(appText, /Analyze/);
   assert.match(appText, /Privacy/);
   assert.match(appText, /Run synthetic demo/);
+  assert.match(appText, /ProofCards/);
+  assert.match(appText, /TechnicalDemoSection/);
+  assert.deepEqual(PROOF_CARDS.map((card) => card.title), [
+    "Observable evidence",
+    "Bounded AI logic",
+    "Privacy-conscious by design",
+  ]);
 });
 
 test("home page follows the Scanner product information architecture", () => {
@@ -55,7 +68,9 @@ test("home page follows the Scanner product information architecture", () => {
   for (const componentName of [
     "TopNav",
     "Hero",
+    "ProofCards",
     "DemoCard",
+    "TechnicalDemoSection",
     "AnalyzePanel",
     "ConsentGate",
     "ScanningState",
@@ -104,6 +119,59 @@ test("featured synthetic demo is a single understandable first run", () => {
     "Possible pattern, not a fact about intent",
     "Feedback stores result metadata only",
   ]);
+  assert.deepEqual(SYNTHETIC_DEMO_PATH_STEPS, [
+    "Click Run synthetic demo",
+    "Review the input text",
+    "Check detected cues",
+    "Inspect evidence phrases",
+    "Read the safe next step",
+    "Check what this does not claim",
+  ]);
+});
+
+test("technical demo section stays reviewer-focused and bounded", () => {
+  const appText = readFileSync(resolve(ROOT, "src/App.jsx"), "utf8");
+  const stylesText = readFileSync(resolve(ROOT, "src/styles.css"), "utf8");
+
+  for (const required of [
+    "Vibe Signal - 2 Minute Technical Demo",
+    "Product problem",
+    "What shipped",
+    "Architecture",
+    "Demo caveat",
+    "What it does not claim",
+    "View GitHub repo",
+    "Read project summary",
+    "Read repo tour",
+  ]) {
+    assert.match(appText, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(
+    appText,
+    /Synthetic demo examples are for product demonstration, regression checks, and coverage\s+only\. They are not real-world accuracy claims\./
+  );
+  assert.deepEqual(TECHNICAL_DEMO_FLOW, [
+    "Input text",
+    "Consent / safety boundary",
+    "Deterministic cue engine",
+    "Evidence extraction",
+    "Safe result cards",
+    "Metadata-only feedback",
+  ]);
+  assert.equal(TECHNICAL_DEMO_SHIPPED.includes("FastAPI backend on Render"), true);
+  assert.deepEqual(TECHNICAL_DEMO_NON_CLAIMS, [
+    "no hidden-intent detection",
+    "no attraction prediction",
+    "no deception or cheating detection",
+    "no diagnosis or therapy",
+    "no neurotype or attachment labels",
+    "no manipulation advice",
+    "no relationship-outcome prediction",
+    "no real-world accuracy claim from synthetic demos",
+  ]);
+  assert.match(stylesText, /\.technical-demo/);
+  assert.match(stylesText, /\.proof-grid/);
+  assert.match(stylesText, /\.demo-path/);
 });
 
 test("result view remains evidence-first with the required result-card structure", () => {
