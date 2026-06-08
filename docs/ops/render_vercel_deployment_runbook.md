@@ -29,15 +29,27 @@ Vercel serves the public frontend. It does not run the FastAPI backend. Same-ori
 
 1. Deploy the backend from latest `main` only after repo validation passes.
 2. Confirm Render uses the intended branch and commit.
-3. Keep access logs disabled or metadata-only. Do not log request bodies.
-4. Verify health and status metadata:
+3. Confirm Render installs the minimal backend runtime requirements, not the full local/research requirements file:
+
+```bash
+pip install -r requirements-render.txt
+```
+
+4. Confirm Render uses the backend start command:
+
+```bash
+PYTHONPATH=src uvicorn backend.app:app --host 0.0.0.0 --port $PORT --no-access-log
+```
+
+5. Keep access logs disabled or metadata-only. Do not log request bodies.
+6. Verify health and status metadata:
 
 ```bash
 curl -i https://vibe-signal.onrender.com/healthz
 curl -i https://vibe-signal.onrender.com/api/status
 ```
 
-5. Run the bounded custom-domain smoke script:
+7. Run the bounded custom-domain smoke script:
 
 ```bash
 bash scripts/prod_smoke_custom_domain.sh
@@ -45,11 +57,14 @@ bash scripts/prod_smoke_custom_domain.sh
 
 Render runs the backend separately from Vercel. A Vercel deploy can be current while Render is stale.
 
+See [Render Backend Runtime Requirements](render_backend_runtime_requirements.md) for the hosted backend dependency boundary.
+
 ## Required Render environment variables
 
 Use exact origins. Do not use wildcard CORS.
 
 ```text
+PYTHON_VERSION=3.11.11
 VIBE_BACKEND_ENV=production
 VIBE_BACKEND_ALLOWED_ORIGINS=https://www.vibe-signal.com,https://vibe-signal.com,https://vibe-signal.vercel.app,http://localhost:5173,http://127.0.0.1:5173,http://localhost:19006,http://localhost:8081
 VIBE_BACKEND_LOG_LEVEL=INFO

@@ -134,7 +134,7 @@ n8n should not receive raw private chat content unless a future rights-reviewed 
 ## Deployment Model
 
 - Vercel builds and serves `web/`.
-- Render runs the FastAPI backend at [https://vibe-signal.onrender.com](https://vibe-signal.onrender.com).
+- Render runs the FastAPI backend at [https://vibe-signal.onrender.com](https://vibe-signal.onrender.com) and should install [requirements-render.txt](requirements-render.txt) for hosted backend deploys.
 - The custom web domain requires the Render CORS allowlist to include `https://www.vibe-signal.com` and `https://vibe-signal.com`.
 - Static legal pages work without Render because the current legal copy is bundled into the frontend.
 - Private analyze requires the Render backend.
