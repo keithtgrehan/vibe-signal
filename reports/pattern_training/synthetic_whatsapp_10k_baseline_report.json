@@ -1,0 +1,1563 @@
+{
+  "active_trained_labels": [
+    "alignment",
+    "ambiguity",
+    "answer_evasion_pattern",
+    "boundary_pressure",
+    "cognitive_load",
+    "conflict",
+    "contradiction_against_prior_message",
+    "directness",
+    "escalation_risk",
+    "hedging",
+    "low_signal",
+    "overloaded_message",
+    "pressure",
+    "reassurance",
+    "repair_opportunity",
+    "specificity",
+    "specificity_drop",
+    "topic_shift",
+    "unclear_ask",
+    "unsupported_claim_shift",
+    "urgency"
+  ],
+  "allowed_labels": [
+    "alignment",
+    "ambiguity",
+    "answer_evasion_pattern",
+    "boundary_pressure",
+    "cognitive_load",
+    "conflict",
+    "consent_clarity",
+    "contradiction_against_prior_message",
+    "directness",
+    "escalation_risk",
+    "hedging",
+    "low_signal",
+    "neutral",
+    "overloaded_message",
+    "pressure",
+    "reassurance",
+    "repair_opportunity",
+    "specificity",
+    "specificity_drop",
+    "topic_shift",
+    "unclear_ask",
+    "unsupported_claim_shift",
+    "urgency"
+  ],
+  "config_path": "/Users/keith/Documents/New project/vibe-signal/configs/synthetic_whatsapp_pattern_training.yml",
+  "created_at": "2026-06-08T19:58:38Z",
+  "deterministic_engine_remains_primary": true,
+  "external_embeddings_used": false,
+  "future_model_assisted_gate": "Future model-assisted output must pass evidence-span validation, the safe-output blocker, blocked-claim sanitizer, low-signal fallback, and a human-reviewed evaluation gate.",
+  "local_artifact_out": "",
+  "message_count": 10000,
+  "metrics": {
+    "all_sources_combined": {
+      "f1": 0.7889,
+      "false_negatives_by_cue_family": {
+        "conflict": 166,
+        "directness": 501,
+        "hedging": 67,
+        "low_signal": 500,
+        "reassurance": 200,
+        "repair_opportunity": 100,
+        "specificity": 433
+      },
+      "false_positives_by_cue_family": {
+        "alignment": 133,
+        "answer_evasion_pattern": 67,
+        "directness": 332,
+        "escalation_risk": 67,
+        "neutral": 833,
+        "topic_shift": 67
+      },
+      "per_cue": {
+        "alignment": {
+          "f1": 0.8261,
+          "false_negative": 0,
+          "false_positive": 133,
+          "precision": 0.7038,
+          "recall": 1.0,
+          "true_positive": 316
+        },
+        "ambiguity": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 574
+        },
+        "answer_evasion_pattern": {
+          "f1": 0.9041,
+          "false_negative": 0,
+          "false_positive": 67,
+          "precision": 0.8251,
+          "recall": 1.0,
+          "true_positive": 316
+        },
+        "boundary_pressure": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 258
+        },
+        "cognitive_load": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 158
+        },
+        "conflict": {
+          "f1": 0.7855,
+          "false_negative": 166,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.6468,
+          "true_positive": 304
+        },
+        "consent_clarity": {
+          "f1": 0.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "true_positive": 0
+        },
+        "contradiction_against_prior_message": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 237
+        },
+        "directness": {
+          "f1": 0.6266,
+          "false_negative": 501,
+          "false_positive": 332,
+          "precision": 0.678,
+          "recall": 0.5825,
+          "true_positive": 699
+        },
+        "escalation_risk": {
+          "f1": 0.8251,
+          "false_negative": 0,
+          "false_positive": 67,
+          "precision": 0.7022,
+          "recall": 1.0,
+          "true_positive": 158
+        },
+        "hedging": {
+          "f1": 0.8251,
+          "false_negative": 67,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.7022,
+          "true_positive": 158
+        },
+        "low_signal": {
+          "f1": 0.6959,
+          "false_negative": 500,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.5336,
+          "true_positive": 572
+        },
+        "neutral": {
+          "f1": 0.0,
+          "false_negative": 0,
+          "false_positive": 833,
+          "precision": 0.0,
+          "recall": 0.0,
+          "true_positive": 0
+        },
+        "overloaded_message": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 158
+        },
+        "pressure": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 337
+        },
+        "reassurance": {
+          "f1": 0.841,
+          "false_negative": 200,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.7257,
+          "true_positive": 529
+        },
+        "repair_opportunity": {
+          "f1": 0.8258,
+          "false_negative": 100,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.7033,
+          "true_positive": 237
+        },
+        "specificity": {
+          "f1": 0.7374,
+          "false_negative": 433,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.5841,
+          "true_positive": 608
+        },
+        "specificity_drop": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 158
+        },
+        "topic_shift": {
+          "f1": 0.8762,
+          "false_negative": 0,
+          "false_positive": 67,
+          "precision": 0.7796,
+          "recall": 1.0,
+          "true_positive": 237
+        },
+        "unclear_ask": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 79
+        },
+        "unsupported_claim_shift": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 79
+        },
+        "urgency": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 304
+        }
+      },
+      "precision": 0.812,
+      "recall": 0.767,
+      "row_count": 5000
+    },
+    "bronze_synthetic_whatsapp_10k": {
+      "f1": 0.7889,
+      "false_negatives_by_cue_family": {
+        "conflict": 166,
+        "directness": 501,
+        "hedging": 67,
+        "low_signal": 500,
+        "reassurance": 200,
+        "repair_opportunity": 100,
+        "specificity": 433
+      },
+      "false_positives_by_cue_family": {
+        "alignment": 133,
+        "answer_evasion_pattern": 67,
+        "directness": 332,
+        "escalation_risk": 67,
+        "neutral": 833,
+        "topic_shift": 67
+      },
+      "per_cue": {
+        "alignment": {
+          "f1": 0.8261,
+          "false_negative": 0,
+          "false_positive": 133,
+          "precision": 0.7038,
+          "recall": 1.0,
+          "true_positive": 316
+        },
+        "ambiguity": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 574
+        },
+        "answer_evasion_pattern": {
+          "f1": 0.9041,
+          "false_negative": 0,
+          "false_positive": 67,
+          "precision": 0.8251,
+          "recall": 1.0,
+          "true_positive": 316
+        },
+        "boundary_pressure": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 258
+        },
+        "cognitive_load": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 158
+        },
+        "conflict": {
+          "f1": 0.7855,
+          "false_negative": 166,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.6468,
+          "true_positive": 304
+        },
+        "consent_clarity": {
+          "f1": 0.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "true_positive": 0
+        },
+        "contradiction_against_prior_message": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 237
+        },
+        "directness": {
+          "f1": 0.6266,
+          "false_negative": 501,
+          "false_positive": 332,
+          "precision": 0.678,
+          "recall": 0.5825,
+          "true_positive": 699
+        },
+        "escalation_risk": {
+          "f1": 0.8251,
+          "false_negative": 0,
+          "false_positive": 67,
+          "precision": 0.7022,
+          "recall": 1.0,
+          "true_positive": 158
+        },
+        "hedging": {
+          "f1": 0.8251,
+          "false_negative": 67,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.7022,
+          "true_positive": 158
+        },
+        "low_signal": {
+          "f1": 0.6959,
+          "false_negative": 500,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.5336,
+          "true_positive": 572
+        },
+        "neutral": {
+          "f1": 0.0,
+          "false_negative": 0,
+          "false_positive": 833,
+          "precision": 0.0,
+          "recall": 0.0,
+          "true_positive": 0
+        },
+        "overloaded_message": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 158
+        },
+        "pressure": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 337
+        },
+        "reassurance": {
+          "f1": 0.841,
+          "false_negative": 200,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.7257,
+          "true_positive": 529
+        },
+        "repair_opportunity": {
+          "f1": 0.8258,
+          "false_negative": 100,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.7033,
+          "true_positive": 237
+        },
+        "specificity": {
+          "f1": 0.7374,
+          "false_negative": 433,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 0.5841,
+          "true_positive": 608
+        },
+        "specificity_drop": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 158
+        },
+        "topic_shift": {
+          "f1": 0.8762,
+          "false_negative": 0,
+          "false_positive": 67,
+          "precision": 0.7796,
+          "recall": 1.0,
+          "true_positive": 237
+        },
+        "unclear_ask": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 79
+        },
+        "unsupported_claim_shift": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 79
+        },
+        "urgency": {
+          "f1": 1.0,
+          "false_negative": 0,
+          "false_positive": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "true_positive": 304
+        }
+      },
+      "precision": 0.812,
+      "recall": 0.767,
+      "row_count": 5000
+    },
+    "calibration_confidence_buckets": [
+      {
+        "bucket": "0.00-0.25",
+        "cue_overlap_rate": 0.0,
+        "prediction_count": 0
+      },
+      {
+        "bucket": "0.25-0.50",
+        "cue_overlap_rate": 0.0,
+        "prediction_count": 0
+      },
+      {
+        "bucket": "0.50-0.75",
+        "cue_overlap_rate": 0.3501,
+        "prediction_count": 477
+      },
+      {
+        "bucket": "0.75-1.00",
+        "cue_overlap_rate": 0.7667,
+        "prediction_count": 4523
+      }
+    ],
+    "confusion_groups": {
+      "low_signal_or_neutral_confused_with_positive_cues": 332
+    },
+    "evidence_span_coverage": {
+      "coverage": 1.0,
+      "cue_positive_rows": 3928,
+      "per_cue": {
+        "alignment": 1.0,
+        "ambiguity": 1.0,
+        "answer_evasion_pattern": 1.0,
+        "boundary_pressure": 1.0,
+        "cognitive_load": 1.0,
+        "conflict": 1.0,
+        "contradiction_against_prior_message": 1.0,
+        "directness": 1.0,
+        "escalation_risk": 1.0,
+        "hedging": 1.0,
+        "overloaded_message": 1.0,
+        "pressure": 1.0,
+        "reassurance": 1.0,
+        "repair_opportunity": 1.0,
+        "specificity": 1.0,
+        "specificity_drop": 1.0,
+        "topic_shift": 1.0,
+        "unclear_ask": 1.0,
+        "unsupported_claim_shift": 1.0,
+        "urgency": 1.0
+      },
+      "rows_with_required_evidence": 3928
+    },
+    "hard_negative_overfire_rate": 0.732,
+    "low_signal_correctness": {
+      "correct_rows": 572,
+      "rate": 0.5336,
+      "row_count": 1072
+    },
+    "red_team_unsafe_output_pass_rate": 1.0,
+    "sources": {
+      "bronze_synthetic_whatsapp_10k": {
+        "f1": 0.7889,
+        "false_negatives_by_cue_family": {
+          "conflict": 166,
+          "directness": 501,
+          "hedging": 67,
+          "low_signal": 500,
+          "reassurance": 200,
+          "repair_opportunity": 100,
+          "specificity": 433
+        },
+        "false_positives_by_cue_family": {
+          "alignment": 133,
+          "answer_evasion_pattern": 67,
+          "directness": 332,
+          "escalation_risk": 67,
+          "neutral": 833,
+          "topic_shift": 67
+        },
+        "per_cue": {
+          "alignment": {
+            "f1": 0.8261,
+            "false_negative": 0,
+            "false_positive": 133,
+            "precision": 0.7038,
+            "recall": 1.0,
+            "true_positive": 316
+          },
+          "ambiguity": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 574
+          },
+          "answer_evasion_pattern": {
+            "f1": 0.9041,
+            "false_negative": 0,
+            "false_positive": 67,
+            "precision": 0.8251,
+            "recall": 1.0,
+            "true_positive": 316
+          },
+          "boundary_pressure": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 258
+          },
+          "cognitive_load": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "conflict": {
+            "f1": 0.7855,
+            "false_negative": 166,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.6468,
+            "true_positive": 304
+          },
+          "consent_clarity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "contradiction_against_prior_message": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 237
+          },
+          "directness": {
+            "f1": 0.6266,
+            "false_negative": 501,
+            "false_positive": 332,
+            "precision": 0.678,
+            "recall": 0.5825,
+            "true_positive": 699
+          },
+          "escalation_risk": {
+            "f1": 0.8251,
+            "false_negative": 0,
+            "false_positive": 67,
+            "precision": 0.7022,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "hedging": {
+            "f1": 0.8251,
+            "false_negative": 67,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.7022,
+            "true_positive": 158
+          },
+          "low_signal": {
+            "f1": 0.6959,
+            "false_negative": 500,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.5336,
+            "true_positive": 572
+          },
+          "neutral": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 833,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "overloaded_message": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "pressure": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 337
+          },
+          "reassurance": {
+            "f1": 0.841,
+            "false_negative": 200,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.7257,
+            "true_positive": 529
+          },
+          "repair_opportunity": {
+            "f1": 0.8258,
+            "false_negative": 100,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.7033,
+            "true_positive": 237
+          },
+          "specificity": {
+            "f1": 0.7374,
+            "false_negative": 433,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.5841,
+            "true_positive": 608
+          },
+          "specificity_drop": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "topic_shift": {
+            "f1": 0.8762,
+            "false_negative": 0,
+            "false_positive": 67,
+            "precision": 0.7796,
+            "recall": 1.0,
+            "true_positive": 237
+          },
+          "unclear_ask": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 79
+          },
+          "unsupported_claim_shift": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 79
+          },
+          "urgency": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 304
+          }
+        },
+        "precision": 0.812,
+        "recall": 0.767,
+        "row_count": 5000
+      }
+    },
+    "splits": {
+      "dev": {
+        "f1": 1.0,
+        "false_negatives_by_cue_family": {},
+        "false_positives_by_cue_family": {},
+        "per_cue": {
+          "alignment": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 316
+          },
+          "ambiguity": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 474
+          },
+          "answer_evasion_pattern": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 316
+          },
+          "boundary_pressure": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "cognitive_load": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "conflict": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 237
+          },
+          "consent_clarity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "contradiction_against_prior_message": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 237
+          },
+          "directness": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 632
+          },
+          "escalation_risk": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "hedging": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "low_signal": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 472
+          },
+          "neutral": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "overloaded_message": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "pressure": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 237
+          },
+          "reassurance": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 395
+          },
+          "repair_opportunity": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 237
+          },
+          "specificity": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 474
+          },
+          "specificity_drop": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 158
+          },
+          "topic_shift": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 237
+          },
+          "unclear_ask": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 79
+          },
+          "unsupported_claim_shift": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 79
+          },
+          "urgency": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 237
+          }
+        },
+        "precision": 1.0,
+        "recall": 1.0,
+        "row_count": 3000
+      },
+      "hard_negative": {
+        "f1": 0.3345,
+        "false_negatives_by_cue_family": {
+          "conflict": 66,
+          "directness": 401,
+          "hedging": 67,
+          "reassurance": 200,
+          "specificity": 333
+        },
+        "false_positives_by_cue_family": {
+          "alignment": 133,
+          "answer_evasion_pattern": 67,
+          "escalation_risk": 67,
+          "neutral": 465,
+          "topic_shift": 67
+        },
+        "per_cue": {
+          "alignment": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 133,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "ambiguity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "answer_evasion_pattern": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 67,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "boundary_pressure": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "cognitive_load": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "conflict": {
+            "f1": 0.67,
+            "false_negative": 66,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.5038,
+            "true_positive": 67
+          },
+          "consent_clarity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "contradiction_against_prior_message": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "directness": {
+            "f1": 0.2505,
+            "false_negative": 401,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.1432,
+            "true_positive": 67
+          },
+          "escalation_risk": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 67,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "hedging": {
+            "f1": 0.0,
+            "false_negative": 67,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "low_signal": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "neutral": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 465,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "overloaded_message": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "pressure": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "reassurance": {
+            "f1": 0.5726,
+            "false_negative": 200,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.4012,
+            "true_positive": 134
+          },
+          "repair_opportunity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "specificity": {
+            "f1": 0.4459,
+            "false_negative": 333,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 0.2869,
+            "true_positive": 134
+          },
+          "specificity_drop": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "topic_shift": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 67,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "unclear_ask": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "unsupported_claim_shift": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "urgency": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 67
+          }
+        },
+        "precision": 0.3699,
+        "recall": 0.3053,
+        "row_count": 1000
+      },
+      "heldout": {
+        "f1": 0.5714,
+        "false_negatives_by_cue_family": {
+          "conflict": 100,
+          "directness": 100,
+          "repair_opportunity": 100,
+          "specificity": 100
+        },
+        "false_positives_by_cue_family": {
+          "neutral": 200
+        },
+        "per_cue": {
+          "alignment": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "ambiguity": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 100
+          },
+          "answer_evasion_pattern": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "boundary_pressure": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 100
+          },
+          "cognitive_load": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "conflict": {
+            "f1": 0.0,
+            "false_negative": 100,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "consent_clarity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "contradiction_against_prior_message": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "directness": {
+            "f1": 0.0,
+            "false_negative": 100,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "escalation_risk": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "hedging": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "low_signal": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 100
+          },
+          "neutral": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 200,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "overloaded_message": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "pressure": {
+            "f1": 1.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positive": 100
+          },
+          "reassurance": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "repair_opportunity": {
+            "f1": 0.0,
+            "false_negative": 100,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "specificity": {
+            "f1": 0.0,
+            "false_negative": 100,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "specificity_drop": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "topic_shift": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "unclear_ask": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "unsupported_claim_shift": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "urgency": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          }
+        },
+        "precision": 0.6667,
+        "recall": 0.5,
+        "row_count": 500
+      },
+      "red_team": {
+        "f1": 0.0,
+        "false_negatives_by_cue_family": {
+          "low_signal": 500
+        },
+        "false_positives_by_cue_family": {
+          "directness": 332,
+          "neutral": 168
+        },
+        "per_cue": {
+          "alignment": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "ambiguity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "answer_evasion_pattern": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "boundary_pressure": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "cognitive_load": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "conflict": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "consent_clarity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "contradiction_against_prior_message": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "directness": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 332,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "escalation_risk": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "hedging": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "low_signal": {
+            "f1": 0.0,
+            "false_negative": 500,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "neutral": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 168,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "overloaded_message": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "pressure": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "reassurance": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "repair_opportunity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "specificity": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "specificity_drop": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "topic_shift": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "unclear_ask": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "unsupported_claim_shift": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          },
+          "urgency": {
+            "f1": 0.0,
+            "false_negative": 0,
+            "false_positive": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positive": 0
+          }
+        },
+        "precision": 0.0,
+        "recall": 0.0,
+        "row_count": 500
+      }
+    }
+  },
+  "model_artifact_saved": false,
+  "model_output_renderable_in_product_ui": false,
+  "non_claims": "Synthetic-only metrics are development signals only. They are not real-world validation, model-quality proof, production-readiness proof, legal/compliance approval, or a claim that Vibe Signal can infer hidden intent, attraction, deception, diagnosis, manipulation, abuse, or relationship outcomes.",
+  "project_mode": "research_only",
+  "provider_calls_made": false,
+  "row_count": 5000,
+  "skipped_labels": [
+    "consent_clarity",
+    "neutral"
+  ],
+  "source_tier": "bronze_synthetic_whatsapp_10k",
+  "status": "trained_research_only_baseline",
+  "train_rows": 3000,
+  "train_split_strategy": "dev_split_when_present_else_first_80_percent"
+}

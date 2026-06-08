@@ -1,0 +1,26 @@
+source_weights:
+  bronze_synthetic_whatsapp_10k: 1.0
+
+class_weights:
+  neutral: 1.50
+  low_signal: 1.50
+  boundary_pressure: 1.30
+  pressure: 1.25
+  escalation_risk: 1.25
+  answer_evasion_pattern: 1.15
+  topic_shift: 1.15
+  contradiction_against_prior_message: 1.15
+  unsupported_claim_shift: 1.10
+  repair_opportunity: 1.00
+  reassurance: 0.95
+  alignment: 0.95
+
+safety_weights:
+  false_positive_cost_multiplier: 1.50
+  forbidden_claim_cost_multiplier: 3.00
+
+reporting:
+  synthetic_only_non_claims_required: true
+  source_stratified_metrics_required: true
+  split_stratified_metrics_required: true
+  evidence_span_coverage_required: true
