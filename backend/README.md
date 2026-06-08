@@ -46,6 +46,7 @@ Safety boundaries:
 Deployment readiness:
 
 - See [docs/backend_deployment_readiness.md](../docs/backend_deployment_readiness.md).
+- See [docs/ops/render_backend_runtime_requirements.md](../docs/ops/render_backend_runtime_requirements.md) for the minimal Render install and start commands.
 - See [docs/deployment_smoke_tests.md](../docs/deployment_smoke_tests.md) for local/deployed backend smoke-test commands.
 - See [deployment.env.example](deployment.env.example) for non-secret environment variable examples.
 - `/readyz` reports route registration and hard safety flags; it is readiness metadata only and does not claim production compliance.

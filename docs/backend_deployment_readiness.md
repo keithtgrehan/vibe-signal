@@ -40,11 +40,19 @@ python scripts/smoke_test_deployed_backend.py --base-url http://127.0.0.1:8000
 
 ## Deployment Command Shape
 
+For Render, install only the lightweight hosted backend requirements:
+
+```bash
+pip install -r requirements-render.txt
+```
+
 Use the platform-provided port when available:
 
 ```bash
 PYTHONPATH=src python -m uvicorn backend.app:app --host 0.0.0.0 --port "${PORT:-8000}" --no-access-log
 ```
+
+The Render runtime dependency boundary is documented in [Render backend runtime requirements](ops/render_backend_runtime_requirements.md). The full `requirements.txt` remains for local development, research, evaluation, and test workflows.
 
 This repo does not commit provider secrets, `.replit`, Dockerfile, Procfile, or secret-bearing deployment config. The current reviewed backend host is Render, but backend code should still be promoted through explicit environment configuration. Disable or sanitize server, proxy, and platform access logs before beta traffic; the safe request logger is metadata-only, but default access logs can include raw request lines.
 
@@ -54,6 +62,7 @@ See [backend/deployment.env.example](../backend/deployment.env.example).
 
 | Variable | Purpose | Safe default |
 | --- | --- | --- |
+| `PYTHON_VERSION` | Render Python runtime version. | `3.11.11` |
 | `VIBE_BACKEND_ENV` | Labels `/readyz` as `local`, `staging`, or `production`. | `local` |
 | `VIBE_BACKEND_VERSION` | Release/version label surfaced by `/readyz`. | `0.1.0` |
 | `VIBE_BACKEND_ALLOWED_ORIGINS` | Comma-separated exact browser origins for CORS. | unset / no CORS middleware |
@@ -82,7 +91,7 @@ Native iOS/Android requests are not governed by browser CORS. Expo web, browser-
 For hosted web and local browser QA against the current Render backend, configure this exact Render environment value:
 
 ```bash
-VIBE_BACKEND_ALLOWED_ORIGINS=https://vibe-signal.vercel.app,http://localhost:19006,http://localhost:8081,http://localhost:5173
+VIBE_BACKEND_ALLOWED_ORIGINS=https://www.vibe-signal.com,https://vibe-signal.com,https://vibe-signal.vercel.app,http://localhost:5173,http://127.0.0.1:5173,http://localhost:19006,http://localhost:8081
 ```
 
 Do not use wildcard CORS origins. For any future hosted web frontend, add that hosted frontend's exact origin to the comma-separated list.
