@@ -74,7 +74,7 @@ Already merged/no action: PR #56, "Refresh README for recruiter demo and n8n ops
 
 | Source docs/files | Status | Safe next action | Warning | Audience |
 | --- | --- | --- | --- | --- |
-| `docs/ops/render_vercel_deployment_runbook.md`; `docs/deployment_smoke_tests.md`; `scripts/prod_smoke_custom_domain.sh`; `docs/control_room/prod_smoke_deploy_status_automation_handoff.md`; PR #45 | Custom-domain CORS remains manual/pending outside this docs PR | Handle CORS in a narrow deployment PR or manual Render update, then rerun smoke | Do not fix CORS in this control-room cleanup PR | Recruiter-facing only as deployment caveat |
+| `docs/ops/render_vercel_deployment_runbook.md`; `docs/deployment_smoke_tests.md`; `scripts/prod_smoke_custom_domain.sh`; `docs/control_room/prod_smoke_deploy_status_automation_handoff.md`; PR #45 | Custom-domain CORS remains manual/pending; PR #45 was Replit-specific and superseded | Handle custom-domain CORS in a narrow deployment PR or manual Render update, then rerun smoke | Do not fix CORS in recruiter/docs cleanup PRs | Recruiter-facing only as deployment caveat |
 
 ## Recruiter/Demo Readiness
 
@@ -92,7 +92,7 @@ Already merged/no action: PR #56, "Refresh README for recruiter demo and n8n ops
 
 | Source docs/files | Status | Safe next action | Warning | Audience |
 | --- | --- | --- | --- | --- |
-| `docs/control_room/open_pr_triage.md`; `docs/ops/open_pr_debt_triage.md`; `docs/recruiter_readiness/current_pr_status.md`; PR #40, #41, #42, #44, #45, #46, #66 | Active triage | Close only explicitly approved superseded PRs in this run: #46 and #66 | Do not close unrelated PRs without a new instruction | Research-only, with concise recruiter summary if needed |
+| `docs/control_room/open_pr_triage.md`; `docs/ops/open_pr_debt_triage.md`; `docs/recruiter_readiness/current_pr_status.md`; PR #40, #41, #42, #44, #45, #46, #66 | Superseded PRs documented and closed through recruiter-readiness polish | Keep future research recovery on small branches from current `main` | Do not close unrelated future PRs without a new instruction | Research-only, with concise recruiter summary if needed |
 
 ## Stashes / Local-Only Work Notes
 

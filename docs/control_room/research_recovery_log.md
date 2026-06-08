@@ -79,6 +79,16 @@ Recovery action:
 - PR #67 is already merged and is the current recruiter/CEO-demo baseline.
 - This recovery pass does not undo either PR.
 
+## Final Recruiter-Readiness Polish Closures
+
+PR #45 was closed as superseded because it only handled the old Replit A/B origin. The current priority is custom-domain CORS for the main Vercel/Render setup, handled separately from docs cleanup.
+
+PR #44 was closed as superseded by the control-room research/audit process. It may contain useful local-only research direction, but future recovery must happen through a dedicated audit branch with no raw private data, no production model training, no runtime behavior changes, and aggregate-only reporting.
+
+PR #42 was closed as a superseded draft experiment. Any future A/B work should start from current `main` in a small clean branch.
+
+PR #41 and PR #40 were closed as superseded docs PRs. Their A/B governance, variant history, and Replit/minimal-UI context are now represented at a higher level through the control-room docs.
+
 ## Explicit Non-Recovery
 
 The following were intentionally not recovered or copied:

@@ -1,5 +1,7 @@
 # Open PR Debt Triage
 
+Superseded status note: this 2026-06-06 snapshot is preserved as historical context. The current PR-hygiene source is `docs/control_room/open_pr_triage.md`, updated after PR #67 and PR #68. Do not use this historical snapshot as the live open-PR queue.
+
 Date: 2026-06-06
 
 Status: read-only triage report. No pull requests were merged, closed, or modified by this report.
