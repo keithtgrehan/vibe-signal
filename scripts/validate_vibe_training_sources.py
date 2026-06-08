@@ -28,10 +28,41 @@ REQUIRED_FIELDS = (
     "notes",
 )
 BOOL_FIELDS = ("training_use_allowed", "commercial_use_allowed", "research_only")
-RIGHTS_TIERS = {"open", "NC", "manual-review", "restricted", "eval-only", "unknown", "synthetic_fixture"}
+RIGHTS_TIERS = {
+    "open",
+    "NC",
+    "manual-review",
+    "restricted",
+    "eval-only",
+    "unknown",
+    "synthetic_fixture",
+    "apache_2_local_research",
+    "gpl_3_local_nc_research",
+}
 PROJECT_MODES = {"research_only", "commercial"}
-COMMERCIAL_BLOCKED_TIERS = {"NC", "manual-review", "restricted", "eval-only", "unknown", "synthetic_fixture"}
+COMMERCIAL_BLOCKED_TIERS = {
+    "NC",
+    "manual-review",
+    "restricted",
+    "eval-only",
+    "unknown",
+    "synthetic_fixture",
+    "apache_2_local_research",
+    "gpl_3_local_nc_research",
+}
 NON_TRAINING_TIERS = {"manual-review", "restricted", "eval-only", "unknown"}
+LOCAL_AUGMENTATION_SOURCE_RULES = {
+    "goemotions": {
+        "rights_tier": "apache_2_local_research",
+        "usage": "local_research_augmentation_only",
+        "download_method": "local_cache_only_via_explicit_tool",
+    },
+    "meld": {
+        "rights_tier": "gpl_3_local_nc_research",
+        "usage": "local_noncommercial_research_augmentation_only",
+        "download_method": "manual_local_cache_only_no_auto_download",
+    },
+}
 UNKNOWN_MARKERS = ("unknown", "ambiguous", "tbd", "to be determined")
 UNSAFE_SAFE_USE_TERMS = (
     "true emotion",
@@ -102,6 +133,22 @@ def is_research_training_ready(row: dict[str, Any]) -> bool:
     )
 
 
+def is_local_research_augmentation_ready(row: dict[str, Any]) -> bool:
+    source_id = str(row.get("source_id", "")).strip()
+    rule = LOCAL_AUGMENTATION_SOURCE_RULES.get(source_id)
+    if not rule:
+        return False
+    usage = str(row.get("usage", "")).strip().lower().replace("-", "_")
+    return (
+        row.get("training_use_allowed") is True
+        and row.get("research_only") is True
+        and row.get("commercial_use_allowed") is False
+        and row.get("rights_tier") == rule["rights_tier"]
+        and usage == rule["usage"]
+        and row.get("download_method") == rule["download_method"]
+    )
+
+
 def validate_rows(rows: list[dict[str, Any]], project_mode: str) -> list[str]:
     if project_mode not in PROJECT_MODES:
         return [f"invalid project mode {project_mode!r}"]
@@ -150,12 +197,15 @@ def validate_rows(rows: list[dict[str, Any]], project_mode: str) -> list[str]:
 
         training_allowed = row.get("training_use_allowed") is True
         research_only = row.get("research_only") is True
-        if training_allowed and source_id != "synthetic_vibe_matching":
-            errors.append(f"{label}: only synthetic_vibe_matching may be training-ready for matching v0")
+        local_augmentation_allowed = is_local_research_augmentation_ready(row)
+        if training_allowed and source_id != "synthetic_vibe_matching" and not local_augmentation_allowed:
+            errors.append(f"{label}: non-synthetic training-ready sources must use an approved local research augmentation gate")
         if training_allowed and source_id == "synthetic_vibe_matching" and rights_tier != "synthetic_fixture":
             errors.append(f"{label}: synthetic_vibe_matching must use rights_tier synthetic_fixture")
         if training_allowed and rights_tier in NON_TRAINING_TIERS:
             errors.append(f"{label}: {rights_tier} source cannot be training-ready")
+        if local_augmentation_allowed and not str(row.get("registry_status", "")).endswith("augmentation_allowed"):
+            errors.append(f"{label}: local augmentation source must declare an augmentation_allowed registry_status")
         if training_allowed and rights_tier == "NC":
             if not research_only:
                 errors.append(f"{label}: NC training source must be marked research_only=true")
@@ -185,6 +235,7 @@ def build_summary(path: Path, project_mode: str) -> dict[str, Any]:
         "project_mode": project_mode,
         "row_count": len(rows),
         "training_ready_source_ids": [row["source_id"] for row in rows if is_research_training_ready(row)],
+        "local_augmentation_source_ids": [row["source_id"] for row in rows if is_local_research_augmentation_ready(row)],
         "errors": errors,
     }
 

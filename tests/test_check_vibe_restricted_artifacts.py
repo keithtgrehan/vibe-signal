@@ -61,6 +61,9 @@ def test_blocks_raw_external_benchmark_dataset_paths() -> None:
         "data/external/twitter/tweeteval_sentiment.csv",
         "tweet_exports/tweeteval_ids.json",
         "goemotions/raw_rows.parquet",
+        "goemotions_local_research_rows.jsonl",
+        "meld_local_research_rows.jsonl",
+        "meld/raw_rows.csv",
         "dair_ai/emotion/train.json",
         "empathetic_dialogues/raw/train.csv",
     )
@@ -70,6 +73,9 @@ def test_blocks_raw_external_benchmark_dataset_paths() -> None:
     assert "tweeteval_sentiment.csv" in result.stderr
     assert "tweeteval_ids.json" in result.stderr
     assert "raw_rows.parquet" in result.stderr
+    assert "goemotions_local_research_rows.jsonl" in result.stderr
+    assert "meld_local_research_rows.jsonl" in result.stderr
+    assert "meld/raw_rows.csv" in result.stderr
     assert "emotion/train.json" in result.stderr
     assert "raw/train.csv" in result.stderr
 

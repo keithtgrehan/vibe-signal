@@ -26,25 +26,27 @@ sources:
   - source_id: goemotions
     name: GoEmotions
     modality: text
-    task: emotion_taxonomy_benchmark_metadata_reference
-    license_name: Apache-2.0 repository license; Vibe treats Reddit comment rows as benchmark metadata only until dataset-specific rights, privacy, and attribution review is complete
-    license_url: https://github.com/google-research/google-research/blob/master/LICENSE
-    download_method: none_reference_only
-    access_notes: Google Research describes GoEmotions as 58k English Reddit comments labeled with 27 emotion categories or neutral. Official metadata may be reviewed by URL only; no Reddit rows are downloaded or committed by this registry.
-    training_use_allowed: false
+    task: local_research_augmentation_for_observable_cue_candidates
+    license_name: Apache-2.0 confirmed from Hugging Face dataset metadata and Google Research repository license; Reddit-derived rows remain local-only research data
+    license_url: https://huggingface.co/datasets/google-research-datasets/go_emotions
+    download_method: local_cache_only_via_explicit_tool
+    access_notes: Google Research describes GoEmotions as Reddit-derived English comments labeled with 27 emotion categories or neutral. Local tooling may cache simplified train/validation/test rows only after Apache-2.0 metadata confirmation; no raw rows may be committed.
+    training_use_allowed: true
     commercial_use_allowed: false
     research_only: true
-    rights_tier: eval-only
-    usage: benchmark_metadata_only
+    rights_tier: apache_2_local_research
+    usage: local_research_augmentation_only
     safe_vibe_use:
-      - Metadata-only benchmark planning and taxonomy-shape comparison against Vibe observable communication-pattern labels.
-      - Citation and attribution planning for the GoEmotions paper and Google Research repository before any future benchmark access.
+      - Local research-only weak cue-candidate augmentation after Apache-2.0 metadata confirmation.
+      - Aggregate-only source-stratified benchmark reporting that treats emotion labels as weak signals, not internal truth.
     blocked_vibe_use:
-      - Train product or research models without a completed dataset-specific rights, privacy, attribution, and safety review.
+      - Commit raw Reddit comments, local cache files, vectors, embeddings, checkpoints, or model artifacts.
+      - Train production or commercial models.
       - Download, commit, embed, or expose raw Reddit comments.
       - Treat annotator labels as internal user truth.
-    registry_status: benchmark_metadata_only
-    notes: "Research-only benchmark candidate metadata; training, commercial use, raw data commits, and public model-quality claims remain blocked."
+      - Make public model-quality, emotion-truth, hidden-intent, attraction, deception, diagnosis, manipulation, abuse, or relationship-outcome claims.
+    registry_status: local_research_augmentation_allowed
+    notes: "Local research augmentation candidate; commercial use, production use, raw data commits, and public model-quality claims remain blocked."
 
   - source_id: tweeteval_sentiment
     name: TweetEval Sentiment
@@ -159,23 +161,27 @@ sources:
   - source_id: meld
     name: MELD
     modality: multimodal
-    task: multimodal_benchmark_reference
-    license_name: Research benchmark terms with underlying media-rights restrictions
-    license_url: https://affective-meld.github.io/
-    download_method: none_eval_only
-    access_notes: Media and transcript rights require explicit review; this registry allows metadata-only benchmark tracking.
-    training_use_allowed: false
+    task: local_noncommercial_transcript_research_augmentation
+    license_name: GPL-3.0 Hugging Face and repository metadata with TV-show transcript and media-rights constraints
+    license_url: https://huggingface.co/datasets/declare-lab/MELD
+    download_method: manual_local_cache_only_no_auto_download
+    access_notes: MELD contains TV-show transcript utterances with emotion and sentiment labels plus audio/video files. Vibe tooling may use local text CSV rows only after the local manifest confirms GPL-3.0 metadata, text-only use, and no audio/video use.
+    training_use_allowed: true
     commercial_use_allowed: false
     research_only: true
-    rights_tier: eval-only
-    usage: eval_only
+    rights_tier: gpl_3_local_nc_research
+    usage: local_noncommercial_research_augmentation_only
     safe_vibe_use:
-      - Track benchmark categories for future evaluation design discussions.
+      - Local text-only non-commercial weak cue-candidate augmentation with aggregate-only reporting.
+      - Source-stratified research comparison that treats emotion and sentiment labels as weak signals, not internal truth.
     blocked_vibe_use:
-      - Train on text, audio, or video rows.
+      - Auto-download MELD rows or media.
+      - Commit transcript rows, audio, video, vectors, embeddings, checkpoints, model artifacts, or local caches.
+      - Train production or commercial models.
       - Analyze faces, voices, or bodies for biometric or identity conclusions.
-    registry_status: eval_only
-    notes: Eval-only/reference posture unless explicit commercial and training rights are verified.
+      - Make public model-quality, emotion-truth, hidden-intent, attraction, deception, diagnosis, manipulation, abuse, or relationship-outcome claims.
+    registry_status: local_noncommercial_research_augmentation_allowed
+    notes: Local non-commercial research augmentation candidate; commercial use, production use, raw data commits, audio/video use, and public model-quality claims remain blocked.
 
   - source_id: cmu_mosei
     name: CMU-MOSEI

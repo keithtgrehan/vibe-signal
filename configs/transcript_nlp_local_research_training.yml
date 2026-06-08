@@ -1,0 +1,51 @@
+source_weights:
+  bronze_synthetic_whatsapp_10k: 1.0
+  goemotions_local_research_apache2: 0.25
+  meld_local_research_gpl3_nc: 0.20
+
+class_weights:
+  neutral: 1.50
+  low_signal: 1.50
+  boundary_pressure: 1.30
+  pressure: 1.25
+  escalation_risk: 1.25
+  answer_evasion_pattern: 1.15
+  topic_shift: 1.15
+  contradiction_against_prior_message: 1.15
+  unsupported_claim_shift: 1.10
+  repair_opportunity: 1.00
+  reassurance: 0.95
+  alignment: 0.95
+
+safety_weights:
+  false_positive_cost_multiplier: 1.50
+  forbidden_claim_cost_multiplier: 3.00
+
+reporting:
+  aggregate_only_reports_required: true
+  source_stratified_metrics_required: true
+  split_stratified_metrics_required: true
+  evidence_span_coverage_required: true
+  synthetic_and_local_research_non_claims_required: true
+  deterministic_engine_primary_statement_required: true
+
+source_gates:
+  goemotions_local_research_apache2:
+    dataset_id: google-research-datasets/go_emotions
+    required_license: apache-2.0
+    config: simplified
+    splits:
+      - train
+      - validation
+      - test
+    commercial_training_allowed: false
+    production_use_allowed: false
+    row_commit_allowed: false
+  meld_local_research_gpl3_nc:
+    dataset_id: declare-lab/MELD
+    required_license: gpl-3.0
+    input_mode: manual_local_text_csv_only
+    commercial_training_allowed: false
+    production_use_allowed: false
+    row_commit_allowed: false
+    audio_video_used: false

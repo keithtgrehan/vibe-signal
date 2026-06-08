@@ -42,6 +42,7 @@ RIGHTS_TIERS = {
     "manual_supplied",
     "restricted",
     "synthetic_fixture",
+    "gpl_3_local_noncommercial",
 }
 SOURCE_TYPES = {
     "user_owned_chat",
@@ -63,7 +64,16 @@ SOURCE_TYPES = {
     "blocked_reference",
 }
 ALLOWED_STORAGE_VALUES = {"metadata_only", "raw_allowed_local_only", "raw_allowed_commit", "blocked"}
-ALLOWED_USE_VALUES = {"no", "review_required", "benchmark_only", "synthetic_only", "yes"}
+ALLOWED_USE_VALUES = {
+    "no",
+    "review_required",
+    "benchmark_only",
+    "synthetic_only",
+    "yes",
+    "local_research_only",
+    "local_noncommercial_research_only",
+    "aggregate_only",
+}
 PLACEHOLDER_VALUES = {"", "pending", "todo", "tbd", "unknown", "n/a"}
 ALIAS_FIELDS = (
     ("allowed_commit", "commit_allowed"),
