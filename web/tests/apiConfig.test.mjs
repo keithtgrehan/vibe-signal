@@ -237,6 +237,59 @@ test("submitAnalyze retries one transient network failure then returns safe resu
   }
 });
 
+test("submitAnalyze strips named speaker prefixes before sending messages", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    calls.push(body);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        conversation_id: body.conversation_id,
+        analysis_mode: "deterministic_local_only",
+        provider_used: false,
+        raw_chat_persisted: false,
+        evidence: [],
+      }),
+    };
+  };
+
+  try {
+    await submitAnalyze("Dan: Are we still on for Friday?\nMia: maybe later\nCasey: I can wait\nDan: Thanks");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].messages, [
+    {
+      id: "m1",
+      author: "self",
+      text: "Are we still on for Friday?",
+    },
+    {
+      id: "m2",
+      author: "other",
+      text: "maybe later",
+    },
+    {
+      id: "m3",
+      author: "unknown",
+      text: "I can wait",
+    },
+    {
+      id: "m4",
+      author: "self",
+      text: "Thanks",
+    },
+  ]);
+  assert.equal(JSON.stringify(calls[0]).includes("Dan"), false);
+  assert.equal(JSON.stringify(calls[0]).includes("Mia"), false);
+  assert.equal(JSON.stringify(calls[0]).includes("Casey"), false);
+});
+
 test("submitAnalyze retries once then classifies a final timeout safely", async () => {
   const originalFetch = globalThis.fetch;
   let attempts = 0;

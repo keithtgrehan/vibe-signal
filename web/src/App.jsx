@@ -319,7 +319,8 @@ function AnalyzePanel({
       />
       <ConsentGate consent={consent} setConsent={setConsent} />
       <p className="helper-copy" id="analyze-helper">
-        Vibe Signal reviews wording cues only. It does not decide what happened or what someone meant.
+        Vibe Signal reviews wording cues only. It does not decide what happened or what someone meant. Use
+        self: and other: for best results. Names are not needed.
       </p>
       <p
         className={`helper-copy ${inputTooLong ? "limit-warning" : ""}`.trim()}
