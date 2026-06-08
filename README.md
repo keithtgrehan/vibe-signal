@@ -30,6 +30,7 @@ Important caveat: Synthetic demo and regression checks prove product flow, outpu
 - Architecture overview: [README.md#architecture-overview](#architecture-overview)
 - Evaluation caveat: [docs/recruiter_readiness/project_summary.md#evaluation-story](docs/recruiter_readiness/project_summary.md#evaluation-story)
 - Safety policy: [docs/legal_safe_output_policy.md](docs/legal_safe_output_policy.md)
+- Research/control-room index: [docs/control_room/research_index.md](docs/control_room/research_index.md)
 
 ## Live Demo
 

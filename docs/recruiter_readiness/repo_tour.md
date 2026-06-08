@@ -44,6 +44,8 @@ This tour is for reviewers who want to understand the current Vibe Signal implem
 5. Review [reports/engine_eval/metric_calculation_audit.md](../../reports/engine_eval/metric_calculation_audit.md).
 6. Review [docs/proof/closed_beta/closed_beta_go_no_go.md](../proof/closed_beta/closed_beta_go_no_go.md).
 
+For research and stale-PR context, use [docs/control_room/research_index.md](../control_room/research_index.md) as the control-room entry point.
+
 ## Review Caveat
 
 Synthetic reports are regression and coverage. They are not real-world validation, model-quality proof, or production-readiness evidence.
