@@ -39,6 +39,7 @@ Already merged/no action: PR #56, "Refresh README for recruiter demo and n8n ops
 | Source docs/files | Status | Safe next action | Warning | Audience |
 | --- | --- | --- | --- | --- |
 | `docs/research/model_training_plan/00_executive_summary.md` through `11_local_gold_evaluator_scaffold.md`; `configs/vibe_training_sources.example.yml`; `scripts/validate_vibe_training_sources.py`; `tools/validate_training_sources.py` | Research plan merged; training remains blocked | Keep as roadmap until reviewed-label thresholds, rights review, privacy review, and safety gates pass | No production model training; no external dataset rows; no model artifacts | Research-only |
+| `docs/research/synthetic_whatsapp_10k_pattern_training.md`; `docs/research/transcript_nlp_local_research_training.md`; `configs/transcript_nlp_local_research_training.yml`; `scripts/train_transcript_nlp_local_research_baseline.py` | Research-only scaffold | Run locally with synthetic rows plus optional local GoEmotions/MELD caches; keep reports aggregate-only | External public dataset rows and model artifacts must stay out of git; metrics are development signals only | Research-only |
 
 ## Synthetic Fixtures / Hard Negatives
 

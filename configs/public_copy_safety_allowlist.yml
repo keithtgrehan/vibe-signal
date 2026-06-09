@@ -43,6 +43,8 @@ allow:
     reason: Prompt template states disallowed claims.
   - path: scripts/**
     reason: Validation and smoke scripts include blocked strings for tests.
+  - path: tools/**
+    reason: Research tooling includes blocked terms only as safety gates, non-claims, and forbidden-output tests.
   - path: tests/**
     reason: Tests and fixtures intentionally include unsafe examples to prove blocking.
   - path: mobile/tests/**

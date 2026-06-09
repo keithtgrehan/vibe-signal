@@ -46,21 +46,41 @@ resources:
     source_url_or_path: https://github.com/google-research/google-research/tree/master/goemotions
     source_type: research_dataset
     rights_tier: publicly_available
-    license_or_terms_summary: Metadata-only benchmark reference; license and terms require review before any download or raw-body use.
-    allowed_storage: metadata_only
+    license_or_terms_summary: Apache-2.0 license metadata and local research rights/terms candidate; raw rows may be cached only under ignored data/external paths.
+    allowed_storage: raw_allowed_local_only
     allowed_commit: true
-    allowed_training_use: "no"
-    allowed_eval_use: benchmark_only
-    raw_body_allowed: false
-    metadata_only: true
-    acquisition_method: metadata_reference_only
+    allowed_training_use: local_research_only
+    allowed_eval_use: aggregate_only
+    raw_body_allowed: true
+    metadata_only: false
+    acquisition_method: explicit_local_research_cache_tool
     paywall_or_login_status: public_reference_no_login_checked
-    robots_status: not_scraped_metadata_reference
+    robots_status: local_cache_after_license_metadata_check
     provenance_hash: sha256:3333333333333333333333333333333333333333333333333333333333333333
     last_checked_at: "2026-05-31"
     reviewer_or_operator: codex
     blocked_reason: ""
-    notes: Dataset labels are annotator judgments, not emotion truth; no dataset download in this PR.
+    notes: Dataset labels are annotator judgments, not emotion truth; no raw rows may be committed.
+  - source_id: meld_metadata_reference
+    source_name: MELD metadata reference
+    source_url_or_path: https://huggingface.co/datasets/declare-lab/MELD
+    source_type: research_dataset
+    rights_tier: gpl_3_local_noncommercial
+    license_or_terms_summary: GPL-3.0 metadata with TV-show transcript/media-rights constraints; local text CSV research only.
+    allowed_storage: raw_allowed_local_only
+    allowed_commit: false
+    allowed_training_use: local_noncommercial_research_only
+    allowed_eval_use: aggregate_only
+    raw_body_allowed: true
+    metadata_only: false
+    acquisition_method: manual_local_text_csv_only
+    paywall_or_login_status: public_reference_no_login_checked
+    robots_status: not_scraped_manual_local_only
+    provenance_hash: sha256:7777777777777777777777777777777777777777777777777777777777777777
+    last_checked_at: "2026-06-08"
+    reviewer_or_operator: codex
+    blocked_reason: ""
+    notes: Do not auto-download, commit transcript rows, use audio/video, use commercially, or treat emotion/sentiment labels as internal truth.
   - source_id: provider_response_metadata_example
     source_name: Optional provider response metadata example
     source_url_or_path: local://provider_response_metadata

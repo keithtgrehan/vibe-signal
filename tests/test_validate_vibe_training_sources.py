@@ -84,9 +84,11 @@ def test_commercial_mode_rejects_nc_rows(tmp_path: Path) -> None:
 def test_external_benchmark_registry_rows_are_not_training_ready() -> None:
     rows = {row["source_id"]: row for row in load_example()["sources"]}
 
-    assert rows["goemotions"]["usage"] == "benchmark_metadata_only"
-    assert rows["goemotions"]["training_use_allowed"] is False
-    assert "58k English Reddit comments" in rows["goemotions"]["access_notes"]
+    assert rows["goemotions"]["usage"] == "local_research_augmentation_only"
+    assert rows["goemotions"]["training_use_allowed"] is True
+    assert rows["goemotions"]["commercial_use_allowed"] is False
+    assert rows["goemotions"]["rights_tier"] == "apache_2_local_research"
+    assert "Reddit-derived English comments" in rows["goemotions"]["access_notes"]
     assert "27 emotion categories or neutral" in rows["goemotions"]["access_notes"]
 
     assert rows["tweeteval_sentiment"]["usage"] == "sentiment_benchmark_metadata_only"
@@ -101,6 +103,29 @@ def test_external_benchmark_registry_rows_are_not_training_ready() -> None:
     assert rows["dair_ai_emotion"]["training_use_allowed"] is False
     assert rows["empathetic_dialogues"]["training_use_allowed"] is False
 
+    assert rows["meld"]["usage"] == "local_noncommercial_research_augmentation_only"
+    assert rows["meld"]["training_use_allowed"] is True
+    assert rows["meld"]["commercial_use_allowed"] is False
+    assert rows["meld"]["rights_tier"] == "gpl_3_local_nc_research"
+
+
+def test_research_mode_reports_local_augmentation_sources_without_marking_training_ready(tmp_path: Path) -> None:
+    summary = tmp_path / "summary.json"
+    result = run_script(
+        VALIDATOR,
+        "--config",
+        str(EXAMPLE),
+        "--project-mode",
+        "research_only",
+        "--json-out",
+        str(summary),
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = json.loads(summary.read_text(encoding="utf-8"))
+    assert payload["training_ready_source_ids"] == ["synthetic_vibe_matching"]
+    assert payload["local_augmentation_source_ids"] == ["goemotions", "meld"]
+
 
 def test_research_mode_rejects_non_synthetic_training_ready_rows(tmp_path: Path) -> None:
     payload = load_example()
@@ -114,7 +139,7 @@ def test_research_mode_rejects_non_synthetic_training_ready_rows(tmp_path: Path)
     result = run_validator(path, project_mode="research_only")
 
     assert result.returncode == 1
-    assert "only synthetic_vibe_matching may be training-ready for matching v0" in result.stdout
+    assert "non-synthetic training-ready sources must use an approved local research augmentation gate" in result.stdout
 
 
 def test_commercial_mode_rejects_manual_review_rows(tmp_path: Path) -> None:
@@ -133,12 +158,12 @@ def test_commercial_mode_rejects_restricted_rows(tmp_path: Path) -> None:
     assert "commercial mode rejects rights_tier restricted" in result.stdout
 
 
-def test_commercial_mode_rejects_eval_only_rows(tmp_path: Path) -> None:
+def test_commercial_mode_rejects_local_research_augmentation_rows(tmp_path: Path) -> None:
     result = run_validator(write_subset(tmp_path, "meld"), project_mode="commercial")
 
     assert result.returncode == 1
     assert "meld" in result.stdout
-    assert "commercial mode rejects rights_tier eval-only" in result.stdout
+    assert "commercial mode rejects rights_tier gpl_3_local_nc_research" in result.stdout
 
 
 def test_missing_required_field_fails(tmp_path: Path) -> None:
@@ -171,9 +196,8 @@ def test_unknown_rights_fail_closed(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("source_id", "rights_tier"),
     [
-        ("goemotions", "eval-only"),
         ("cmu_mosei", "restricted"),
-        ("meld", "eval-only"),
+        ("tweeteval_sentiment", "manual-review"),
     ],
 )
 def test_blocked_rights_tiers_never_pass_training_readiness(tmp_path: Path, source_id: str, rights_tier: str) -> None:
@@ -187,6 +211,30 @@ def test_blocked_rights_tiers_never_pass_training_readiness(tmp_path: Path, sour
 
     assert result.returncode == 1
     assert f"{rights_tier} source cannot be training-ready" in result.stdout
+
+
+def test_local_augmentation_gate_rejects_goemotions_wrong_license_tier(tmp_path: Path) -> None:
+    payload = {"sources": [row for row in load_example()["sources"] if row["source_id"] == "goemotions"]}
+    payload["sources"][0]["rights_tier"] = "eval-only"
+    path = tmp_path / "goemotions_wrong_tier.yml"
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+    result = run_validator(path)
+
+    assert result.returncode == 1
+    assert "non-synthetic training-ready sources must use an approved local research augmentation gate" in result.stdout
+
+
+def test_local_augmentation_gate_rejects_meld_commercial_use(tmp_path: Path) -> None:
+    payload = {"sources": [row for row in load_example()["sources"] if row["source_id"] == "meld"]}
+    payload["sources"][0]["commercial_use_allowed"] = True
+    path = tmp_path / "meld_commercial.yml"
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+    result = run_validator(path)
+
+    assert result.returncode == 1
+    assert "non-synthetic training-ready sources must use an approved local research augmentation gate" in result.stdout
 
 
 def test_dry_run_downloader_does_not_download(tmp_path: Path) -> None:
