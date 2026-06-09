@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+# Run this against a QA build configured with an unreachable EXPO_PUBLIC_API_URL.
+- launchApp:
+    appId: ${APP_ID}
+    clearState: true
+- tapOn:
+    id: home.analyze.cta
+- assertVisible:
+    id: screen.analyze
+- tapOn:
+    id: input.conversation
+- inputText: "self: Can you confirm Friday at 3pm?\nother: Friday at 3pm works."
+- tapOn:
+    id: consent.permission.checkbox
+- tapOn:
+    id: submit.review
+- assertVisible:
+    id: screen.analyze

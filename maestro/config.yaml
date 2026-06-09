@@ -1,0 +1,5 @@
+appId: ${APP_ID}
+name: Vibe Signal closed-beta smoke suite
+env:
+  APP_ID: ${APP_ID}
+  QA_FIXTURE_MODE: closed_beta_synthetic

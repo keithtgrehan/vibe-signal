@@ -1,0 +1,11 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    appId: ${APP_ID}
+    clearState: true
+- assertVisible:
+    id: screen.home
+- assertVisible:
+    id: home.synthetic.primary
+- assertVisible:
+    id: home.analyze.cta
