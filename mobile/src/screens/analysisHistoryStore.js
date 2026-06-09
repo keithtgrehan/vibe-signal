@@ -3,6 +3,7 @@ const SECURE_STORE_OPTIONS = {
   keychainService: "vibesignal.analysis.history",
 };
 const MAX_HISTORY_ITEMS = 3;
+const MAX_CUE_LABELS = 5;
 
 async function loadSecureStoreModule(explicitModule) {
   if (explicitModule) {
@@ -22,21 +23,36 @@ function canUseWebStorage(platform, webStorage) {
   );
 }
 
+function normalizeLabel(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 120);
+}
+
+function normalizeCueLabels(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => normalizeLabel(item))
+    .filter(Boolean)
+    .slice(0, MAX_CUE_LABELS);
+}
+
 function normalizeHistory(items) {
   return Array.isArray(items)
     ? items
         .map((item) => ({
           id: String(item?.id || "").trim(),
-          inputText: String(item?.inputText || "").trim(),
-          inputPreview: String(item?.inputPreview || "").trim(),
-          headline: String(item?.headline || "").trim(),
-          pattern: String(item?.pattern || "").trim(),
-          summary: String(item?.summary || "").trim(),
-          shareText: String(item?.shareText || "").trim(),
+          mode: normalizeLabel(item?.mode || "local"),
+          cueLabels: normalizeCueLabels(item?.cueLabels || item?.cue_labels),
+          syntheticFixtureId: normalizeLabel(item?.syntheticFixtureId || item?.synthetic_fixture_id),
+          headline: normalizeLabel(item?.headline || "Metadata-only pattern review"),
+          pattern: normalizeLabel(item?.pattern || "Stored without message text"),
           createdAt: String(item?.createdAt || "").trim(),
-          result: item?.result && typeof item.result === "object" ? item.result : null,
         }))
-        .filter((item) => item.id && item.result)
+        .filter((item) => item.id)
         .slice(-MAX_HISTORY_ITEMS)
     : [];
 }
@@ -114,14 +130,12 @@ export function createAnalysisHistoryStore({
         ...existing.filter((item) => item.id !== String(entry.id || "").trim()),
         {
           id: String(entry.id || "").trim(),
-          inputText: String(entry.inputText || "").trim(),
-          inputPreview: String(entry.inputPreview || "").trim(),
-          headline: String(entry.headline || "").trim(),
-          pattern: String(entry.pattern || "").trim(),
-          summary: String(entry.summary || "").trim(),
-          shareText: String(entry.shareText || "").trim(),
+          mode: normalizeLabel(entry.mode || "local"),
+          cueLabels: normalizeCueLabels(entry.cueLabels || entry.cue_labels),
+          syntheticFixtureId: normalizeLabel(entry.syntheticFixtureId || entry.synthetic_fixture_id),
+          headline: normalizeLabel(entry.headline || "Metadata-only pattern review"),
+          pattern: normalizeLabel(entry.pattern || "Stored without message text"),
           createdAt: String(entry.createdAt || new Date().toISOString()).trim(),
-          result: entry.result && typeof entry.result === "object" ? entry.result : null,
         },
       ];
       return saveItems(next);

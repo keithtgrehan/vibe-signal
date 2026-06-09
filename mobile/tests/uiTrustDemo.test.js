@@ -31,6 +31,35 @@ test("mobile landing uses required trust-first hero and synthetic-first actions"
   assert.match(appText, /accessibilityLiveRegion="assertive"/);
 });
 
+test("mobile app exposes closed-beta QA mode and stable Maestro selectors", () => {
+  const appText = readFileSync(resolve(ROOT, "src/screens/VibeSignalApp.js"), "utf8");
+
+  assert.match(appText, /EXPO_PUBLIC_QA_FIXTURE_MODE/);
+  assert.match(appText, /closed_beta_synthetic/);
+  assert.match(appText, /Synthetic QA/);
+  for (const selector of [
+    "screen.home",
+    "screen.analyze",
+    "screen.results",
+    "screen.legal",
+    "home.synthetic.primary",
+    "home.analyze.cta",
+    "input.conversation",
+    "consent.permission.checkbox",
+    "submit.review",
+    "mode.match",
+    "mode.evidence",
+    "result.synthetic_badge",
+    "result.evidence.section",
+    "result.safe_next_step",
+    "feedback.consent",
+    "legal.tab.privacy",
+    "legal.tab.terms",
+  ]) {
+    assert.equal(appText.includes(selector), true, `missing ${selector}`);
+  }
+});
+
 test("mobile consumer UI avoids developer-facing backend and API detail copy", () => {
   for (const file of ["src/screens/VibeSignalApp.js", "src/screens/ProviderSettingsScreen.js"]) {
     const text = readFileSync(resolve(ROOT, file), "utf8");

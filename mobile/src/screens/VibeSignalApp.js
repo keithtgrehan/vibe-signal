@@ -255,12 +255,24 @@ const SYNTHETIC_DEMOS = [
   },
 ];
 
+const CLOSED_BETA_QA_FIXTURE_MODE =
+  process.env.EXPO_PUBLIC_QA_FIXTURE_MODE === "closed_beta_synthetic";
+
+const DEMO_QA_FIXTURE_IDS = {
+  unclear_ask: "qa_ambiguity_vague_timing_001",
+  pressure_urgency: "qa_pressure_urgency_001",
+  repair_opportunity: "qa_reassurance_directness_001",
+  low_signal_fallback: "qa_low_evidence_context_light_001",
+  boundary_respecting_request: "qa_reassurance_directness_001",
+  overloaded_message: "qa_cognitive_overload_001",
+};
+
 const LEGAL_PAGES = [
-  ["match-disclaimer", "Match"],
-  ["privacy", "Privacy"],
-  ["terms", "Terms"],
-  ["data-deletion", "Deletion"],
-  ["data-export", "Export"],
+  ["match-disclaimer", "Match", "legal.tab.match-disclaimer"],
+  ["privacy", "Privacy", "legal.tab.privacy"],
+  ["terms", "Terms", "legal.tab.terms"],
+  ["data-deletion", "Deletion", "legal.tab.data-deletion"],
+  ["data-export", "Export", "legal.tab.data-export"],
 ];
 
 const FALLBACK_LEGAL = {
@@ -286,6 +298,8 @@ function buildSyntheticResult(demoId) {
     ...demo.result,
     synthetic: true,
     demoTitle: demo.title,
+    qaFixtureId: DEMO_QA_FIXTURE_IDS[demo.id] || demo.id,
+    qaFixtureMode: CLOSED_BETA_QA_FIXTURE_MODE ? "closed_beta_synthetic" : "",
     requiresPrivateConsent: false,
   };
 }
@@ -320,10 +334,10 @@ function PressableText({ children, style, textStyle, disabled = false, ...props 
   );
 }
 
-function Shell({ children }) {
+function Shell({ children, testID }) {
   const isWeb = Platform.OS === "web";
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView testID={testID} style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.keyboardSafe}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -337,6 +351,22 @@ function Shell({ children }) {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function SyntheticQaBadge({ fixtureId = "" }) {
+  const label = CLOSED_BETA_QA_FIXTURE_MODE ? "Synthetic QA" : "Synthetic demo result";
+  if (!CLOSED_BETA_QA_FIXTURE_MODE && !fixtureId) {
+    return null;
+  }
+  return (
+    <Text
+      testID="result.synthetic_badge"
+      accessibilityLabel="Synthetic QA fixture badge"
+      style={styles.syntheticResultPill}
+    >
+      {label}{fixtureId ? `: ${fixtureId}` : ""}
+    </Text>
   );
 }
 
@@ -359,14 +389,17 @@ function Header({ onHome, onLegal }) {
 
 function HomeScreen({ runSyntheticDemo, setScreen, setMode }) {
   return (
-    <Shell>
+    <Shell testID="screen.home">
       <Header onHome={() => setScreen("home")} onLegal={() => setScreen("legal")} />
       <View style={styles.hero}>
+        <SyntheticQaBadge fixtureId={CLOSED_BETA_QA_FIXTURE_MODE ? "closed_beta_synthetic" : ""} />
         <Text style={styles.eyebrow}>Communication support</Text>
         <Text style={styles.heroTitle}>{HERO_COPY.title}</Text>
         <Text style={styles.heroSubtitle}>{HERO_COPY.subtitle}</Text>
         <View style={styles.heroActions}>
           <PressableText
+            testID="home.synthetic.primary"
+            accessibilityLabel="Run primary synthetic example"
             style={styles.primaryButton}
             textStyle={styles.primaryButtonText}
             onPress={() => runSyntheticDemo(SYNTHETIC_DEMOS[0].id)}
@@ -374,6 +407,8 @@ function HomeScreen({ runSyntheticDemo, setScreen, setMode }) {
             {HERO_COPY.primaryCta}
           </PressableText>
           <PressableText
+            testID="home.analyze.cta"
+            accessibilityLabel="Open analysis screen"
             style={styles.secondaryButton}
             textStyle={styles.secondaryButtonText}
             onPress={() => setScreen("analyze")}
@@ -526,7 +561,7 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
   }
 
   return (
-    <Shell>
+    <Shell testID="screen.analyze">
       <Header onHome={() => setScreen("home")} onLegal={() => setScreen("legal")} />
       <PressableText
         style={styles.backButton}
@@ -537,6 +572,7 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
       </PressableText>
 
       <View style={styles.card}>
+        <SyntheticQaBadge fixtureId={CLOSED_BETA_QA_FIXTURE_MODE ? "closed_beta_synthetic" : ""} />
         <Text style={styles.eyebrow}>Pattern review</Text>
         <Text style={styles.screenTitle}>Review observable wording cues</Text>
         <Text style={styles.helperText}>
@@ -560,6 +596,8 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
 
         <View style={styles.segmented}>
           <PressableText
+            testID="mode.match"
+            accessibilityLabel="Use pattern mode"
             style={[styles.segmentButton, mode === "match" && styles.segmentButtonActive]}
             textStyle={[styles.segmentText, mode === "match" && styles.segmentTextActive]}
             onPress={() => setMode("match")}
@@ -567,6 +605,8 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
             Pattern
           </PressableText>
           <PressableText
+            testID="mode.evidence"
+            accessibilityLabel="Use evidence mode"
             style={[styles.segmentButton, mode === "evidence" && styles.segmentButtonActive]}
             textStyle={[styles.segmentText, mode === "evidence" && styles.segmentTextActive]}
             onPress={() => setMode("evidence")}
@@ -577,6 +617,7 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
 
         <Text style={styles.fieldLabel}>Permissioned conversation text</Text>
         <TextInput
+          testID="input.conversation"
           value={text}
           onChangeText={(value) => {
             setText(value);
@@ -610,6 +651,7 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
         </View>
 
         <Pressable
+          testID="consent.permission.checkbox"
           accessibilityRole="checkbox"
           accessibilityState={{ checked: consent }}
           hitSlop={6}
@@ -633,6 +675,8 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
         ) : null}
 
         <PressableText
+          testID="submit.review"
+          accessibilityLabel="Submit pattern review"
           disabled={!canSubmit}
           style={styles.primaryButton}
           textStyle={styles.primaryButtonText}
@@ -650,7 +694,7 @@ function AnalyzeScreen({ mode, runSyntheticDemo, setMode, setResult, setScreen }
 function ResultsScreen({ result, runSyntheticDemo, setScreen, setMode }) {
   if (!result) {
     return (
-      <Shell>
+      <Shell testID="screen.results">
         <Header onHome={() => setScreen("home")} onLegal={() => setScreen("legal")} />
         <View style={styles.card}>
           <Text style={styles.screenTitle}>No result yet</Text>
@@ -667,7 +711,7 @@ function ResultsScreen({ result, runSyntheticDemo, setScreen, setMode }) {
   }
 
   return (
-    <Shell>
+    <Shell testID="screen.results">
       <Header onHome={() => setScreen("home")} onLegal={() => setScreen("legal")} />
       <PressableText
         style={styles.backButton}
@@ -776,11 +820,7 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
   return (
     <>
       <View style={styles.resultHero}>
-        {result?.synthetic ? (
-          <Text style={styles.syntheticResultPill}>
-            Synthetic demo result{result.demoTitle ? `: ${result.demoTitle}` : ""}
-          </Text>
-        ) : null}
+        {result?.synthetic ? <SyntheticQaBadge fixtureId={result.qaFixtureId || result.demoTitle} /> : null}
         <Text style={styles.eyebrow}>Main read</Text>
         <Text style={styles.screenTitle}>{viewModel.mainRead}</Text>
         <Text style={styles.signalPill}>{viewModel.signalStrengthLabel}</Text>
@@ -810,7 +850,7 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
         />
       </View>
 
-      <View style={styles.card}>
+      <View testID="result.evidence.section" style={styles.card}>
         <Text style={styles.eyebrow}>Evidence phrases</Text>
         <Text style={styles.sectionTitle}>Quoted wording behind the read</Text>
         {viewModel.evidenceDetails.map((row) => (
@@ -837,7 +877,7 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
         <Text style={styles.helperText}>{viewModel.cannotInferText}</Text>
       </View>
 
-      <View style={styles.safeNextCard}>
+      <View testID="result.safe_next_step" style={styles.safeNextCard}>
         <Text style={styles.sectionTitle}>Safe next step</Text>
         <Text style={styles.helperText}>{viewModel.safeNextStep}</Text>
       </View>
@@ -853,6 +893,7 @@ function MatchResult({ result, runSyntheticDemo, setScreen, setMode }) {
           Optional metadata-only feedback. No free-text comment or message text is sent.
         </Text>
         <Pressable
+          testID="feedback.consent"
           accessibilityRole="checkbox"
           accessibilityState={{ checked: feedbackConsent }}
           hitSlop={6}
@@ -946,6 +987,7 @@ function EvidenceResult({ result, setScreen, setMode }) {
         </Text>
       </View>
 
+      <View testID="result.evidence.section">
       {rows.map((row, index) => (
         <View style={styles.evidenceCard} key={`${row.evidence_id || row.cue_id}:${index}`}>
           <Text style={styles.evidenceFamily}>
@@ -959,6 +1001,7 @@ function EvidenceResult({ result, setScreen, setMode }) {
           </Text>
         </View>
       ))}
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.disclosureText}>
@@ -1016,7 +1059,7 @@ function LegalScreen({ setScreen }) {
   }, [apiUrl, backendClient, slug]);
 
   return (
-    <Shell>
+    <Shell testID="screen.legal">
       <Header onHome={() => setScreen("home")} onLegal={() => setScreen("legal")} />
       <PressableText
         style={styles.backButton}
@@ -1032,9 +1075,10 @@ function LegalScreen({ setScreen }) {
         <Text style={styles.helperText}>Status: {page.status || "draft_requires_legal_review"}</Text>
 
         <View style={styles.segmented}>
-          {LEGAL_PAGES.map(([nextSlug, label]) => (
+          {LEGAL_PAGES.map(([nextSlug, label, testId]) => (
             <PressableText
               key={nextSlug}
+              testID={testId}
               style={[styles.legalButton, slug === nextSlug && styles.segmentButtonActive]}
               textStyle={[styles.segmentText, slug === nextSlug && styles.segmentTextActive]}
               onPress={() => setSlug(nextSlug)}
