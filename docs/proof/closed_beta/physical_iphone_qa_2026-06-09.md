@@ -1,12 +1,28 @@
 # Physical iPhone QA - 2026-06-09
 
-Status: Pending human run.
+Status: Pending human run. Bundle ID is configured; no physical-device run has been performed in this report.
 
 Required build:
 
+- Bundle ID: `com.vibesignal.app`
 - EAS profile: `qa`
 - API URL: `https://vibe-signal.onrender.com`
 - QA fixture mode: `closed_beta_synthetic`
+
+EAS QA build command:
+
+```bash
+cd "/Users/keith/Documents/New project/vibe-signal/mobile"
+npx eas build --platform ios --profile qa
+```
+
+Run instructions:
+
+1. Confirm the build uses `com.vibesignal.app`.
+2. Install the `qa` internal distribution build on a registered physical iPhone.
+3. Use only built-in synthetic examples or attached synthetic QA fixtures.
+4. Record device/build metadata and pass/fail results below.
+5. Do not add screenshots or recordings unless they contain synthetic fixture content only.
 
 Required metadata:
 

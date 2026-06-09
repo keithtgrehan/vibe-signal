@@ -8,6 +8,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0A0F1C"
     },
+    "ios": {
+      "bundleIdentifier": "com.vibesignal.app"
+    },
     "plugins": [
       "expo-asset",
       "expo-secure-store"
