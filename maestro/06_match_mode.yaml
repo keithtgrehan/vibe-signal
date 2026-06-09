@@ -1,0 +1,17 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    appId: ${APP_ID}
+    clearState: true
+- tapOn:
+    id: home.analyze.cta
+- assertVisible:
+    id: screen.analyze
+- tapOn:
+    id: mode.match
+- assertVisible:
+    id: input.conversation
+- tapOn:
+    id: consent.permission.checkbox
+- tapOn:
+    id: submit.review

@@ -72,6 +72,32 @@ def test_valid_research_only_config_passes() -> None:
     assert "1 research training-ready source" in result.stdout
 
 
+def test_validator_accepts_closed_beta_mode_alias() -> None:
+    result = run_script(VALIDATOR, "--config", str(EXAMPLE), "--mode", "research")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "project_mode=research_only" in result.stdout
+
+
+def test_validator_rejects_private_or_tester_chat_training_sources(tmp_path: Path) -> None:
+    payload = load_example()
+    synthetic = next(row for row in payload["sources"] if row["source_id"] == "synthetic_vibe_matching")
+    private_row = {
+        **synthetic,
+        "source_id": "tester_private_chats",
+        "name": "Tester private chats",
+        "access_notes": "User/tester/private chat content must not be used.",
+        "registry_status": "research_training_allowed",
+    }
+    path = tmp_path / "private_source.yml"
+    path.write_text(yaml.safe_dump({"sources": [private_row]}, sort_keys=False), encoding="utf-8")
+
+    result = run_validator(path)
+
+    assert result.returncode == 1
+    assert "private or tester chat sources are never allowed for Vibe training" in result.stdout
+
+
 def test_commercial_mode_rejects_nc_rows(tmp_path: Path) -> None:
     result = run_validator(write_subset(tmp_path, "dailydialog"), project_mode="commercial")
 

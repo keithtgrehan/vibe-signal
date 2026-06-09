@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 12.0.0",
+    "version": ">= 19.1.0",
     "appVersionSource": "local"
   },
   "build": {
@@ -9,6 +9,7 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://vibe-signal.onrender.com",
+        "EXPO_PUBLIC_QA_FIXTURE_MODE": "",
         "EXPO_PUBLIC_ENABLE_RAW_LOGS": "false",
         "EXPO_PUBLIC_ENABLE_ANALYTICS": "false"
       },
@@ -20,6 +21,19 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://vibe-signal.onrender.com",
+        "EXPO_PUBLIC_QA_FIXTURE_MODE": "closed_beta_synthetic",
+        "EXPO_PUBLIC_ENABLE_RAW_LOGS": "false",
+        "EXPO_PUBLIC_ENABLE_ANALYTICS": "false"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "qa": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://vibe-signal.onrender.com",
+        "EXPO_PUBLIC_QA_FIXTURE_MODE": "closed_beta_synthetic",
         "EXPO_PUBLIC_ENABLE_RAW_LOGS": "false",
         "EXPO_PUBLIC_ENABLE_ANALYTICS": "false"
       }
@@ -28,12 +42,23 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://vibe-signal.onrender.com",
+        "EXPO_PUBLIC_QA_FIXTURE_MODE": "",
+        "EXPO_PUBLIC_ENABLE_RAW_LOGS": "false",
+        "EXPO_PUBLIC_ENABLE_ANALYTICS": "false"
+      }
+    },
+    "testflight": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://vibe-signal.onrender.com",
+        "EXPO_PUBLIC_QA_FIXTURE_MODE": "",
         "EXPO_PUBLIC_ENABLE_RAW_LOGS": "false",
         "EXPO_PUBLIC_ENABLE_ANALYTICS": "false"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {},
+    "testflight": {}
   }
 }

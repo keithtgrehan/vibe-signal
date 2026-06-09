@@ -1,0 +1,15 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    appId: ${APP_ID}
+    clearState: true
+- tapOn:
+    id: home.synthetic.primary
+- assertVisible:
+    id: screen.results
+- assertVisible:
+    id: result.synthetic_badge
+- assertVisible:
+    id: result.evidence.section
+- assertVisible:
+    id: result.safe_next_step

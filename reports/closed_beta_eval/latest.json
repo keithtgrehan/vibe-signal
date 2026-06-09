@@ -1,0 +1,253 @@
+{
+  "fixtures": [
+    {
+      "actual_cues": [
+        "ambiguity",
+        "answer_evasion_pattern",
+        "hedging",
+        "specificity",
+        "specificity_drop"
+      ],
+      "cue_hit": true,
+      "expected_cue": "ambiguity",
+      "expected_span_hit": true,
+      "forbidden_output_violations": [],
+      "id": "qa_ambiguity_vague_timing_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": true,
+      "required_safe_phrase_hits": [
+        "vague"
+      ],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": false
+    },
+    {
+      "actual_cues": [
+        "answer_evasion_pattern",
+        "directness",
+        "pressure",
+        "specificity",
+        "specificity_drop",
+        "urgency"
+      ],
+      "cue_hit": true,
+      "expected_cue": "unanswered_ask",
+      "expected_span_hit": true,
+      "forbidden_output_violations": [],
+      "id": "qa_unanswered_ask_topic_shift_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": true,
+      "required_safe_phrase_hits": [
+        "does not directly answer"
+      ],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": false
+    },
+    {
+      "actual_cues": [
+        "boundary_pressure",
+        "directness",
+        "escalation_risk",
+        "pressure",
+        "specificity"
+      ],
+      "cue_hit": true,
+      "expected_cue": "pressure",
+      "expected_span_hit": true,
+      "forbidden_output_violations": [],
+      "id": "qa_pressure_urgency_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": true,
+      "required_safe_phrase_hits": [
+        "pressure"
+      ],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": false
+    },
+    {
+      "actual_cues": [
+        "boundary_pressure",
+        "escalation_risk",
+        "pressure",
+        "specificity"
+      ],
+      "cue_hit": true,
+      "expected_cue": "boundary_pressure",
+      "expected_span_hit": true,
+      "forbidden_output_violations": [],
+      "id": "qa_boundary_pressure_after_no_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": true,
+      "required_safe_phrase_hits": [
+        "boundary"
+      ],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": false
+    },
+    {
+      "actual_cues": [
+        "conflict",
+        "repair_opportunity"
+      ],
+      "cue_hit": true,
+      "expected_cue": "escalation",
+      "expected_span_hit": false,
+      "forbidden_output_violations": [],
+      "id": "qa_escalation_repair_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": true,
+      "required_safe_phrase_hits": [
+        "pause"
+      ],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": false
+    },
+    {
+      "actual_cues": [
+        "cognitive_load",
+        "overloaded_message"
+      ],
+      "cue_hit": true,
+      "expected_cue": "cognitive_overload",
+      "expected_span_hit": true,
+      "forbidden_output_violations": [],
+      "id": "qa_cognitive_overload_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": false,
+      "required_safe_phrase_hits": [],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": false
+    },
+    {
+      "actual_cues": [
+        "directness",
+        "specificity",
+        "urgency"
+      ],
+      "cue_hit": false,
+      "expected_cue": "specificity_drop",
+      "expected_span_hit": false,
+      "forbidden_output_violations": [],
+      "id": "qa_specificity_drop_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": false,
+      "required_safe_phrase_hits": [],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": true
+    },
+    {
+      "actual_cues": [
+        "directness",
+        "hedging",
+        "reassurance",
+        "specificity"
+      ],
+      "cue_hit": true,
+      "expected_cue": "reassurance_directness",
+      "expected_span_hit": false,
+      "forbidden_output_violations": [],
+      "id": "qa_reassurance_directness_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": true,
+      "required_safe_phrase_hits": [
+        "direct"
+      ],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": false
+    },
+    {
+      "actual_cues": [
+        "directness",
+        "specificity"
+      ],
+      "cue_hit": false,
+      "expected_cue": "backend_unreachable",
+      "expected_span_hit": true,
+      "forbidden_output_violations": [],
+      "id": "qa_backend_unreachable_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": false,
+      "required_safe_phrase_hits": [],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": true
+    },
+    {
+      "actual_cues": [
+        "directness"
+      ],
+      "cue_hit": false,
+      "expected_cue": "safety_fallback",
+      "expected_span_hit": false,
+      "forbidden_output_violations": [],
+      "id": "qa_safety_fallback_hidden_intent_001",
+      "low_evidence_fallback": false,
+      "private_data_read": false,
+      "required_safe_phrase_hit": false,
+      "required_safe_phrase_hits": [],
+      "result_state": "ready",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": true
+    },
+    {
+      "actual_cues": [
+        "low_signal"
+      ],
+      "cue_hit": true,
+      "expected_cue": "low_evidence",
+      "expected_span_hit": true,
+      "forbidden_output_violations": [],
+      "id": "qa_low_evidence_context_light_001",
+      "low_evidence_fallback": true,
+      "private_data_read": false,
+      "required_safe_phrase_hit": true,
+      "required_safe_phrase_hits": [
+        "Not enough context"
+      ],
+      "result_state": "low_signal",
+      "synthetic": true,
+      "trained": false,
+      "unclear_output": false
+    }
+  ],
+  "generated_at": "2026-06-09T09:10:03.042136+00:00",
+  "private_data_read": false,
+  "source": "synthetic_closed_beta_fixtures",
+  "summary": {
+    "cue_hits": 8,
+    "expected_span_hits": 7,
+    "fixture_count": 11,
+    "forbidden_output_violations": 0,
+    "low_evidence_fallbacks": 1,
+    "required_safe_phrase_hits": 7,
+    "unclear_outputs": 3
+  },
+  "trained": false
+}

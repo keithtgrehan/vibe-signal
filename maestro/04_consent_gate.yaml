@@ -1,0 +1,16 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    appId: ${APP_ID}
+    clearState: true
+- tapOn:
+    id: home.analyze.cta
+- assertVisible:
+    id: screen.analyze
+- tapOn:
+    id: input.conversation
+- inputText: "self: Can you confirm by tonight?\nother: Things are busy right now."
+- tapOn:
+    id: submit.review
+- assertVisible:
+    id: consent.permission.checkbox

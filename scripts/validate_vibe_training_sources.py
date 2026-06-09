@@ -40,6 +40,11 @@ RIGHTS_TIERS = {
     "gpl_3_local_nc_research",
 }
 PROJECT_MODES = {"research_only", "commercial"}
+PROJECT_MODE_ALIASES = {
+    "research": "research_only",
+    "research_only": "research_only",
+    "commercial": "commercial",
+}
 COMMERCIAL_BLOCKED_TIERS = {
     "NC",
     "manual-review",
@@ -76,6 +81,16 @@ UNSAFE_SAFE_USE_TERMS = (
     "infer neurotype",
     "neurotype inference",
     "manipulation",
+)
+PRIVATE_OR_TESTER_CHAT_TERMS = (
+    "private_chat",
+    "private chats",
+    "tester_private",
+    "tester messages",
+    "tester chats",
+    "user chats",
+    "user/tester/private chat",
+    "raw private",
 )
 
 
@@ -117,6 +132,19 @@ def _safe_use_has_unsafe_claim(value: Any) -> bool:
     return any(term in text for term in UNSAFE_SAFE_USE_TERMS)
 
 
+def _is_private_or_tester_chat_source(row: dict[str, Any]) -> bool:
+    text = " ".join(
+        str(row.get(field, ""))
+        for field in ("source_id", "name")
+    ).lower()
+    normalized = text.replace("-", "_")
+    return any(term in text or term in normalized for term in PRIVATE_OR_TESTER_CHAT_TERMS)
+
+
+def normalize_project_mode(value: str) -> str:
+    return PROJECT_MODE_ALIASES.get(str(value or "").strip(), str(value or "").strip())
+
+
 def _is_research_only_usage(row: dict[str, Any]) -> bool:
     usage = str(row.get("usage", "")).strip().lower().replace("-", "_")
     return usage == "research_only"
@@ -150,6 +178,7 @@ def is_local_research_augmentation_ready(row: dict[str, Any]) -> bool:
 
 
 def validate_rows(rows: list[dict[str, Any]], project_mode: str) -> list[str]:
+    project_mode = normalize_project_mode(project_mode)
     if project_mode not in PROJECT_MODES:
         return [f"invalid project mode {project_mode!r}"]
 
@@ -198,6 +227,8 @@ def validate_rows(rows: list[dict[str, Any]], project_mode: str) -> list[str]:
         training_allowed = row.get("training_use_allowed") is True
         research_only = row.get("research_only") is True
         local_augmentation_allowed = is_local_research_augmentation_ready(row)
+        if training_allowed and _is_private_or_tester_chat_source(row):
+            errors.append(f"{label}: private or tester chat sources are never allowed for Vibe training")
         if training_allowed and source_id != "synthetic_vibe_matching" and not local_augmentation_allowed:
             errors.append(f"{label}: non-synthetic training-ready sources must use an approved local research augmentation gate")
         if training_allowed and source_id == "synthetic_vibe_matching" and rights_tier != "synthetic_fixture":
@@ -228,6 +259,7 @@ def validate_rows(rows: list[dict[str, Any]], project_mode: str) -> list[str]:
 
 
 def build_summary(path: Path, project_mode: str) -> dict[str, Any]:
+    project_mode = normalize_project_mode(project_mode)
     rows = source_rows(read_structured(path))
     errors = validate_rows(rows, project_mode)
     return {
@@ -246,13 +278,15 @@ def main(argv: list[str] | None = None) -> int:
     config_group.add_argument("--config", dest="config")
     config_group.add_argument("--path", dest="config", help=argparse.SUPPRESS)
     parser.add_argument("--project-mode", choices=sorted(PROJECT_MODES), default="research_only")
+    parser.add_argument("--mode", choices=sorted(PROJECT_MODE_ALIASES), help="Alias for --project-mode.")
     parser.add_argument("--json-out")
     args = parser.parse_args(argv)
+    project_mode = normalize_project_mode(args.mode or args.project_mode)
 
     try:
-        summary = build_summary(Path(args.config), args.project_mode)
+        summary = build_summary(Path(args.config), project_mode)
     except Exception as exc:
-        summary = {"status": "invalid", "project_mode": args.project_mode, "row_count": 0, "training_ready_source_ids": [], "errors": [str(exc)]}
+        summary = {"status": "invalid", "project_mode": project_mode, "row_count": 0, "training_ready_source_ids": [], "errors": [str(exc)]}
 
     if args.json_out:
         out = Path(args.json_out)

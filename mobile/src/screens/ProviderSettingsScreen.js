@@ -236,6 +236,17 @@ export default function ProviderSettingsScreen() {
     setShareCardPrepared(false);
   }
 
+  function cueLabelsFromResult(result = {}) {
+    return [
+      result.analysisMode,
+      result.signalLabel,
+      ...(Array.isArray(result.highlights) ? result.highlights : []),
+    ]
+      .map((item) => String(item || "").trim())
+      .filter(Boolean)
+      .slice(0, 5);
+  }
+
   function presentResult(result, { staged = false } = {}) {
     const safeResult = sanitizeLocalAnalysisResult(result || {});
     setShareCardPrepared(false);
@@ -299,13 +310,10 @@ export default function ProviderSettingsScreen() {
       );
       const recent = await historyStore.addAnalysis({
         id: analysisId,
-        inputText: normalizedInput,
-        inputPreview: normalizedInput.slice(0, 120),
+        mode: result.result.analysisMode || "local",
+        cueLabels: cueLabelsFromResult(result.result),
         headline: result.result.headline,
         pattern: result.result.pattern,
-        summary: result.result.summary,
-        shareText: result.result.shareText,
-        result: result.result,
       });
       setRecentAnalyses(recent);
       return;
@@ -879,9 +887,11 @@ export default function ProviderSettingsScreen() {
                           buildPressableStyle(styles.historyRow, styles.buttonPressedLight, false, pressed)
                         }
                         onPress={() => {
-                          setAnalysisText(item.inputText || item.inputPreview);
-                          presentResult(item.result, { staged: false });
-                          setAnalysisStatusMessage("Recent pattern review loaded.");
+                          setAnalysisText("");
+                          clearCurrentResult();
+                          setAnalysisStatusMessage(
+                            "Recent metadata loaded. Message text was not stored on this device."
+                          );
                         }}
                       >
                         <Text style={styles.historyHeadline}>{item.headline}</Text>
